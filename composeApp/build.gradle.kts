@@ -68,7 +68,9 @@ kotlin {
 
             implementation(libs.glide.compose)
             //implementation("com.github.skydoves:landscapist-glide:2.4.7")
+            implementation(libs.xmlutil)
 
+            implementation(libs.kotlinx.datetime)
         }
         iosMain.dependencies {
             implementation(libs.ktor.client.darwin)

@@ -2,7 +2,9 @@ package fi.infinitygrow.gpslocation.data.mapper
 
 import fi.infinitygrow.gpslocation.data.model.WeatherResponse
 import fi.infinitygrow.gpslocation.data.model.forecast.ForecastResponse
+import fi.infinitygrow.gpslocation.data.model.observation.ObservationDTO
 import fi.infinitygrow.gpslocation.domain.model.ForeCast
+import fi.infinitygrow.gpslocation.domain.model.ObservationData
 import fi.infinitygrow.gpslocation.domain.model.Weather
 
 
@@ -23,6 +25,21 @@ fun ForecastResponse.toDomain():List<ForeCast>{
         )
     }
 }
+
+//fun ObservationDTO.toDomain():List<ObservationData>{
+//    return this.list.map {
+//        ForeCast(
+//            date = formatDate(it.dt.toLong()),
+//            temperature = it.main.temp.minus(273).toString(),
+//            iconUrl = getImageUrl(it.weather.first().icon)
+//        )
+//    }
+//}
+
+//class ObservationResponse {
+//
+//    val list: Any
+//}
 
 
 expect fun formatDate(millis:Long):String

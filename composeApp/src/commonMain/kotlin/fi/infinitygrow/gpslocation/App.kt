@@ -126,6 +126,7 @@ fun WeatherApp(
                     println("Location received: $location")
                     viewModel.getCurrentWeatherInfo(it.latitude, it.longitude)
                     viewModel.getForecastInfo(it.latitude, it.longitude)
+                    viewModel.getObservation(it.latitude, it.longitude)
                 }
             } else {
                 locationService.requestLocationPermission { granted ->
@@ -135,6 +136,7 @@ fun WeatherApp(
                             location?.let {
                                 viewModel.getCurrentWeatherInfo(it.latitude, it.longitude)
                                 viewModel.getForecastInfo(it.latitude, it.longitude)
+                                viewModel.getObservation(it.latitude, it.longitude)
                             }
                         }
                     }
@@ -181,17 +183,55 @@ fun WeatherApp(
         }
 
         Spacer(modifier = Modifier.height(24.dp))
-        var i = 0
+        uiState.observationInfo?.let { list ->
+            LazyColumn {
+                items(list) { observation ->
+                    Column(
+                        modifier = Modifier
+                            .padding(horizontal = 12.dp, vertical = 8.dp)
+                            .fillMaxWidth()
+                            .background(Color.White, shape = MaterialTheme.shapes.medium)
+                            .padding(horizontal = 12.dp, vertical = 4.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Row{
+                            Text(text = observation.name)
+                            Spacer(modifier = Modifier.weight(1f))
+                            Text(text = formatValue(observation.temperature.toFloat()) + " C")
+                            Spacer(modifier = Modifier.weight(1f))
+                            Text(text = observation.unixTime.toString())
+//                        GlideImage()
+//                        (
+//                            model = forecast.iconUrl,
+//                            contentDescription = "Forecast Icon",
+//                            modifier = Modifier.size(30.dp)
+//                        )
+                            Spacer(modifier = Modifier.width(12.dp))
+                        }
+                        Row {
+                            Text(text = observation.windSpeed.toString() + " m/s")
+                            Spacer(modifier = Modifier.weight(1f))
+                            Text(text = observation.windMax.toString() + " m/s")
+                            Spacer(modifier = Modifier.weight(1f))
+                            Text(text = observation.windDirection.toString() + " °")
+                        }
+                    }
+                }
+            }
+
+        }
+
+        Spacer(modifier = Modifier.height(24.dp))
         uiState.forecastInfo?.let { list ->
             LazyColumn(modifier = Modifier.fillMaxWidth()) {
-//                item {
-//                    Text(
-//                        modifier = Modifier.fillMaxWidth(),
-//                        textAlign = TextAlign.Center,
-//                        text = "Upcoming forecast",
-//                        style = MaterialTheme.typography.headlineSmall.copy(color = Color.White)
-//                    )
-//                }
+                item {
+                    Text(
+                        modifier = Modifier.fillMaxWidth(),
+                        textAlign = TextAlign.Center,
+                        text = "Upcoming forecast",
+                        style = MaterialTheme.typography.headlineSmall.copy(color = Color.White)
+                    )
+                }
                 items(list) { forecast ->
                     Row(
                         modifier = Modifier
@@ -216,6 +256,7 @@ fun WeatherApp(
                 }
             }
         }
+
     }
 }
 
