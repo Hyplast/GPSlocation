@@ -39,6 +39,9 @@ import gpslocation.composeapp.generated.resources.compose_multiplatform
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.launch
+import kotlinx.datetime.Instant
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.toLocalDateTime
 import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
 import kotlin.math.round
@@ -199,7 +202,7 @@ fun WeatherApp(
                             Spacer(modifier = Modifier.weight(1f))
                             Text(text = formatValue(observation.temperature.toFloat()) + " C")
                             Spacer(modifier = Modifier.weight(1f))
-                            Text(text = observation.unixTime.toString())
+                            Text(text = observation.unixTime.convertUnixTimeToISO8601())
 //                        GlideImage()
 //                        (
 //                            model = forecast.iconUrl,
@@ -258,6 +261,19 @@ fun WeatherApp(
         }
 
     }
+}
+
+fun Long.convertUnixTimeToISO8601(): String {
+    val dateTime = Instant.fromEpochSeconds(this)
+        .toLocalDateTime(TimeZone.currentSystemDefault())  // Convert to local timezone
+
+
+    return "${dateTime.year}-${dateTime.monthNumber.toString().padStart(2, '0')}-${dateTime.dayOfMonth.toString().padStart(2, '0')}T" +
+            "${dateTime.hour.toString().padStart(2, '0')}:${dateTime.minute.toString().padStart(2, '0')}:${dateTime.second.toString().padStart(2, '0')}"
+//    return "%04d-%02d-%02dT%02d:%02d:%02d".format(
+//        dateTime.year, dateTime.monthNumber, dateTime.dayOfMonth,
+//        dateTime.hour, dateTime.minute, dateTime.second
+//    )
 }
 
 fun formatValue(float: Float): String {

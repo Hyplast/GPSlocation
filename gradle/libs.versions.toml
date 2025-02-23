@@ -84,7 +84,7 @@ glide-compose = { module = "com.github.skydoves:landscapist-glide", version.ref 
 
 accompanist-permissions = { module = "com.google.accompanist:accompanist-permissions", version.ref = "accompanistPermissions" }
 
-kotlinx-datetime = { module = "org.jetbrains.kotlin:kotlinx-datetime", version.ref = "datetime" }
+kotlinx-datetime = { module = "org.jetbrains.kotlinx:kotlinx-datetime", version.ref = "datetime" }
 
 [plugins]
 androidApplication = { id = "com.android.application", version.ref = "agp" }
