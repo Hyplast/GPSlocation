@@ -2,9 +2,10 @@ package fi.infinitygrow.gpslocation.data.mapper
 
 import fi.infinitygrow.gpslocation.data.model.observation.ObservationDTO
 import fi.infinitygrow.gpslocation.domain.model.ObservationData
+import fi.infinitygrow.gpslocation.presentation.permission.Location
 import nl.adaptivity.xmlutil.serialization.XML
 
-fun deserializeObservation(xmlString: String): List<ObservationData> {
+fun deserializeObservation(xmlString: String, fetchedFromLocation: Location): List<ObservationData> {
     return try {
         val xml = XML {
             defaultPolicy {
@@ -32,8 +33,22 @@ fun deserializeObservation(xmlString: String): List<ObservationData> {
         val measurements = cleanString(observation.data.gridSeriesObservation.result.multiPointCoverage.rangeSet.dataBlock.tupleList)
             .trim()
             .split(" ")
-            .chunked(5) { (temp, wind, windMax, windDir, pressure) ->
-                listOf(temp.toDouble(), wind.toDouble(), windMax.toDouble(), windDir.toDouble(), pressure.toDouble())
+            .chunked(13)
+            .map { chunk -> //(temp, wind, windGust, windDir, humidity, dewPoint, rainAmount, rainIntensity, snowAmount, pressure, visibility, clouds, autoWeather) ->
+                listOf(
+                    chunk[0].toDouble(),
+                    chunk[1].toDouble(),
+                    chunk[2].toDouble(),
+                    chunk[3].toDouble(),
+                    chunk[4].toDouble(),
+                    chunk[5].toDouble(),
+                    chunk[6].toDouble(),
+                    chunk[7].toDouble(),
+                    chunk[8].toDouble(),
+                    chunk[9].toDouble(),
+                    chunk[10].toDouble(),
+                    chunk[11].toDouble(),
+                    chunk[12].toDouble())
             }
 
         // Step 1: Count occurrences of each (longitude, latitude)
@@ -67,20 +82,28 @@ fun deserializeObservation(xmlString: String): List<ObservationData> {
                     observationDataList.add(
                         ObservationData(
                             name = names[i],
-                            coordinates = location,
+                            coordinates = fetchedFromLocation,
                             longitude = measurement.first,
                             latitude = measurement.second,
                             unixTime = measurement.third,
                             temperature = measurements[index][0],
                             windSpeed = measurements[index][1],
-                            windMax = measurements[index][2],
+                            windGust = measurements[index][2],
                             windDirection = measurements[index][3],
-                            pressure = measurements[index][4]
+                            humidity = measurements[index][4],
+                            dewPoint = measurements[index][5],
+                            precipitationAmount = measurements[index][6],
+                            precipitationIntensity = measurements[index][7],
+                            snowDepth = measurements[index][8],
+                            pressure = measurements[index][9],
+                            visibility = measurements[index][10],
+                            cloudAmount = measurements[index][11],
+                            presentWeather = measurements[index][12]
                         )
                     )
                 }
             }
-
+//(temp, wind, windGust, windDir, humidity, dewPoint, rainAmount, rainIntensity, snowAmount, pressure, visibility, clouds, autoWeather)
             measurementIndex += count  // Move index forward
         }
 

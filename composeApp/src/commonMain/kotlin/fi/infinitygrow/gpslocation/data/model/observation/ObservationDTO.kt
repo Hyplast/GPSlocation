@@ -21,12 +21,12 @@ data class ObservationDTO(
     data class WfsMember(
         //@XmlSerialName("GridSeriesObservation","","omso",)
         //@SerialName("GridSeriesObservation")
-        @XmlSerialName("GridSeriesObservation","http://inspire.ec.europa.eu/schemas/omso/3.0","omso",)
+        @XmlSerialName("GridSeriesObservation","http://inspire.ec.europa.eu/schemas/omso/3.0","omso")
         val gridSeriesObservation: GridSeriesObservation
     )
 
     @Serializable
-    @XmlSerialName("GridSeriesObservation","http://inspire.ec.europa.eu/schemas/omso/3.0","omso",)
+    @XmlSerialName("GridSeriesObservation","http://inspire.ec.europa.eu/schemas/omso/3.0","omso")
     data class GridSeriesObservation(
         @XmlSerialName("phenomenonTime","http://www.opengis.net/om/2.0", "om")
         val phenomenonTime: PhenomenonTime,

@@ -10,6 +10,7 @@ import platform.CoreLocation.kCLAuthorizationStatusAuthorizedWhenInUse
 import platform.CoreLocation.kCLAuthorizationStatusNotDetermined
 import platform.darwin.NSObject
 
+@Suppress("EXPECT_ACTUAL_CLASSIFIERS_ARE_IN_BETA_WARNING")
 actual class LocationService  {
 
     private val locationManager = CLLocationManager()

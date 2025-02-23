@@ -2,9 +2,7 @@ package fi.infinitygrow.gpslocation.data.mapper
 
 import fi.infinitygrow.gpslocation.data.model.WeatherResponse
 import fi.infinitygrow.gpslocation.data.model.forecast.ForecastResponse
-import fi.infinitygrow.gpslocation.data.model.observation.ObservationDTO
 import fi.infinitygrow.gpslocation.domain.model.ForeCast
-import fi.infinitygrow.gpslocation.domain.model.ObservationData
 import fi.infinitygrow.gpslocation.domain.model.Weather
 
 

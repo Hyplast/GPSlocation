@@ -2,6 +2,7 @@ package fi.infinitygrow.gpslocation.data.remote
 
 import fi.infinitygrow.gpslocation.data.mapper.deserializeObservation
 import fi.infinitygrow.gpslocation.domain.model.ObservationData
+import fi.infinitygrow.gpslocation.presentation.permission.Location
 import io.ktor.client.HttpClient
 import io.ktor.client.request.get
 import io.ktor.client.statement.bodyAsText
@@ -21,15 +22,16 @@ class KtorFmiApiService(
 ): FmiApiService {
 
     override suspend fun observation(
-        latitude: Double, longitude: Double
+        longitude: Double, latitude: Double
     ): List<ObservationData> {
         return try {
-            val bbox = "${(longitude - 0.4)},${(latitude - 0.4)},${(longitude + 0.4)},${(latitude + 0.4)}"
+            val bbox = "${(latitude - 0.4)},${(longitude - 0.4)},${(latitude + 0.4)},${(longitude + 0.4)}"
             val requestBuilder = FMIRequestBuilder()
             val url = requestBuilder.buildUrl(bbox)
             val response = client.get(url)
             val xmlString = response.bodyAsText()
-            deserializeObservation(xmlString)
+            val fetchedFromLocation = Location(latitude, longitude)
+            deserializeObservation(xmlString, fetchedFromLocation)
         } catch (e: Exception) {
             e.printStackTrace()
             emptyList()
@@ -59,7 +61,7 @@ class FMIRequestBuilder {
         "version" to "2.0.0",
         "request" to "getFeature",
         "storedquery_id" to "fmi::observations::weather::multipointcoverage",
-        "parameters" to "t2m,ws_10min,wg_10min,wd_10min,p_sea",
+        //"parameters" to "t2m,ws_10min,wg_10min,wd_10min,p_sea",
         "starttime" to time.second,
         "endtime" to time.first,
         "maxlocations" to "1"
