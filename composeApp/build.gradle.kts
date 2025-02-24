@@ -1,3 +1,4 @@
+import org.jetbrains.compose.ExperimentalComposeLibrary
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 
@@ -71,6 +72,14 @@ kotlin {
             implementation(libs.xmlutil)
 
             implementation(libs.kotlinx.datetime)
+        }
+        commonTest.dependencies {
+            implementation(libs.kotlin.test)
+            implementation(kotlin("test-annotations-common"))
+            implementation(libs.assertk)
+
+            @OptIn(ExperimentalComposeLibrary::class)
+            implementation(compose.uiTest)
         }
         iosMain.dependencies {
             implementation(libs.ktor.client.darwin)

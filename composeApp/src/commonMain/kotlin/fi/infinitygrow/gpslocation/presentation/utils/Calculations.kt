@@ -12,6 +12,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.unit.dp
 import gpslocation.composeapp.generated.resources.Res
+import gpslocation.composeapp.generated.resources.arrow_upwards
 import gpslocation.composeapp.generated.resources.compose_multiplatform
 import org.jetbrains.compose.resources.painterResource
 import kotlin.math.*
@@ -24,7 +25,7 @@ fun CompassArrow(bearing: Double) {
             .background(Color.White, CircleShape)
     ) {
         Image(
-            painter = painterResource(Res.drawable.compose_multiplatform),
+            painter = painterResource(Res.drawable.arrow_upwards),
             contentDescription = "Wind direction arrow",
             modifier = Modifier
                 .fillMaxSize()

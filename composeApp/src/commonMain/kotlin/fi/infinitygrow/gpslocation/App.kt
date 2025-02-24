@@ -189,11 +189,13 @@ fun WeatherApp(
 
         PullToRefreshBox(
             isRefreshing = isRefreshing,
-            onRefresh = { refreshWeather() }
+            onRefresh = {
+                isRefreshing = true
+                refreshWeather() }
         ) {
 
         uiState.observationInfo?.let { list ->
-
+            isRefreshing = false
             LazyColumn {
                 items(list) { observation ->
                     val validRows = listOf(

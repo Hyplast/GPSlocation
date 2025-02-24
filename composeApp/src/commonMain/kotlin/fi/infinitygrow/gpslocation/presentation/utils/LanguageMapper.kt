@@ -1,7 +1,89 @@
 package fi.infinitygrow.gpslocation.presentation.utils
 
+import androidx.compose.runtime.Composable
 import fi.infinitygrow.gpslocation.domain.model.ObservationData
 import fi.infinitygrow.gpslocation.presentation.permission.Location
+import gpslocation.composeapp.generated.resources.Res
+import gpslocation.composeapp.generated.resources.weather_code_0
+import gpslocation.composeapp.generated.resources.weather_code_1
+import gpslocation.composeapp.generated.resources.weather_code_10
+import gpslocation.composeapp.generated.resources.weather_code_11
+import gpslocation.composeapp.generated.resources.weather_code_12
+import gpslocation.composeapp.generated.resources.weather_code_18
+import gpslocation.composeapp.generated.resources.weather_code_2
+import gpslocation.composeapp.generated.resources.weather_code_20
+import gpslocation.composeapp.generated.resources.weather_code_21
+import gpslocation.composeapp.generated.resources.weather_code_22
+import gpslocation.composeapp.generated.resources.weather_code_23
+import gpslocation.composeapp.generated.resources.weather_code_24
+import gpslocation.composeapp.generated.resources.weather_code_25
+import gpslocation.composeapp.generated.resources.weather_code_26
+import gpslocation.composeapp.generated.resources.weather_code_27
+import gpslocation.composeapp.generated.resources.weather_code_28
+import gpslocation.composeapp.generated.resources.weather_code_29
+import gpslocation.composeapp.generated.resources.weather_code_3
+import gpslocation.composeapp.generated.resources.weather_code_30
+import gpslocation.composeapp.generated.resources.weather_code_31
+import gpslocation.composeapp.generated.resources.weather_code_32
+import gpslocation.composeapp.generated.resources.weather_code_33
+import gpslocation.composeapp.generated.resources.weather_code_34
+import gpslocation.composeapp.generated.resources.weather_code_35
+import gpslocation.composeapp.generated.resources.weather_code_4
+import gpslocation.composeapp.generated.resources.weather_code_40
+import gpslocation.composeapp.generated.resources.weather_code_41
+import gpslocation.composeapp.generated.resources.weather_code_42
+import gpslocation.composeapp.generated.resources.weather_code_43
+import gpslocation.composeapp.generated.resources.weather_code_44
+import gpslocation.composeapp.generated.resources.weather_code_45
+import gpslocation.composeapp.generated.resources.weather_code_46
+import gpslocation.composeapp.generated.resources.weather_code_47
+import gpslocation.composeapp.generated.resources.weather_code_48
+import gpslocation.composeapp.generated.resources.weather_code_5
+import gpslocation.composeapp.generated.resources.weather_code_50
+import gpslocation.composeapp.generated.resources.weather_code_51
+import gpslocation.composeapp.generated.resources.weather_code_52
+import gpslocation.composeapp.generated.resources.weather_code_53
+import gpslocation.composeapp.generated.resources.weather_code_54
+import gpslocation.composeapp.generated.resources.weather_code_55
+import gpslocation.composeapp.generated.resources.weather_code_56
+import gpslocation.composeapp.generated.resources.weather_code_57
+import gpslocation.composeapp.generated.resources.weather_code_58
+import gpslocation.composeapp.generated.resources.weather_code_60
+import gpslocation.composeapp.generated.resources.weather_code_61
+import gpslocation.composeapp.generated.resources.weather_code_62
+import gpslocation.composeapp.generated.resources.weather_code_63
+import gpslocation.composeapp.generated.resources.weather_code_64
+import gpslocation.composeapp.generated.resources.weather_code_65
+import gpslocation.composeapp.generated.resources.weather_code_66
+import gpslocation.composeapp.generated.resources.weather_code_67
+import gpslocation.composeapp.generated.resources.weather_code_68
+import gpslocation.composeapp.generated.resources.weather_code_70
+import gpslocation.composeapp.generated.resources.weather_code_71
+import gpslocation.composeapp.generated.resources.weather_code_72
+import gpslocation.composeapp.generated.resources.weather_code_73
+import gpslocation.composeapp.generated.resources.weather_code_74
+import gpslocation.composeapp.generated.resources.weather_code_75
+import gpslocation.composeapp.generated.resources.weather_code_76
+import gpslocation.composeapp.generated.resources.weather_code_77
+import gpslocation.composeapp.generated.resources.weather_code_78
+import gpslocation.composeapp.generated.resources.weather_code_80
+import gpslocation.composeapp.generated.resources.weather_code_81
+import gpslocation.composeapp.generated.resources.weather_code_82
+import gpslocation.composeapp.generated.resources.weather_code_83
+import gpslocation.composeapp.generated.resources.weather_code_84
+import gpslocation.composeapp.generated.resources.weather_code_85
+import gpslocation.composeapp.generated.resources.weather_code_86
+import gpslocation.composeapp.generated.resources.weather_code_87
+import gpslocation.composeapp.generated.resources.weather_code_89
+import gpslocation.composeapp.generated.resources.weather_code_90
+import gpslocation.composeapp.generated.resources.weather_code_91
+import gpslocation.composeapp.generated.resources.weather_code_92
+import gpslocation.composeapp.generated.resources.weather_code_93
+import gpslocation.composeapp.generated.resources.weather_code_94
+import gpslocation.composeapp.generated.resources.weather_code_95
+import gpslocation.composeapp.generated.resources.weather_code_96
+import gpslocation.composeapp.generated.resources.weather_code_99
+import org.jetbrains.compose.resources.stringResource
 import kotlin.math.roundToInt
 
 
@@ -19,29 +101,30 @@ import kotlin.math.roundToInt
 //            " Pilvenpohjat ${calculateCloudBaseHeight(data.temperature,data.dewPoint,0.0).roundToNearestHundred()} metriä."
 //}
 
+@Composable
 fun constructLanguageString(data: ObservationData?, location: Location): String? {
     if (data == null) return null
 
-    println("Construct language string.")
-    println(data.latitude)
-    println(data.longitude)
-    println(location.latitude)
-    println(location.longitude)
+//    println("Construct language string.")
+//    println(data.latitude)
+//    println(data.longitude)
+//    println(location.latitude)
+//    println(location.longitude)
 
     val dist = getDistance(data.longitude, data.latitude, location.longitude, location.latitude)
         .takeIf { it.isFinite() }?.roundToInt()
 
-    val bear = getBearing(data.latitude, data.longitude, location.latitude, location.longitude)
+    val bear = getBearing(location.longitude, location.latitude, data.longitude, data.latitude)
         .takeIf { it.isFinite() }?.let { bearingToDirection(it) }
 
     val parts = mutableListOf<String>()
 
-    parts.add("Uusi havainto.")
-    dist?.let { parts.add("Etäisyys $it kilometriä") }
+    parts.add(data.name)
+    dist?.let { parts.add("Etäisyys $it kilometriä.") }
     bear?.let { parts.add(it) }
 
     data.precipitationIntensity.takeIf { it.isFinite() && it != 0.0 }?.let {
-        parts.add("sadetta $it millimetriä tunnissa")
+        parts.add("sadetta $it millimetriä.")
     }
 
     data.windSpeed.takeIf { it.isFinite() }?.roundToInt()?.let {
@@ -60,6 +143,12 @@ fun constructLanguageString(data: ObservationData?, location: Location): String?
         .takeIf { it.isFinite() }
         ?.roundToNearestHundred()
         ?.let { parts.add("Pilvenpohjat $it metriä.") }
+
+    data.pressure.takeIf { it.isFinite() }?.let { pressure ->
+        parts.add("Lentopinnan 65 korkeus ${calculateAltitude(data.temperature + 275.15, 1981.2, pressure * 100).toInt()} metriä.")
+        parts.add("Lentopinnan 95 korkeus ${calculateAltitude(data.temperature + 275.15, 2895.6, pressure * 100).toInt()} metriä.")
+    }
+
 
     data.presentWeather.takeIf { it.isFinite() }?.let {
         parts.add(getWeatherDescription(it.toInt()))
@@ -95,90 +184,91 @@ private fun Double?.roundToNearestHundred(): Int? {
     return null
 }
 
+@Composable
 fun getWeatherDescription(code: Int): String {
     // Remove first digit if it's 1 and the code is 3 digits
-    val normalizedCode = if (code >= 100 && code < 200) code % 100 else code
+    val normalizedCode = if (code in 100..199) code % 100 else code
 
     return when (normalizedCode) {
-        0 -> "No significant weather observed"
-        1 -> "Clouds generally dissolving or becoming less developed"
-        2 -> "State of sky on the whole unchanged"
-        3 -> "Clouds generally forming or developing"
-        4 -> "Haze or smoke, or dust in suspension in the air, visibility >= 1 km"
-        5 -> "Haze or smoke, or dust in suspension in the air, visibility < 1 km"
-        10 -> "Mist"
-        11 -> "Diamond dust"
-        12 -> "Distant lightning"
-        18 -> "Squalls"
-        20 -> "Fog (preceding hour)"
-        21 -> "Precipitation (preceding hour)"
-        22 -> "Drizzle or snow grains (preceding hour)"
-        23 -> "Rain (preceding hour)"
-        24 -> "Snow (preceding hour)"
-        25 -> "Freezing drizzle or freezing rain (preceding hour)"
-        26 -> "Thunderstorm (preceding hour)"
-        27 -> "Blowing or drifting snow or sand"
-        28 -> "Blowing or drifting snow or sand, visibility >= 1 km"
-        29 -> "Blowing or drifting snow or sand, visibility < 1 km"
-        30 -> "Fog"
-        31 -> "Fog or ice fog in patches"
-        32 -> "Fog or ice fog, becoming thinner"
-        33 -> "Fog or ice fog, no change"
-        34 -> "Fog or ice fog, becoming thicker"
-        35 -> "Fog, depositing rime"
-        40 -> "Precipitation"
-        41 -> "Slight or moderate precipitation"
-        42 -> "Heavy precipitation"
-        43 -> "Slight or moderate liquid precipitation"
-        44 -> "Heavy liquid precipitation"
-        45 -> "Slight or moderate solid precipitation"
-        46 -> "Heavy solid precipitation"
-        47 -> "Slight or moderate freezing precipitation"
-        48 -> "Heavy freezing precipitation"
-        50 -> "Drizzle"
-        51 -> "Slight drizzle"
-        52 -> "Moderate drizzle"
-        53 -> "Heavy drizzle"
-        54 -> "Slight freezing drizzle"
-        55 -> "Moderate freezing drizzle"
-        56 -> "Heavy freezing drizzle"
-        57 -> "Slight drizzle and rain"
-        58 -> "Moderate or heavy drizzle and rain"
-        60 -> "Rain"
-        61 -> "Slight rain"
-        62 -> "Moderate rain"
-        63 -> "Heavy rain"
-        64 -> "Slight freezing rain"
-        65 -> "Moderate freezing rain"
-        66 -> "Heavy freezing rain"
-        67 -> "Slight rain and snow"
-        68 -> "Heavy rain and snow"
-        70 -> "Snow"
-        71 -> "Slight snow"
-        72 -> "Moderate snow"
-        73 -> "Heavy snow"
-        74 -> "Slight ice pellets"
-        75 -> "Moderate ice pellets"
-        76 -> "Heavy ice pellets"
-        77 -> "Snow grains"
-        78 -> "Ice crystals"
-        80 -> "Showers or intermittent precipitation"
-        81 -> "Slight rain showers"
-        82 -> "Moderate rain showers"
-        83 -> "Heavy rain showers"
-        84 -> "Violent rain showers"
-        85 -> "Slight snow showers"
-        86 -> "Moderate snow showers"
-        87 -> "Heavy snow showers"
-        89 -> "Hail"
-        90 -> "Thunderstorm"
-        91 -> "Slight/moderate thunderstorm, no precipitation"
-        92 -> "Slight/moderate thunderstorm with rain/snow"
-        93 -> "Slight/moderate thunderstorm with hail"
-        94 -> "Heavy thunderstorm, no precipitation"
-        95 -> "Heavy thunderstorm with rain/snow"
-        96 -> "Heavy thunderstorm with hail"
-        99 -> "Tornado"
+        0 -> stringResource(Res.string.weather_code_0)
+        1 -> stringResource(Res.string.weather_code_1)
+        2 -> stringResource(Res.string.weather_code_2)
+        3 -> stringResource(Res.string.weather_code_3)
+        4 -> stringResource(Res.string.weather_code_4)
+        5 -> stringResource(Res.string.weather_code_5)
+        10 -> stringResource(Res.string.weather_code_10)
+        11 -> stringResource(Res.string.weather_code_11)
+        12 -> stringResource(Res.string.weather_code_12)
+        18 -> stringResource(Res.string.weather_code_18)
+        20 -> stringResource(Res.string.weather_code_20)
+        21 -> stringResource(Res.string.weather_code_21)
+        22 -> stringResource(Res.string.weather_code_22)
+        23 -> stringResource(Res.string.weather_code_23)
+        24 -> stringResource(Res.string.weather_code_24)
+        25 -> stringResource(Res.string.weather_code_25)
+        26 -> stringResource(Res.string.weather_code_26)
+        27 -> stringResource(Res.string.weather_code_27)
+        28 -> stringResource(Res.string.weather_code_28)
+        29 -> stringResource(Res.string.weather_code_29)
+        30 -> stringResource(Res.string.weather_code_30)
+        31 -> stringResource(Res.string.weather_code_31)
+        32 -> stringResource(Res.string.weather_code_32)
+        33 -> stringResource(Res.string.weather_code_33)
+        34 -> stringResource(Res.string.weather_code_34)
+        35 -> stringResource(Res.string.weather_code_35)
+        40 -> stringResource(Res.string.weather_code_40)
+        41 -> stringResource(Res.string.weather_code_41)
+        42 -> stringResource(Res.string.weather_code_42)
+        43 -> stringResource(Res.string.weather_code_43)
+        44 -> stringResource(Res.string.weather_code_44)
+        45 -> stringResource(Res.string.weather_code_45)
+        46 -> stringResource(Res.string.weather_code_46)
+        47 -> stringResource(Res.string.weather_code_47)
+        48 -> stringResource(Res.string.weather_code_48)
+        50 -> stringResource(Res.string.weather_code_50)
+        51 -> stringResource(Res.string.weather_code_51)
+        52 -> stringResource(Res.string.weather_code_52)
+        53 -> stringResource(Res.string.weather_code_53)
+        54 -> stringResource(Res.string.weather_code_54)
+        55 -> stringResource(Res.string.weather_code_55)
+        56 -> stringResource(Res.string.weather_code_56)
+        57 -> stringResource(Res.string.weather_code_57)
+        58 -> stringResource(Res.string.weather_code_58)
+        60 -> stringResource(Res.string.weather_code_60)
+        61 -> stringResource(Res.string.weather_code_61)
+        62 -> stringResource(Res.string.weather_code_62)
+        63 -> stringResource(Res.string.weather_code_63)
+        64 -> stringResource(Res.string.weather_code_64)
+        65 -> stringResource(Res.string.weather_code_65)
+        66 -> stringResource(Res.string.weather_code_66)
+        67 -> stringResource(Res.string.weather_code_67)
+        68 -> stringResource(Res.string.weather_code_68)
+        70 -> stringResource(Res.string.weather_code_70)
+        71 -> stringResource(Res.string.weather_code_71)
+        72 -> stringResource(Res.string.weather_code_72)
+        73 -> stringResource(Res.string.weather_code_73)
+        74 -> stringResource(Res.string.weather_code_74)
+        75 -> stringResource(Res.string.weather_code_75)
+        76 -> stringResource(Res.string.weather_code_76)
+        77 -> stringResource(Res.string.weather_code_77)
+        78 -> stringResource(Res.string.weather_code_78)
+        80 -> stringResource(Res.string.weather_code_80)
+        81 -> stringResource(Res.string.weather_code_81)
+        82 -> stringResource(Res.string.weather_code_82)
+        83 -> stringResource(Res.string.weather_code_83)
+        84 -> stringResource(Res.string.weather_code_84)
+        85 -> stringResource(Res.string.weather_code_85)
+        86 -> stringResource(Res.string.weather_code_86)
+        87 -> stringResource(Res.string.weather_code_87)
+        89 -> stringResource(Res.string.weather_code_89)
+        90 -> stringResource(Res.string.weather_code_90)
+        91 -> stringResource(Res.string.weather_code_91)
+        92 -> stringResource(Res.string.weather_code_92)
+        93 -> stringResource(Res.string.weather_code_93)
+        94 -> stringResource(Res.string.weather_code_94)
+        95 -> stringResource(Res.string.weather_code_95)
+        96 -> stringResource(Res.string.weather_code_96)
+        99 -> stringResource(Res.string.weather_code_99)
         else -> "Unknown weather code"
     }
 }
