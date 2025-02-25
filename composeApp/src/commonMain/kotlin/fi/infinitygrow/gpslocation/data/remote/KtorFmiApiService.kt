@@ -2,6 +2,7 @@ package fi.infinitygrow.gpslocation.data.remote
 
 import fi.infinitygrow.gpslocation.data.mapper.deserializeObservation
 import fi.infinitygrow.gpslocation.domain.model.ObservationData
+import fi.infinitygrow.gpslocation.domain.model.ObservationLocation
 import fi.infinitygrow.gpslocation.presentation.permission.Location
 import io.ktor.client.HttpClient
 import io.ktor.client.request.get
@@ -22,12 +23,17 @@ class KtorFmiApiService(
 ): FmiApiService {
 
     override suspend fun observation(
-        longitude: Double, latitude: Double
+        longitude: Double, latitude: Double, observationList: List<ObservationLocation>
     ): List<ObservationData> {
         return try {
             val bbox = "${(latitude - 0.4)},${(longitude - 0.4)},${(latitude + 0.4)},${(longitude + 0.4)}"
             val requestBuilder = FMIRequestBuilder()
-            val url = requestBuilder.buildUrl(bbox)
+            val url = requestBuilder.buildUrl(
+                bbox,
+                observationList = observationList
+            )
+            println("GETTINg this url: ")
+            println(url)
             val response = client.get(url)
             val xmlString = response.bodyAsText()
             val fetchedFromLocation = Location(latitude, longitude)
@@ -67,7 +73,7 @@ class FMIRequestBuilder {
         "maxlocations" to "1"
     )
 
-    fun buildUrl(bbox: String): String {
+    fun buildUrl(bbox: String, observationList: List<ObservationLocation>): String {
         val stringBuilder = StringBuilder(baseUrl)
         stringBuilder.append("?")
 
@@ -75,7 +81,11 @@ class FMIRequestBuilder {
             stringBuilder.append("$key=$value&")
         }
 
-        stringBuilder.append("bbox=$bbox")
+        stringBuilder.append("bbox=$bbox&")
+        observationList.forEach { observationLocation ->
+            stringBuilder.append("fmisid=${observationLocation.fmiId}&")
+
+        }
         return stringBuilder.toString()
     }
 

@@ -1,6 +1,7 @@
 package fi.infinitygrow.gpslocation.presentation.utils
 
 import kotlin.math.exp
+import kotlin.math.log
 import kotlin.math.pow
 
 fun calculateCloudBaseHeight(temperatureC: Double, dewPointC: Double, heightStationM: Double): Double {
@@ -46,7 +47,7 @@ fun pressureFromAltitude(
     val temperatureAtAltitude = calcTemperatureAtAltitude(altitude, heightStationM, temperatureAtStation)
     val altitudeDiff = altitude - heightStationM
 
-    return pressureAtSeaLevel * exp((-g0 * M * altitudeDiff) / (R * temperatureAtAltitude))
+    return pressureAtSeaLevel * exp((-g0 * M * altitudeDiff) / (R * temperatureAtStation))//temperatureAtAltitude))
 }
 
 fun calcTemperatureAtAltitude(altitude: Double, measurementAltitude: Double, measuredTemperature: Double): Double {
@@ -84,21 +85,72 @@ fun calcSeaLevelTemperature(temperatureAtAltitude: Double, altitude: Double): Do
     return temperatureAtAltitude + (lapseRate * altitude)
 }
 
+const val pDefault = 101325.0 // Default pressure in Pascals
+const val tDefault = 288.15 // Default temperature in Kelvin
+
+fun altcalc(a: Double, k: Double, i: Double): Double {
+    return when {
+        (a / i) < (pDefault / 22632.1) -> {
+            val d = -0.0065
+            val e = 0.0
+            val j = (i / a).pow((R * d) / (g0 * M))
+            e + (k * ((1 / j) - 1) / d)
+        }
+        (a / i) < (pDefault / 5474.89) -> {
+            val e = 11000.0
+            val b = k - 71.5
+            val f = (R * b * log(i, a)) / (-g0 * M)
+            val l = pDefault
+            val c = 22632.1
+            val h = (R * b * log(l, c)) / (-g0 * M) + e
+            h + f
+        }
+        else -> Double.NaN
+    }
+}
+
+fun pressTempAlt(b: Double, k: Double, j: Double): Double {
+    return when {
+        j < 11000 -> {
+            val e = -0.0065
+            val i = 0.0
+            b * (k / (k + (e * (j - i)))).pow((g0 * M) / (R * e))
+        }
+        j <= 20000 -> {
+            val e = -0.0065
+            val i = 0.0
+            val f = 11000.0
+            val a = b * (k / (k + (e * (f - i)))).pow((g0 * M) / (R * e))
+            val c = k + (11000 * e)
+            val d = 0.0
+            a * exp((-g0 * M * (j - f)) / (R * c))
+        }
+        else -> Double.NaN
+    }
+}
+
+fun pressureTemperatureAltitude(p: Double, t: Double, a: Double): Double {
+    val one = pressTempAlt(p,t,a)
+    val two = altcalc(p,t,one)
+    return two
+}
+
+
 /**
  * Calculates altitude from given temperature and altitude in feet and then uses the result air pressure with `altitudeFromPressure()` with same temperature and given pressure at sea level to calculate final altitude in meters.
  *
  * @param temperature The temperature in Kelvin (K).
- * @param altitudeInFeet The altitude in feet.
+ * @param altitudeInMeters The altitude in meters (m).
  * @param pressureAtSeaLevel The air pressure at sea level in Pascals (Pa).
  * @return The final altitude in meters (m).
  */
 fun calculateAltitude(
     temperature: Double,
-    altitudeInFeet: Double,
+    altitudeInMeters: Double,
     pressureAtSeaLevel: Double,
     heightMeasurementStation: Double = 0.0
 ): Double {
-    val pressureAtAltitude = pressureFromAltitude(altitudeInFeet, temperature) // Convert feet to meters and calculate air pressure at given altitude and temperature
+    val pressureAtAltitude = pressureFromAltitude(altitudeInMeters, temperature) // Convert feet to meters and calculate air pressure at given altitude and temperature
     val airPressureAtSeaLevel = altitudeFromPressure(pressureAtAltitude, temperature, pressureAtSeaLevel) // Convert Pa to kPa and calculate air pressure at sea level using calculated air pressure at given altitude and temperature
     return heightMeasurementStation + airPressureAtSeaLevel // Convert kPa to Pa and calculate final altitude using calculated air pressure at sea level and given temperature
 }

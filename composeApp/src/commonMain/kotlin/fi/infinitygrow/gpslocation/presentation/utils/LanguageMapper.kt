@@ -145,8 +145,16 @@ fun constructLanguageString(data: ObservationData?, location: Location): String?
         ?.let { parts.add("Pilvenpohjat $it metriä.") }
 
     data.pressure.takeIf { it.isFinite() }?.let { pressure ->
-        parts.add("Lentopinnan 65 korkeus ${calculateAltitude(data.temperature + 275.15, 1981.2, pressure * 100).toInt()} metriä.")
-        parts.add("Lentopinnan 95 korkeus ${calculateAltitude(data.temperature + 275.15, 2895.6, pressure * 100).toInt()} metriä.")
+        parts.add("Lentopinnan 65 korkeus ${calculateAltitude(
+            data.temperature + 275.15, 
+            1981.2, 
+            pressure * 100
+        ).toInt()} - ${pressureTemperatureAltitude(pressure * 100, data.temperature, 1981.20)} metriä.")
+        parts.add("Lentopinnan 95 korkeus ${calculateAltitude(
+            data.temperature + 275.15, 
+            2895.6, 
+            pressure * 100
+        ).toInt()} - ${pressureTemperatureAltitude(pressure * 100, data.temperature, 2895.60)} metriä.")
     }
 
 

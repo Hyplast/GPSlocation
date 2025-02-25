@@ -1,9 +1,11 @@
 package fi.infinitygrow.gpslocation.presentation
 
+import androidx.compose.runtime.mutableStateListOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import fi.infinitygrow.gpslocation.domain.model.ForeCast
 import fi.infinitygrow.gpslocation.domain.model.ObservationData
+import fi.infinitygrow.gpslocation.domain.model.ObservationLocation
 import fi.infinitygrow.gpslocation.domain.model.Weather
 import fi.infinitygrow.gpslocation.domain.use_case.GetCurrentWeatherInfoUseCase
 import fi.infinitygrow.gpslocation.domain.use_case.GetForecastInfoUseCase
@@ -22,6 +24,16 @@ class WeatherViewModel(
 
     private val _uiState = MutableStateFlow(UiState())
     val uiState = _uiState.asStateFlow().common()
+
+    val longPressedItems = mutableStateListOf<ObservationData>()
+
+    fun toggleLongPress(item: ObservationData) {
+        if (longPressedItems.contains(item)) {
+            longPressedItems.remove(item) // Remove if already long-pressed
+        } else {
+            longPressedItems.add(item) // Add if not already long-pressed
+        }
+    }
 
     fun getCurrentWeatherInfo(lat: Double, long: Double) = viewModelScope.launch {
         println("Fetching current weather for lat: $lat, lon: $long")
@@ -44,8 +56,8 @@ class WeatherViewModel(
         }
     }
 
-    fun getObservation(lat: Double,long:Double) = viewModelScope.launch {
-        val response = getObservationUseCase.invoke(lat, long)
+    fun getObservation(lat: Double,long:Double, observationList: List<ObservationLocation>) = viewModelScope.launch {
+        val response = getObservationUseCase.invoke(lat, long, observationList)
         if(response.isSuccess){
             println("Observation fetched successfully")//: $response")
             _uiState.update { it.copy(observationInfo = response.getOrNull()) }
@@ -53,6 +65,16 @@ class WeatherViewModel(
             println("Error fetching observation:")// $response")
             _uiState.update { it.copy(error = response.exceptionOrNull().toString()) }
         }
+    }
+
+    fun getNewestObservations(observations: List<ObservationData>): List<ObservationData> {
+        // Group observations by name
+        val groupedObservations = observations.groupBy { it.name }
+
+        // Select the newest observation for each location
+        return groupedObservations.map { (_, obsList) ->
+            obsList.maxByOrNull { it.unixTime } // Get the observation with the latest unixTime
+        }.filterNotNull() // Remove any nulls in case there were empty groups
     }
 
 }

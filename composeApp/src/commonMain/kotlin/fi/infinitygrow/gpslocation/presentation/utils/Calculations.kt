@@ -14,6 +14,9 @@ import androidx.compose.ui.unit.dp
 import gpslocation.composeapp.generated.resources.Res
 import gpslocation.composeapp.generated.resources.arrow_upwards
 import gpslocation.composeapp.generated.resources.compose_multiplatform
+import kotlinx.datetime.Instant
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.toLocalDateTime
 import org.jetbrains.compose.resources.painterResource
 import kotlin.math.*
 
@@ -119,4 +122,25 @@ fun calculateTimeToWait(currentTime: Long): Long {
         millisSinceCurrentHour < 2520000 -> 2520000 - (millisSinceCurrentHour)
         else -> 3120000 - (millisSinceCurrentHour) + 600000 // TODO This needs fixing at 23.52
     }
+}
+
+
+fun Long.convertUnixTimeToISO8601(): String {
+    val dateTime = Instant.fromEpochSeconds(this)
+        .toLocalDateTime(TimeZone.currentSystemDefault())  // Convert to local timezone
+
+
+    return "${dateTime.year}-${dateTime.monthNumber.toString().padStart(2, '0')}-${dateTime.dayOfMonth.toString().padStart(2, '0')}T" +
+            "${dateTime.hour.toString().padStart(2, '0')}:${dateTime.minute.toString().padStart(2, '0')}:${dateTime.second.toString().padStart(2, '0')}"
+}
+
+fun Long.convertUnixTimeToHHMM(): String {
+    val dateTime = Instant.fromEpochSeconds(this)
+        .toLocalDateTime(TimeZone.currentSystemDefault())  // Convert to local timezone
+
+    return "${dateTime.hour.toString().padStart(2, '0')}:${dateTime.minute.toString().padStart(2, '0')}"
+}
+
+fun formatValue(float: Float): String {
+    return (round(float * 10.0) / 10.0).toString()
 }

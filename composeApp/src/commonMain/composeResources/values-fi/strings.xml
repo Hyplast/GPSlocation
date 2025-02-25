@@ -20,7 +20,7 @@
     <string name="weather_code_27">Tuiskua tai lentävää lunta tai hiekkaa</string>
     <string name="weather_code_28"><![CDATA[Tuiskuttaa tai lentävää hiekkaa, näkyvyys >= 1 km]]></string>
     <string name="weather_code_29"><![CDATA[Tuiskuttaa tai lentävää hiekkaa, näkyvyys < 1 km]]></string>
-    <string name="weather_code_30">Sumu</string>
+    <string name="weather_code_30">Sumua</string>
     <string name="weather_code_31">Sumua tai jääsumua laikkuina</string>
     <string name="weather_code_32">Sumu tai jääsumu ohenee</string>
     <string name="weather_code_33">Sumu tai jääsumu ennallaan</string>

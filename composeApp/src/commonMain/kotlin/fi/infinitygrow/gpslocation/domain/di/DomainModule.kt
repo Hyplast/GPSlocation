@@ -1,6 +1,7 @@
 package fi.infinitygrow.gpslocation.domain.di
 
 import fi.infinitygrow.gpslocation.PermissionsViewModel
+import fi.infinitygrow.gpslocation.TestViewModel
 import fi.infinitygrow.gpslocation.domain.use_case.GetCurrentWeatherInfoUseCase
 import fi.infinitygrow.gpslocation.domain.use_case.GetForecastInfoUseCase
 import fi.infinitygrow.gpslocation.domain.use_case.GetObservationUseCase
@@ -13,4 +14,5 @@ val domainModule = module {
     factory { GetObservationUseCase(get()) }
     //viewModelOf(::WeatherViewModel)
     viewModelOf(::PermissionsViewModel)
+    viewModelOf(::TestViewModel)
 }
