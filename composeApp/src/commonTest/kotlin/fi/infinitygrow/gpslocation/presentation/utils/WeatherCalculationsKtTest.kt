@@ -4,12 +4,14 @@ import fi.infinitygrow.gpslocation.presentation.utils.altcalc
 import fi.infinitygrow.gpslocation.presentation.utils.calcSeaLevelTemperature
 import fi.infinitygrow.gpslocation.presentation.utils.calcTemperatureAtAltitude
 import fi.infinitygrow.gpslocation.presentation.utils.calculateAltitude
+import fi.infinitygrow.gpslocation.presentation.utils.calculateCloudBaseHeight
 import fi.infinitygrow.gpslocation.presentation.utils.pressTempAlt
 import fi.infinitygrow.gpslocation.presentation.utils.pressureFromAltitude
 import fi.infinitygrow.gpslocation.presentation.utils.pressureTemperatureAltitude
 import kotlin.math.roundToInt
 import kotlin.math.roundToLong
 import kotlin.test.Test
+import kotlin.test.assertEquals
 
 class WeatherCalculationsKtTest {
 
@@ -100,6 +102,175 @@ class WeatherCalculationsKtTest {
     @Test
     fun testcalculateAltitude() {
         assertThat(calculateAltitude(15+273.15, 1981.20, 101325.0)).isEqualTo(1981.20)
+    }
+
+    companion object {
+        // Constants for testing
+        const val DELTA = 0.01 // Tolerance for floating-point comparisons
+        const val P_DEFAULT = 101325.0
+        const val T_DEFAULT = 288.15
+    }
+
+    @Test
+    fun `calculateCloudBaseHeight should return correct value`() {
+        // Arrange
+        val temperatureC = 20.0
+        val dewPointC = 10.0
+        val heightStationM = 100.0
+        val expectedCloudBaseHeight = 1347.0
+
+        // Act
+        val actualCloudBaseHeight = calculateCloudBaseHeight(temperatureC, dewPointC, heightStationM)
+
+        // Assert
+        assertEquals(expectedCloudBaseHeight, actualCloudBaseHeight, DELTA)
+    }
+
+    @Test
+    fun `calculateCloudBaseHeight with zero difference should return station height`() {
+        // Arrange
+        val temperatureC = 20.0
+        val dewPointC = 20.0
+        val heightStationM = 100.0
+        val expectedCloudBaseHeight = 100.0
+
+        // Act
+        val actualCloudBaseHeight = calculateCloudBaseHeight(temperatureC, dewPointC, heightStationM)
+
+        // Assert
+        assertEquals(expectedCloudBaseHeight, actualCloudBaseHeight, DELTA)
+    }
+
+    @Test
+    fun `pressTempAlt should return correct value for troposphere`() {
+        // Arrange
+        val p = P_DEFAULT
+        val t = T_DEFAULT
+        val h = 5000.0
+        val expectedPressure = 54048.33
+
+        // Act
+        val actualPressure = pressTempAlt(p, t, h)
+
+        // Assert
+        assertEquals(expectedPressure, actualPressure, DELTA)
+    }
+
+    @Test
+    fun `pressTempAlt should return correct value for lower stratosphere`() {
+        // Arrange
+        val p = P_DEFAULT
+        val t = T_DEFAULT
+        val h = 15000.0
+        val expectedPressure = 12045.08
+
+        // Act
+        val actualPressure = pressTempAlt(p, t, h)
+
+        // Assert
+        assertEquals(expectedPressure, actualPressure, DELTA)
+    }
+
+    @Test
+    fun `pressTempAlt should return NaN for altitude above 20000`() {
+        // Arrange
+        val p = P_DEFAULT
+        val t = T_DEFAULT
+        val h = 25000.0
+
+        // Act
+        val actualPressure = pressTempAlt(p, t, h)
+
+        // Assert
+        assertEquals(Double.NaN, actualPressure, DELTA)
+    }
+
+    @Test
+    fun `pressTempAlt should return correct value for sea level`() {
+        // Arrange
+        val p = P_DEFAULT
+        val t = T_DEFAULT
+        val h = 0.0
+        val expectedPressure = P_DEFAULT
+
+        // Act
+        val actualPressure = pressTempAlt(p, t, h)
+
+        // Assert
+        assertEquals(expectedPressure, actualPressure, DELTA)
+    }
+
+    @Test
+    fun `altcalc should return correct value for troposphere`() {
+        // Arrange
+        val p = P_DEFAULT
+        val t = T_DEFAULT
+        val pa = 54048.33
+        val expectedAltitude = 5000.0
+
+        // Act
+        val actualAltitude = altcalc(p, t, pa)
+
+        // Assert
+        assertEquals(expectedAltitude, actualAltitude, DELTA)
+    }
+
+    @Test
+    fun `altcalc should return correct value for lower stratosphere`() {
+        // Arrange
+        val p = P_DEFAULT
+        val t = T_DEFAULT
+        val pa = 12045.08
+        val expectedAltitude = 15000.0
+
+        // Act
+        val actualAltitude = altcalc(p, t, pa)
+
+        // Assert
+        assertEquals(expectedAltitude, actualAltitude, DELTA)
+    }
+
+    @Test
+    fun `altcalc should return NaN for pressure ratio outside supported range`() {
+        // Arrange
+        val p = P_DEFAULT
+        val t = T_DEFAULT
+        val pa = 100.0
+
+        // Act
+        val actualAltitude = altcalc(p, t, pa)
+
+        // Assert
+        assertEquals(Double.NaN, actualAltitude, DELTA)
+    }
+
+    @Test
+    fun `altcalc should return correct value for sea level`() {
+        // Arrange
+        val p = P_DEFAULT
+        val t = T_DEFAULT
+        val pa = P_DEFAULT
+        val expectedAltitude = 0.0
+
+        // Act
+        val actualAltitude = altcalc(p, t, pa)
+
+        // Assert
+        assertEquals(expectedAltitude, actualAltitude, DELTA)
+    }
+    @Test
+    fun `pressureTemperatureAltitude should return correct value`() {
+        // Arrange
+        val p = P_DEFAULT
+        val t = T_DEFAULT
+        val altitude = 5000.0
+        val expectedAltitude = 5000.0
+
+        // Act
+        val actualAltitude = pressureTemperatureAltitude(p, t, altitude)
+
+        // Assert
+        assertEquals(expectedAltitude, actualAltitude, DELTA)
     }
 }
 

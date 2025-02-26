@@ -1,4 +1,4 @@
-package fi.infinitygrow.gpslocation
+package fi.infinitygrow.gpslocation.presentation.permissions_page
 
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf

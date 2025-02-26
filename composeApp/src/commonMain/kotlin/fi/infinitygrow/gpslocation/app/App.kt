@@ -1,10 +1,10 @@
-package fi.infinitygrow.gpslocation
+package fi.infinitygrow.gpslocation.app
 
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
-import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -15,48 +15,63 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Star
+import androidx.compose.material3.Button
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
-import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
-import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.datastore.core.DataStore
+import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.lifecycle.ViewModel
+import fi.infinitygrow.gpslocation.core.presentation.LeafGreenColor
+import fi.infinitygrow.gpslocation.core.presentation.SkyBlueColor
 import fi.infinitygrow.gpslocation.domain.model.ObservationLocation
 import fi.infinitygrow.gpslocation.domain.model.getObservationLocation
 import fi.infinitygrow.gpslocation.domain.model.locations
-import fi.infinitygrow.gpslocation.presentation.LocationSearchScreen
-import fi.infinitygrow.gpslocation.presentation.WeatherViewModel
+import fi.infinitygrow.gpslocation.presentation.observation_list.components.LocationSearchScreen
+import fi.infinitygrow.gpslocation.presentation.observation_list.WeatherViewModel
 import fi.infinitygrow.gpslocation.presentation.permission.LocationService
-import fi.infinitygrow.gpslocation.presentation.utils.CompassArrow
+import fi.infinitygrow.gpslocation.presentation.observation_list.components.CompassArrow
 import fi.infinitygrow.gpslocation.presentation.utils.constructLanguageString
 import fi.infinitygrow.gpslocation.presentation.utils.convertUnixTimeToHHMM
 import fi.infinitygrow.gpslocation.presentation.utils.formatValue
 import fi.infinitygrow.gpslocation.presentation.utils.getWeatherDescription
+import gpslocation.composeapp.generated.resources.Res
+import gpslocation.composeapp.generated.resources.baseline_lock_open_24
+import gpslocation.composeapp.generated.resources.twotone_lock_24
 import org.jetbrains.compose.ui.tooling.preview.Preview
+
 
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
-import kotlinx.datetime.Instant
-import kotlinx.datetime.TimeZone
-import kotlinx.datetime.toLocalDateTime
+import org.jetbrains.compose.resources.painterResource
 import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
-import kotlin.math.round
 
 @Composable
 @Preview
@@ -67,8 +82,43 @@ fun App() {
         val testViewModel = koinViewModel<TestViewModel>()
         val locationService = koinInject<LocationService>()
 
+        //val prefs = koinInject<>()
+        val prefs: DataStore<Preferences> = koinInject()
+        val EXAMPLE_COUNTER = intPreferencesKey("example_counter")
+
+        val counter by prefs
+            .data
+            .map {
+                val counterKey = intPreferencesKey("counter")
+                it[counterKey] ?: 0
+            }
+            .collectAsState(0)
+        val scope = rememberCoroutineScope()
+            Column(
+                modifier = Modifier.fillMaxSize(),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
+            ) {
+                Text(
+                    text = counter.toString(),
+                    textAlign = TextAlign.Center,
+                    fontSize = 50.sp
+                )
+                Button(onClick = {
+                    scope.launch {
+                        prefs.edit { dataStore ->
+                            val counterKey = intPreferencesKey("counter")
+                            dataStore[counterKey] = counter + 1
+                        }
+                    }
+                }) {
+                    Text("Increment!")
+                }
+            }
+
         //MyLazyList(testViewModel)
 
+        //Image(painterResource(Res.drawable.ic_cloudy), null)
         WeatherApp(
             modifier = Modifier
                 .fillMaxSize(),
@@ -186,7 +236,6 @@ fun MyLazyList(viewModel: TestViewModel) {
     }
 }
 
-val SkyBlueColor = Color(0xFF448EE4)
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
@@ -204,7 +253,9 @@ fun WeatherApp(
     var shortPressedLocation by remember { mutableStateOf<ObservationLocation?>(null) }
     var longPressedLocation by remember { mutableStateOf<ObservationLocation?>(null) }
 
+    var checked by remember { mutableStateOf(true) }
     //val colors = remember { mutableStateListOf(*Array(items.size) { Color.White }) }
+
 
     fun refreshWeather(selectedLocations: List<ObservationLocation>) {
         scope.launch(Dispatchers.IO) {
@@ -216,7 +267,11 @@ fun WeatherApp(
                     println("Location received: $location")
                     viewModel.getCurrentWeatherInfo(it.latitude, it.longitude)
                     viewModel.getForecastInfo(it.latitude, it.longitude)
-                    viewModel.getObservation(it.latitude, it.longitude, selectedLocations)
+                    if (checked) {
+                        viewModel.getObservation(it.latitude, it.longitude, selectedLocations)
+                    } else {
+                        viewModel.getObservation(null, null, selectedLocations)
+                    }
                 }
             } else {
                 println("Permission not granted, asking for permission")
@@ -227,8 +282,13 @@ fun WeatherApp(
                             location?.let {
                                 viewModel.getCurrentWeatherInfo(it.latitude, it.longitude)
                                 viewModel.getForecastInfo(it.latitude, it.longitude)
-                                viewModel.getObservation(it.latitude, it.longitude, selectedLocations)
+                                if (checked) {
+                                    viewModel.getObservation(it.latitude, it.longitude, selectedLocations)
+                                } else {
+                                    viewModel.getObservation(null, null, selectedLocations)
+                                }
                             }
+
                         }
                     }
                     println("Permission denied")
@@ -278,7 +338,16 @@ fun WeatherApp(
             )
             Spacer(modifier = Modifier.height(12.dp))
 
+
+        }
+
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+        ) {
             LocationSearchScreen(
+                modifier = Modifier
+                    .weight(7f),
                 locations,
                 onLocationSelected = { location ->
                     // Handle location selection, e.g., show a toast or navigate
@@ -286,7 +355,15 @@ fun WeatherApp(
                 },
                 observationLocations = selectedLocations
             )
+            Switch(
+                modifier = Modifier
+                    .weight(3f)
+                    .semantics { contentDescription = "Paikannus" },
+                checked = checked,
+                onCheckedChange = { checked = it }
+            )
         }
+
         Spacer(modifier = Modifier.height(24.dp))
 
         PullToRefreshBox(
@@ -298,16 +375,20 @@ fun WeatherApp(
 
         uiState.observationInfo?.let { list ->
             isRefreshing = false
-            LazyColumn {
+            LazyColumn(
+                modifier = Modifier
+                    .background(Color(0xFFF0F0F0)) // Light gray background for the list
+                    .fillMaxSize()
+            ) {
                 items(viewModel.getNewestObservations(list)) { observation ->
                     val isLongPressed = viewModel.longPressedItems.contains(observation)
-                    val backgroundColor = if (isLongPressed) Color.LightGray else Color.White
+                    val backgroundColor = if (isLongPressed) LeafGreenColor else Color.White
 
                     val validRows = listOf(
                         listOfNotNull(
                             observation.name.takeIf { it.isNotBlank() },
                             observation.temperature.takeIf { it.isFinite() }
-                                ?.let { formatValue(it.toFloat()) + " C" },
+                                ?.let { formatValue(it.toFloat()) + " °C" },
                             observation.unixTime.convertUnixTimeToHHMM()
                         ),
                         listOfNotNull(
@@ -329,17 +410,20 @@ fun WeatherApp(
                             observation.cloudAmount.takeIf { it.isFinite() }
                                 ?.let { "${it.toInt()}/8" },
                             observation.presentWeather.takeIf { it.isFinite() }
-                                ?.let { getWeatherDescription(it.toInt()) }
+                                ?.let {
+                                    val revice = getWeatherDescription(it.toInt())
+                                    revice.first
+                                    //getWeatherDescription(it.toInt())
+                                }
                         )
                     ).filter { it.isNotEmpty() } // Remove empty rows
 
                     if (validRows.isNotEmpty()) {
-                        Column(
+                        Card(
                             modifier = Modifier
                                 .padding(horizontal = 12.dp, vertical = 8.dp)
                                 .fillMaxWidth()
-                                .background(backgroundColor, shape = MaterialTheme.shapes.medium)
-                                .padding(horizontal = 12.dp, vertical = 4.dp)
+                                .background(backgroundColor, shape = RoundedCornerShape(8.dp))
                                 .combinedClickable(
                                     onClick = {
                                         shortPressedLocation = getObservationLocation(observation)
@@ -349,32 +433,54 @@ fun WeatherApp(
                                         longPressedLocation = getObservationLocation(observation)
                                     }
                                 ),
-                            horizontalAlignment = Alignment.CenterHorizontally
+                            elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
                         ) {
-                            validRows.forEach { row ->
-                                Row {
-                                    row.forEachIndexed { index, text ->
-                                        Text(text = text.toString())
-                                        if (index != row.lastIndex) {
-                                            Spacer(modifier = Modifier.weight(1f))
+                            Column(
+                                modifier = Modifier.padding(16.dp),
+                                horizontalAlignment = Alignment.Start
+                            ) {
+                                validRows.forEach { row ->
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        horizontalArrangement = Arrangement.SpaceBetween
+                                    ) {
+                                        row.forEachIndexed { index, text ->
+                                            Text(
+                                                text = text.toString(),
+                                                fontSize = 16.sp,
+                                                modifier = Modifier.weight(1f)
+                                            )
                                         }
                                     }
                                 }
-                            }
-                            Row {
-                                CompassArrow(observation.windDirection)
-                                Icon(
-                                    imageVector = if (isLongPressed) Icons.Filled.Favorite else Icons.Filled.Star,
-                                    contentDescription = if (isLongPressed) "Locked" else "Unlocked",
-                                    modifier = Modifier.padding(end = 8.dp)
-                                )
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    CompassArrow(observation.windDirection, observation.windSpeed, observation.windGust)
+                                    Icon(
+                                        painter = if (isLongPressed) {
+                                            painterResource(Res.drawable.baseline_lock_open_24)
+                                        } else painterResource(Res.drawable.twotone_lock_24),
+                                        contentDescription = if (isLongPressed) "Locked" else "Unlocked",
+                                        modifier = Modifier.padding(start = 8.dp)
+                                    )
+//                                    observation.presentWeather.takeIf { it.isFinite() }
+//                                        ?.let {
+//                                            val revice = getWeatherDescription(it.toInt())
+//                                            if (revice.second != null) Image(
+//                                                painterResource(revice.second!!),
+//                                                revice.first
+//                                            )
+//                                        }
+                                }
                             }
                         }
                     }
                     constructLanguageString(
                         observation,
                         location = observation.coordinates
-                    )?.let { Text(text = it) }
+                    )?.let { Text(text = it, modifier = Modifier.padding(start = 12.dp, bottom = 8.dp)) }
                 }
             }
         }

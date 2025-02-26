@@ -23,10 +23,21 @@ class KtorFmiApiService(
 ): FmiApiService {
 
     override suspend fun observation(
-        longitude: Double, latitude: Double, observationList: List<ObservationLocation>
+        longitude: Double?, latitude: Double?, observationList: List<ObservationLocation>
     ): List<ObservationData> {
         return try {
-            val bbox = "${(latitude - 0.4)},${(longitude - 0.4)},${(latitude + 0.4)},${(longitude + 0.4)}"
+            var bbox = null.toString()
+            var newLongitude = longitude
+            var newlatitude = latitude
+            if (longitude == null && latitude == null) {
+                //bbox = null.toString()
+                newLongitude = 999.9
+                newlatitude = 999.9
+            } else {
+                if (longitude != null) {
+                    bbox = "${(latitude?.minus(0.4))},${(longitude - 0.4)},${(latitude?.plus(0.4))},${(longitude + 0.4)}"
+                }
+            }
             val requestBuilder = FMIRequestBuilder()
             val url = requestBuilder.buildUrl(
                 bbox,
@@ -36,7 +47,7 @@ class KtorFmiApiService(
             println(url)
             val response = client.get(url)
             val xmlString = response.bodyAsText()
-            val fetchedFromLocation = Location(latitude, longitude)
+            val fetchedFromLocation = Location(newlatitude!!, newLongitude!!)
             deserializeObservation(xmlString, fetchedFromLocation)
         } catch (e: Exception) {
             e.printStackTrace()
@@ -81,7 +92,7 @@ class FMIRequestBuilder {
             stringBuilder.append("$key=$value&")
         }
 
-        stringBuilder.append("bbox=$bbox&")
+        if (bbox != "null") stringBuilder.append("bbox=$bbox&")
         observationList.forEach { observationLocation ->
             stringBuilder.append("fmisid=${observationLocation.fmiId}&")
 

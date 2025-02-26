@@ -21,7 +21,7 @@ class WeatherRepositoryImpl(
         return apiService.forecastInfo(lat, long).toDomain()
     }
 
-    override suspend fun getObservation(latitude: Double, longitude: Double, observationList: List<ObservationLocation>): List<ObservationData> {
+    override suspend fun getObservation(latitude: Double?, longitude: Double?, observationList: List<ObservationLocation>): List<ObservationData> {
         return fmiApiService.observation(latitude, longitude, observationList)//.toDomain()
     }
 

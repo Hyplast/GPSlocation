@@ -1,8 +1,9 @@
-package fi.infinitygrow.gpslocation.presentation
+package fi.infinitygrow.gpslocation.presentation.observation_list
 
 import androidx.compose.runtime.mutableStateListOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import fi.infinitygrow.gpslocation.data.repository.SettingsRepository
 import fi.infinitygrow.gpslocation.domain.model.ForeCast
 import fi.infinitygrow.gpslocation.domain.model.ObservationData
 import fi.infinitygrow.gpslocation.domain.model.ObservationLocation
@@ -12,6 +13,7 @@ import fi.infinitygrow.gpslocation.domain.use_case.GetForecastInfoUseCase
 import fi.infinitygrow.gpslocation.domain.use_case.GetObservationUseCase
 import fi.infinitygrow.gpslocation.presentation.utils.common
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -19,13 +21,22 @@ import kotlinx.coroutines.launch
 class WeatherViewModel(
     private val getCurrentWeatherInfoUseCase: GetCurrentWeatherInfoUseCase,
     private val getForecastInfoUseCase: GetForecastInfoUseCase,
-    private val getObservationUseCase: GetObservationUseCase
+    private val getObservationUseCase: GetObservationUseCase//,
+    //private val settingsRepository: SettingsRepository
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(UiState())
     val uiState = _uiState.asStateFlow().common()
 
     val longPressedItems = mutableStateListOf<ObservationData>()
+
+//    val userName: StateFlow<String?> = settingsRepository.userName
+//
+//    fun saveUserName(name: String) {
+//        viewModelScope.launch {
+//            settingsRepository.saveUserName(name)
+//        }
+//    }
 
     fun toggleLongPress(item: ObservationData) {
         if (longPressedItems.contains(item)) {
@@ -56,7 +67,7 @@ class WeatherViewModel(
         }
     }
 
-    fun getObservation(lat: Double,long:Double, observationList: List<ObservationLocation>) = viewModelScope.launch {
+    fun getObservation(lat: Double?, long: Double?, observationList: List<ObservationLocation>) = viewModelScope.launch {
         val response = getObservationUseCase.invoke(lat, long, observationList)
         if(response.isSuccess){
             println("Observation fetched successfully")//: $response")

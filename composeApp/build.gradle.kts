@@ -64,6 +64,9 @@ kotlin {
             implementation(libs.koin.compose.viewmodel)
             api(libs.koin.core)
 
+            api(libs.datastore.preferences)
+            api(libs.datastore)
+
             implementation(libs.bundles.ktor)
             implementation(libs.accompanist.permissions)
 

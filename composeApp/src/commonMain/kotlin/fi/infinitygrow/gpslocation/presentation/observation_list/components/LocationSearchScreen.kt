@@ -1,8 +1,7 @@
-package fi.infinitygrow.gpslocation.presentation
+package fi.infinitygrow.gpslocation.presentation.observation_list.components
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
@@ -21,6 +20,7 @@ import fi.infinitygrow.gpslocation.domain.model.ObservationLocation
 
 @Composable
 fun LocationSearchScreen(
+    modifier: Modifier = Modifier,
     locations: List<ObservationLocation>,
     observationLocations: MutableList<ObservationLocation>, // List to store selected locations
     onLocationSelected: (ObservationLocation) -> Unit

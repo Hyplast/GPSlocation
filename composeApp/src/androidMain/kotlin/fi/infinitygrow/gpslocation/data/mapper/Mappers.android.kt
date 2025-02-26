@@ -1,8 +1,16 @@
 package fi.infinitygrow.gpslocation.data.mapper
 
 import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
+
+//actual fun formatDate(millis: Long): String {
+//    val formatter = SimpleDateFormat("dd MMM hh:mm a")
+//    return formatter.format(millis.times(1000).toDouble())
+//}
 
 actual fun formatDate(millis: Long): String {
-    val formatter = SimpleDateFormat("dd MMM hh:mm a")
-    return formatter.format(millis.times(1000).toDouble())
+    val locale = Locale.getDefault()
+    val formatter = SimpleDateFormat("dd MMM hh:mm a", locale)
+    return formatter.format(Date(millis * 1000))
 }

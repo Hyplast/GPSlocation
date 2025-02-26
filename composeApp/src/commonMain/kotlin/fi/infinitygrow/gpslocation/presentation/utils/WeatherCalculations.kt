@@ -4,6 +4,17 @@ import kotlin.math.exp
 import kotlin.math.log
 import kotlin.math.pow
 
+/**
+ * Calculates the approximate height of the cloud base above ground level.
+ *
+ * This function uses the temperature-dew point spread method to estimate the cloud base height.
+ * It assumes a standard atmospheric lapse rate and a constant dew point depression.
+ *
+ * @param temperatureC The air temperature at the station in degrees Celsius (°C).
+ * @param dewPointC The dew point temperature at the station in degrees Celsius (°C).
+ * @param heightStationM The height of the weather station above sea level in meters (m).
+ * @return The estimated height of the cloud base above ground level in meters (m).
+ */
 fun calculateCloudBaseHeight(temperatureC: Double, dewPointC: Double, heightStationM: Double): Double {
     return ((temperatureC - dewPointC) / 10) * 1247 + heightStationM
 }
@@ -88,51 +99,117 @@ fun calcSeaLevelTemperature(temperatureAtAltitude: Double, altitude: Double): Do
 const val pDefault = 101325.0 // Default pressure in Pascals
 const val tDefault = 288.15 // Default temperature in Kelvin
 
-fun altcalc(a: Double, k: Double, i: Double): Double {
+/**
+ * Calculates the altitude based on atmospheric pressure, sea-level pressure, and sea-level temperature.
+ *
+ * This function uses the standard atmospheric model to estimate the altitude at a specific pressure.
+ * It handles two different atmospheric layers: the troposphere (up to 11,000 meters) and the lower
+ * stratosphere (between 11,000 and 20,000 meters).
+ *
+ * @param p The sea-level pressure in Pascals (Pa). Defaults to [pDefault].
+ * @param t The sea-level temperature in Kelvin (K). Defaults to [tDefault].
+ * @param pa The atmospheric pressure at the target altitude in Pascals (Pa).
+ * @return The estimated altitude in meters (m), or [Double.NaN] if the pressure ratio is outside the
+ *         supported range.
+ *
+ * @see pDefault
+ * @see tDefault
+ */
+fun altcalc(
+    p: Double = pDefault,
+    t: Double = tDefault,
+    pa: Double
+): Double {
     return when {
-        (a / i) < (pDefault / 22632.1) -> {
-            val d = -0.0065
-            val e = 0.0
-            val j = (i / a).pow((R * d) / (g0 * M))
-            e + (k * ((1 / j) - 1) / d)
+        (p / pa) < (pDefault / 22632.1) -> {
+            val lapseRate = -0.0065
+            val intercept = 0.0
+            // Here, note that a coefficient is computed using p and pa from
+            // parameters rather than the hard-coded pDefault.
+            val coeff = (pa / p).pow((R * lapseRate) / (g0 * M))
+            intercept + (t * ((1 / coeff) - 1) / lapseRate)
         }
-        (a / i) < (pDefault / 5474.89) -> {
-            val e = 11000.0
-            val b = k - 71.5
-            val f = (R * b * log(i, a)) / (-g0 * M)
-            val l = pDefault
-            val c = 22632.1
-            val h = (R * b * log(l, c)) / (-g0 * M) + e
-            h + f
+        (p / pa) < (pDefault / 5474.89) -> {
+            val hBase = 11000.0
+            val tempAdjustment = t - 71.5
+            // Using logarithm with two arguments, note that log(x, base) here means
+            // logarithm of x with base given by the second argument.
+            val deltaTemp = (R * tempAdjustment * log(pa, p)) / (-g0 * M)
+            val basePressure = pDefault
+            val constantPressure = 22632.1
+            val baseDelta = (R * tempAdjustment * log(basePressure, constantPressure)) /
+                    (-g0 * M) + hBase
+            baseDelta + deltaTemp
         }
         else -> Double.NaN
     }
 }
 
-fun pressTempAlt(b: Double, k: Double, j: Double): Double {
+/**
+ * Calculates the atmospheric pressure at a given altitude based on sea-level pressure and temperature.
+ *
+ * This function uses the standard atmospheric model to estimate the pressure at a specific altitude.
+ * It handles two different atmospheric layers: the troposphere (up to 11,000 meters) and the lower
+ * stratosphere (between 11,000 and 20,000 meters).
+ *
+ * @param p The sea-level pressure in Pascals (Pa). Defaults to [pDefault].
+ * @param t The sea-level temperature in Kelvin (K). Defaults to [tDefault].
+ * @param h The altitude in meters (m).
+ * @return The estimated atmospheric pressure at the given altitude in Pascals (Pa), or [Double.NaN]
+ *         if the altitude is outside the supported range (above 20,000 meters).
+ *
+ * @see pDefault
+ * @see tDefault
+ */
+fun pressTempAlt(
+    p: Double = pDefault,
+    t: Double = tDefault,
+    h: Double
+): Double {
     return when {
-        j < 11000 -> {
-            val e = -0.0065
-            val i = 0.0
-            b * (k / (k + (e * (j - i)))).pow((g0 * M) / (R * e))
+        h < 11000 -> {
+            val lapseRate = -0.0065
+            val intercept = 0.0
+            p * (t / (t + (lapseRate * (h - intercept)))).pow((g0 * M) / (R * lapseRate))
         }
-        j <= 20000 -> {
-            val e = -0.0065
-            val i = 0.0
-            val f = 11000.0
-            val a = b * (k / (k + (e * (f - i)))).pow((g0 * M) / (R * e))
-            val c = k + (11000 * e)
-            val d = 0.0
-            a * exp((-g0 * M * (j - f)) / (R * c))
+        h <= 20000 -> {
+            val lapseRate = -0.0065
+            val intercept = 0.0
+            val hBase = 11000.0
+            val paBase = p * (t / (t + (lapseRate * (hBase - intercept)))).pow(
+                (g0 * M) / (R * lapseRate)
+            )
+            val tBase = t + (lapseRate * hBase)
+            paBase * exp((-g0 * M * (h - hBase)) / (R * tBase))
         }
         else -> Double.NaN
     }
 }
 
-fun pressureTemperatureAltitude(p: Double, t: Double, a: Double): Double {
-    val one = pressTempAlt(p,t,a)
-    val two = altcalc(p,t,one)
-    return two
+/**
+ * Calculates the altitude based on sea-level pressure, sea-level temperature, and a target altitude.
+ *
+ * This function combines the functionality of [pressTempAlt] and [altcalc] to perform a chained
+ * calculation. It first estimates the atmospheric pressure at the target altitude using
+ * [pressTempAlt], and then uses that pressure to estimate the altitude using [altcalc].
+ *
+ * @param p The sea-level pressure in Pascals (Pa). Defaults to [pDefault].
+ * @param t The sea-level temperature in Kelvin (K). Defaults to [tDefault].
+ * @param altitude The target altitude in meters (m).
+ * @return The estimated altitude in meters (m).
+ *
+ * @see pressTempAlt
+ * @see altcalc
+ * @see pDefault
+ * @see tDefault
+ */
+fun pressureTemperatureAltitude(
+    p: Double = pDefault,
+    t: Double = tDefault,
+    altitude: Double
+): Double {
+    val pa = pressTempAlt(p, t, altitude)
+    return altcalc(p, t, pa)
 }
 
 

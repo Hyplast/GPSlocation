@@ -5,8 +5,8 @@ import fi.infinitygrow.gpslocation.domain.model.ObservationLocation
 
 interface FmiApiService {
     suspend fun observation(
-        longitude: Double,
-        latitude: Double,
+        longitude: Double?,
+        latitude: Double?,
         observationList: List<ObservationLocation>
     ): List<ObservationData>
 
