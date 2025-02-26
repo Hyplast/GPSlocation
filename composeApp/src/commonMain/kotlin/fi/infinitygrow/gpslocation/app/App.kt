@@ -457,14 +457,21 @@ fun WeatherApp(
                                     modifier = Modifier.fillMaxWidth(),
                                     verticalAlignment = Alignment.CenterVertically
                                 ) {
-                                    CompassArrow(observation.windDirection, observation.windSpeed, observation.windGust)
-                                    Icon(
-                                        painter = if (isLongPressed) {
-                                            painterResource(Res.drawable.baseline_lock_open_24)
-                                        } else painterResource(Res.drawable.twotone_lock_24),
-                                        contentDescription = if (isLongPressed) "Locked" else "Unlocked",
-                                        modifier = Modifier.padding(start = 8.dp)
-                                    )
+                                    if (observation.windDirection.isNaN() ||
+                                        observation.windSpeed.isNaN() ||
+                                        observation.windGust.isNaN()
+                                    ) {
+                                        // Don't call CompassArrow, or show a fallback UI.
+                                    } else {
+                                        CompassArrow(observation.windDirection, observation.windSpeed, observation.windGust)
+                                    }
+//                                    Icon(
+//                                        painter = if (isLongPressed) {
+//                                            painterResource(Res.drawable.baseline_lock_open_24)
+//                                        } else painterResource(Res.drawable.twotone_lock_24),
+//                                        contentDescription = if (isLongPressed) "Locked" else "Unlocked",
+//                                        modifier = Modifier.padding(start = 8.dp)
+//                                    )
 //                                    observation.presentWeather.takeIf { it.isFinite() }
 //                                        ?.let {
 //                                            val revice = getWeatherDescription(it.toInt())

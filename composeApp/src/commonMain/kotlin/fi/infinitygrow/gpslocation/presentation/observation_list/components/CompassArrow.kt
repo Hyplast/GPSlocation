@@ -30,23 +30,23 @@ import kotlin.math.roundToInt
 @Composable
 fun CompassArrow(bearing: Double, speed: Double, gust: Double) {
     // Convert the number to an integer safely.
-    val numValue = (gust - speed).roundToInt()
+    val numValue = gust.roundToInt()
 
     // Select the image resource based on the number value.
     val imageRes = when (numValue) {
-        1 -> Res.drawable.circlearrow_blue
-        2 -> Res.drawable.circlearrow_green
-        3 -> Res.drawable.circlearrow_yellow
-        4 -> Res.drawable.circlearroworange
-        5 -> Res.drawable.circlearrowred
-        6 -> Res.drawable.circlearrowpurple
+        in 0..3 -> Res.drawable.circlearrow_blue
+        in 4..6 -> Res.drawable.circlearrow_green
+        in 7..9 -> Res.drawable.circlearrow_yellow
+        in 10..12 -> Res.drawable.circlearroworange
+        in 13..15 -> Res.drawable.circlearrowred
+        in 16..50 -> Res.drawable.circlearrowpurple
         else -> Res.drawable.circlearrow_green // Fallback resource
     }
 
     Box(
         modifier = Modifier
             .size(80.dp)
-            .background(Color.Transparent) // CircleShape)
+            //.background(Color.White, CircleShape)
             //.border(1.dp, Color.Gray, CircleShape) // Optional: Add a border for better visibility
     ) {
         // Arrow Image
@@ -56,7 +56,7 @@ fun CompassArrow(bearing: Double, speed: Double, gust: Double) {
             modifier = Modifier
                 .fillMaxSize()
                 .graphicsLayer(
-                    rotationZ = (bearing + 90f).toFloat(),
+                    rotationZ = (bearing + 180f - 90f).toFloat(),
                     rotationX = 0.5f,
                     rotationY = 0.5f
                 )

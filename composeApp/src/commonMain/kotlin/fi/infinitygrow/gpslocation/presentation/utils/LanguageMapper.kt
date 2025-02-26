@@ -87,6 +87,25 @@ import gpslocation.composeapp.generated.resources.weather_code_94
 import gpslocation.composeapp.generated.resources.weather_code_95
 import gpslocation.composeapp.generated.resources.weather_code_96
 import gpslocation.composeapp.generated.resources.weather_code_99
+import gpslocation.composeapp.generated.resources.weather_icon_cloudy
+import gpslocation.composeapp.generated.resources.weather_icon_drizzle_cloudy
+import gpslocation.composeapp.generated.resources.weather_icon_light_rain_cloudy
+import gpslocation.composeapp.generated.resources.weather_icon_light_rain_showers_mostly_cloudy_day
+import gpslocation.composeapp.generated.resources.weather_icon_light_sleet_cloudy
+import gpslocation.composeapp.generated.resources.weather_icon_light_snow_cloudy
+import gpslocation.composeapp.generated.resources.weather_icon_light_snow_mostly_cloudy_night
+import gpslocation.composeapp.generated.resources.weather_icon_lightning_clouds
+import gpslocation.composeapp.generated.resources.weather_icon_mist
+import gpslocation.composeapp.generated.resources.weather_icon_moderate_rain_cloudy
+import gpslocation.composeapp.generated.resources.weather_icon_moderate_snow_cloudy
+import gpslocation.composeapp.generated.resources.weather_icon_strong_freezing_drizzle_cloudy
+import gpslocation.composeapp.generated.resources.weather_icon_strong_freezing_rain_cloudy
+import gpslocation.composeapp.generated.resources.weather_icon_strong_hail_cloudy
+import gpslocation.composeapp.generated.resources.weather_icon_strong_rain_cloudy
+import gpslocation.composeapp.generated.resources.weather_icon_strong_rain_showers_cloudy
+import gpslocation.composeapp.generated.resources.weather_icon_strong_rain_showers_mostly_cloudy_day
+import gpslocation.composeapp.generated.resources.weather_icon_strong_sleet_cloudy
+import gpslocation.composeapp.generated.resources.weather_icon_strong_snow_cloudy
 import org.jetbrains.compose.resources.DrawableResource
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
@@ -197,22 +216,84 @@ fun getWeatherDescription(code: Int): Pair<String, DrawableResource?> {
 
     return when (normalizedCode) {
         0 -> Pair(stringResource(Res.string.weather_code_0), null)
-        1 -> Pair(stringResource(Res.string.weather_code_1), Res.drawable.weather_code_9)
-        2 -> Pair(stringResource(Res.string.weather_code_3), Res.drawable.weather_code_4)
-        4 -> Pair(stringResource(Res.string.weather_code_4), null)
-        5 -> Pair(stringResource(Res.string.weather_code_5), null)
-        10 -> Pair(stringResource(Res.string.weather_code_10), Res.drawable.weather_code_9)
-        11 -> Pair(stringResource(Res.string.weather_code_11), Res.drawable.weather_code_9)
-        12 -> Pair(stringResource(Res.string.weather_code_12), null)
+        1 -> Pair(stringResource(Res.string.weather_code_1), Res.drawable.weather_icon_cloudy)
+        2 -> Pair(stringResource(Res.string.weather_code_2), null)
+        3 -> Pair(stringResource(Res.string.weather_code_3), Res.drawable.weather_icon_cloudy)
+        4 -> Pair(stringResource(Res.string.weather_code_4), Res.drawable.weather_icon_mist)
+        5 -> Pair(stringResource(Res.string.weather_code_5), Res.drawable.weather_icon_mist)
+        10 -> Pair(stringResource(Res.string.weather_code_10), Res.drawable.weather_icon_mist)
+        11 -> Pair(stringResource(Res.string.weather_code_11), Res.drawable.weather_icon_mist)
+        12 -> Pair(stringResource(Res.string.weather_code_12), Res.drawable.weather_icon_lightning_clouds)
         18 -> Pair(stringResource(Res.string.weather_code_18), null)
-        20 -> Pair(stringResource(Res.string.weather_code_20), Res.drawable.weather_code_9)
-        21 -> Pair(stringResource(Res.string.weather_code_21), Res.drawable.weather_code_37)
-        22 -> Pair(stringResource(Res.string.weather_code_22), Res.drawable.weather_code_47)
-        23 -> Pair(stringResource(Res.string.weather_code_23), Res.drawable.weather_code_38)
-        24 -> Pair(stringResource(Res.string.weather_code_24), null)
-        25 -> Pair(stringResource(Res.string.weather_code_25), null)
-        26 -> Pair(stringResource(Res.string.weather_code_26), null)
+        20 -> Pair(stringResource(Res.string.weather_code_20), Res.drawable.weather_icon_mist)
+        21 -> Pair(stringResource(Res.string.weather_code_21), Res.drawable.weather_icon_light_rain_cloudy)
+        22 -> Pair(stringResource(Res.string.weather_code_22), Res.drawable.weather_icon_drizzle_cloudy)
+        23 -> Pair(stringResource(Res.string.weather_code_23), Res.drawable.weather_icon_moderate_rain_cloudy)
+        24 -> Pair(stringResource(Res.string.weather_code_24), Res.drawable.weather_icon_moderate_snow_cloudy)
+        25 -> Pair(stringResource(Res.string.weather_code_25), Res.drawable.weather_icon_strong_freezing_drizzle_cloudy)
+        26 -> Pair(stringResource(Res.string.weather_code_26), Res.drawable.weather_icon_lightning_clouds)
         27 -> Pair(stringResource(Res.string.weather_code_27), null)
+        28 -> Pair(stringResource(Res.string.weather_code_28), null)
+        29 -> Pair(stringResource(Res.string.weather_code_29), null)
+        30 -> Pair(stringResource(Res.string.weather_code_30), Res.drawable.weather_icon_mist)
+        31 -> Pair(stringResource(Res.string.weather_code_31), Res.drawable.weather_icon_mist)
+        32 -> Pair(stringResource(Res.string.weather_code_32), Res.drawable.weather_icon_mist)
+        33 -> Pair(stringResource(Res.string.weather_code_33), Res.drawable.weather_icon_mist)
+        34 -> Pair(stringResource(Res.string.weather_code_34), Res.drawable.weather_icon_mist)
+        35 -> Pair(stringResource(Res.string.weather_code_35), Res.drawable.weather_icon_mist)
+        40 -> Pair(stringResource(Res.string.weather_code_40), Res.drawable.weather_icon_light_rain_cloudy)
+        41 -> Pair(stringResource(Res.string.weather_code_41), Res.drawable.weather_icon_moderate_rain_cloudy)
+        42 -> Pair(stringResource(Res.string.weather_code_42), Res.drawable.weather_icon_strong_rain_cloudy)
+        43 -> Pair(stringResource(Res.string.weather_code_43), Res.drawable.weather_icon_moderate_rain_cloudy)
+        44 -> Pair(stringResource(Res.string.weather_code_44), Res.drawable.weather_icon_strong_rain_cloudy)
+        45 -> Pair(stringResource(Res.string.weather_code_45), Res.drawable.weather_icon_strong_rain_cloudy)
+        46 -> Pair(stringResource(Res.string.weather_code_46), Res.drawable.weather_icon_strong_rain_cloudy)
+        47 -> Pair(stringResource(Res.string.weather_code_47), Res.drawable.weather_icon_strong_freezing_drizzle_cloudy)
+        48 -> Pair(stringResource(Res.string.weather_code_48), Res.drawable.weather_icon_strong_freezing_rain_cloudy)
+        50 -> Pair(stringResource(Res.string.weather_code_50), Res.drawable.weather_icon_drizzle_cloudy)
+        51 -> Pair(stringResource(Res.string.weather_code_51), Res.drawable.weather_icon_drizzle_cloudy)
+        52 -> Pair(stringResource(Res.string.weather_code_52), Res.drawable.weather_icon_drizzle_cloudy)
+        53 -> Pair(stringResource(Res.string.weather_code_53), Res.drawable.weather_icon_drizzle_cloudy)
+        54 -> Pair(stringResource(Res.string.weather_code_54), Res.drawable.weather_icon_strong_freezing_drizzle_cloudy)
+        55 -> Pair(stringResource(Res.string.weather_code_55), Res.drawable.weather_icon_strong_freezing_drizzle_cloudy)
+        56 -> Pair(stringResource(Res.string.weather_code_56), Res.drawable.weather_icon_strong_freezing_rain_cloudy)
+        57 -> Pair(stringResource(Res.string.weather_code_57), Res.drawable.weather_icon_drizzle_cloudy)
+        58 -> Pair(stringResource(Res.string.weather_code_58), Res.drawable.weather_icon_drizzle_cloudy)
+        60 -> Pair(stringResource(Res.string.weather_code_60), Res.drawable.weather_icon_moderate_rain_cloudy)
+        61 -> Pair(stringResource(Res.string.weather_code_61), Res.drawable.weather_icon_light_rain_cloudy)
+        62 -> Pair(stringResource(Res.string.weather_code_62), Res.drawable.weather_icon_moderate_rain_cloudy)
+        63 -> Pair(stringResource(Res.string.weather_code_63), Res.drawable.weather_icon_strong_rain_cloudy)
+        64 -> Pair(stringResource(Res.string.weather_code_64), Res.drawable.weather_icon_strong_freezing_rain_cloudy)
+        65 -> Pair(stringResource(Res.string.weather_code_65), Res.drawable.weather_icon_strong_freezing_rain_cloudy)
+        66 -> Pair(stringResource(Res.string.weather_code_66), Res.drawable.weather_icon_strong_freezing_rain_cloudy)
+        67 -> Pair(stringResource(Res.string.weather_code_67), Res.drawable.weather_icon_light_sleet_cloudy)
+        68 -> Pair(stringResource(Res.string.weather_code_68), Res.drawable.weather_icon_strong_sleet_cloudy)
+        70 -> Pair(stringResource(Res.string.weather_code_70), Res.drawable.weather_icon_moderate_snow_cloudy)
+        71 -> Pair(stringResource(Res.string.weather_code_71), Res.drawable.weather_icon_light_snow_cloudy)
+        72 -> Pair(stringResource(Res.string.weather_code_72), Res.drawable.weather_icon_moderate_snow_cloudy)
+        73 -> Pair(stringResource(Res.string.weather_code_73), Res.drawable.weather_icon_strong_snow_cloudy)
+        74 -> Pair(stringResource(Res.string.weather_code_74), Res.drawable.weather_icon_strong_hail_cloudy)
+        75 -> Pair(stringResource(Res.string.weather_code_75), Res.drawable.weather_icon_strong_hail_cloudy)
+        76 -> Pair(stringResource(Res.string.weather_code_76), Res.drawable.weather_icon_strong_hail_cloudy)
+        77 -> Pair(stringResource(Res.string.weather_code_77), Res.drawable.weather_icon_strong_hail_cloudy)
+        78 -> Pair(stringResource(Res.string.weather_code_78), Res.drawable.weather_icon_strong_hail_cloudy)
+        80 -> Pair(stringResource(Res.string.weather_code_80), Res.drawable.weather_icon_light_rain_showers_mostly_cloudy_day)
+        81 -> Pair(stringResource(Res.string.weather_code_81), Res.drawable.weather_icon_strong_rain_showers_cloudy)
+        82 -> Pair(stringResource(Res.string.weather_code_82), Res.drawable.weather_icon_strong_rain_showers_cloudy)
+        83 -> Pair(stringResource(Res.string.weather_code_83), Res.drawable.weather_icon_strong_rain_showers_mostly_cloudy_day)
+        84 -> Pair(stringResource(Res.string.weather_code_84), Res.drawable.weather_icon_strong_rain_showers_mostly_cloudy_day)
+        85 -> Pair(stringResource(Res.string.weather_code_85), Res.drawable.weather_icon_light_snow_mostly_cloudy_night)
+        86 -> Pair(stringResource(Res.string.weather_code_86), Res.drawable.weather_icon_moderate_snow_cloudy)
+        87 -> Pair(stringResource(Res.string.weather_code_87), Res.drawable.weather_icon_strong_snow_cloudy)
+        89 -> Pair(stringResource(Res.string.weather_code_89), Res.drawable.weather_icon_strong_hail_cloudy)
+        90 -> Pair(stringResource(Res.string.weather_code_90), Res.drawable.weather_icon_lightning_clouds)
+        91 -> Pair(stringResource(Res.string.weather_code_91), Res.drawable.weather_icon_lightning_clouds)
+        92 -> Pair(stringResource(Res.string.weather_code_92), Res.drawable.weather_icon_lightning_clouds)
+        93 -> Pair(stringResource(Res.string.weather_code_93), Res.drawable.weather_icon_lightning_clouds)
+        94 -> Pair(stringResource(Res.string.weather_code_94), Res.drawable.weather_icon_lightning_clouds)
+        95 -> Pair(stringResource(Res.string.weather_code_95), Res.drawable.weather_icon_lightning_clouds)
+        96 -> Pair(stringResource(Res.string.weather_code_96), Res.drawable.weather_icon_lightning_clouds)
+        99 -> Pair(stringResource(Res.string.weather_code_99), Res.drawable.weather_icon_lightning_clouds)
         else -> Pair("Unknown weather code", null)
     }
 }
