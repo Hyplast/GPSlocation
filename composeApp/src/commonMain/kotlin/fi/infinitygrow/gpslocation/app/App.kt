@@ -4,6 +4,7 @@ package fi.infinitygrow.gpslocation.app
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -16,15 +17,12 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
@@ -62,16 +60,13 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import fi.infinitygrow.gpslocation.core.presentation.LeafGreenColor
 import fi.infinitygrow.gpslocation.core.presentation.SkyBlueColor
-import fi.infinitygrow.gpslocation.domain.model.ObservationData
 import fi.infinitygrow.gpslocation.domain.model.ObservationLocation
-import fi.infinitygrow.gpslocation.domain.model.Weather
 import fi.infinitygrow.gpslocation.domain.model.getObservationLocation
 import fi.infinitygrow.gpslocation.domain.model.locations
 import fi.infinitygrow.gpslocation.presentation.observation_list.WeatherScreen
 import fi.infinitygrow.gpslocation.presentation.observation_list.WeatherViewModel
 import fi.infinitygrow.gpslocation.presentation.observation_list.components.CompassArrow
 import fi.infinitygrow.gpslocation.presentation.observation_list.components.LocationSearchScreen
-import fi.infinitygrow.gpslocation.presentation.permission.LocationService
 import fi.infinitygrow.gpslocation.presentation.settings_page.SettingsScreen
 import fi.infinitygrow.gpslocation.presentation.settings_page.SettingsViewModel
 import fi.infinitygrow.gpslocation.presentation.utils.constructLanguageString
@@ -85,7 +80,6 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.ui.tooling.preview.Preview
-import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
@@ -145,6 +139,7 @@ fun WeatherAppNav(
 
 }
 
+/*
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 fun WeatherApp2(
@@ -411,7 +406,24 @@ fun WeatherApp2(
                                     ) {
                                         // Don't call CompassArrow, or show a fallback UI.
                                     } else {
-                                        CompassArrow(observation.windDirection, observation.windSpeed, observation.windGust)
+                                        CompassArrow(observation.windDirection,
+                                            observation.windSpeed,
+                                            observation.windGust,
+                                            Modifier.Companion
+                                                .clickable {
+                                                    if (matchingWindData.size > 1) {
+                                                        isAnimating = true
+                                                    }
+                                                }
+                                                // Optional: show visual feedback during animation
+                                                .then(
+                                                    if (isAnimating)
+                                                        Modifier.Companion.border(2.dp, MaterialTheme.colorScheme.primary,
+                                                            CircleShape
+                                                        )
+                                                    else
+                                                        Modifier
+                                                ))
                                     }
                                     Icon(
                                         painter = if (isLongPressed) {
@@ -445,6 +457,8 @@ fun WeatherApp2(
 
     }
 }
+
+ */
 
 /*
 // MaterialTheme (
