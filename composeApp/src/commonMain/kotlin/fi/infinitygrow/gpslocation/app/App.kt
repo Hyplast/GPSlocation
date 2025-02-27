@@ -1,5 +1,6 @@
 package fi.infinitygrow.gpslocation.app
 
+
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -16,24 +17,29 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Favorite
-import androidx.compose.material.icons.filled.Lock
-import androidx.compose.material.icons.filled.Star
-import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.semantics.contentDescription
@@ -43,6 +49,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.lifecycle.ViewModel
@@ -51,10 +58,10 @@ import fi.infinitygrow.gpslocation.core.presentation.SkyBlueColor
 import fi.infinitygrow.gpslocation.domain.model.ObservationLocation
 import fi.infinitygrow.gpslocation.domain.model.getObservationLocation
 import fi.infinitygrow.gpslocation.domain.model.locations
-import fi.infinitygrow.gpslocation.presentation.observation_list.components.LocationSearchScreen
 import fi.infinitygrow.gpslocation.presentation.observation_list.WeatherViewModel
-import fi.infinitygrow.gpslocation.presentation.permission.LocationService
 import fi.infinitygrow.gpslocation.presentation.observation_list.components.CompassArrow
+import fi.infinitygrow.gpslocation.presentation.observation_list.components.LocationSearchScreen
+import fi.infinitygrow.gpslocation.presentation.permission.LocationService
 import fi.infinitygrow.gpslocation.presentation.utils.constructLanguageString
 import fi.infinitygrow.gpslocation.presentation.utils.convertUnixTimeToHHMM
 import fi.infinitygrow.gpslocation.presentation.utils.formatValue
@@ -62,14 +69,12 @@ import fi.infinitygrow.gpslocation.presentation.utils.getWeatherDescription
 import gpslocation.composeapp.generated.resources.Res
 import gpslocation.composeapp.generated.resources.baseline_lock_open_24
 import gpslocation.composeapp.generated.resources.twotone_lock_24
-import org.jetbrains.compose.ui.tooling.preview.Preview
-
-
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.painterResource
+import org.jetbrains.compose.ui.tooling.preview.Preview
 import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
 
@@ -77,172 +82,29 @@ import org.koin.compose.viewmodel.koinViewModel
 @Preview
 fun App() {
     MaterialTheme {
-
         val viewModel = koinViewModel<WeatherViewModel>()
         val testViewModel = koinViewModel<TestViewModel>()
         val locationService = koinInject<LocationService>()
-
-        //val prefs = koinInject<>()
         val prefs: DataStore<Preferences> = koinInject()
-        val EXAMPLE_COUNTER = intPreferencesKey("example_counter")
 
-        val counter by prefs
-            .data
-            .map {
-                val counterKey = intPreferencesKey("counter")
-                it[counterKey] ?: 0
-            }
-            .collectAsState(0)
-        val scope = rememberCoroutineScope()
-            Column(
-                modifier = Modifier.fillMaxSize(),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center
-            ) {
-                Text(
-                    text = counter.toString(),
-                    textAlign = TextAlign.Center,
-                    fontSize = 50.sp
-                )
-                Button(onClick = {
-                    scope.launch {
-                        prefs.edit { dataStore ->
-                            val counterKey = intPreferencesKey("counter")
-                            dataStore[counterKey] = counter + 1
-                        }
-                    }
-                }) {
-                    Text("Increment!")
-                }
-            }
-
-        //MyLazyList(testViewModel)
-
-        //Image(painterResource(Res.drawable.ic_cloudy), null)
         WeatherApp(
             modifier = Modifier
                 .fillMaxSize(),
             viewModel = viewModel,
             locationService = locationService,
+            prefs = prefs
         )
 
-        /*
-        val factory = rememberPermissionsControllerFactory()
-        val controller = remember(factory) {
-            factory.createPermissionsController()
-        }
-
-        BindEffect(controller)
-
-        val viewModel = viewModel {
-            PermissionsViewModel(controller)
-        }
-
-        Column(
-            modifier = Modifier
-                .fillMaxSize(),
-            verticalArrangement = Arrangement.Center,
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            when(viewModel.state) {
-                PermissionState.Granted -> {
-                    Text("Location permission granted!")
-                }
-                PermissionState.DeniedAlways -> {
-                    Text("Permission was permanently declined.")
-                    Button(onClick = {
-                        controller.openAppSettings()
-                    }) {
-                        Text("Open app settings")
-                    }
-                }
-                else -> {
-                    Button(
-                        onClick = {
-                            viewModel.provideOrRequestRecordAudioPermission()
-                        }
-                    ) {
-                        Text("Request permission")
-                    }
-                }
-            }
-        }
-
-         */
     }
 }
-
-class TestViewModel : ViewModel() {
-    // State to keep track of long-pressed items
-    val longPressedItems = mutableStateListOf<ObservationLocation>()
-
-    fun toggleLongPress(item: ObservationLocation) {
-        if (longPressedItems.contains(item)) {
-            longPressedItems.remove(item) // Remove if already long-pressed
-        } else {
-            longPressedItems.add(item) // Add if not already long-pressed
-        }
-    }
-}
-
-@OptIn(ExperimentalFoundationApi::class)
-@Composable
-fun MyLazyList(viewModel: TestViewModel) {
-    //val items = locations//List(20) { ListItem(it, "Item #$it") }
-    //val colors = remember { mutableStateListOf(*Array(items.size) { Color.White }) }
-    val haptics = LocalHapticFeedback.current
-
-    LazyColumn {
-        items(locations) { item ->
-            val isLongPressed = viewModel.longPressedItems.contains(item)
-            val backgroundColor = if (isLongPressed) Color.Red else Color.White
-
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp)
-                    .background(backgroundColor)
-                    .combinedClickable(
-                        onClick = {
-                            // Navigate to the item on short click
-                            //navController.navigate("itemDetail/${item.fmiId}") // Adjust the route as needed
-                            // Short click changes color to a random color
-                            //colors[index] = Color((0xFF000000..0xFFFFFFFF).random().toInt())
-                        },
-                        onLongClick = {
-                            viewModel.toggleLongPress(item)
-                            haptics.performHapticFeedback(HapticFeedbackType.LongPress)
-                            //colors[index] = Color.White
-                        }
-                    )
-//                    .pointerInput(Unit) {
-//                        detectTapGestures(
-//                            onLongPress = {
-//                                println("Long Clicked")
-//                                println(item.name)
-//                                colors[index] = Color((0xFF000000..0xFFFFFFFF).random().toInt())
-//                            },
-//                        )
-//                    },
-            )
-            {
-                Text(
-                    text = item.name,
-                    style = MaterialTheme.typography.bodyLarge,
-                    modifier = Modifier.padding(8.dp)
-                )
-            }
-        }
-    }
-}
-
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 fun WeatherApp(
     modifier: Modifier = Modifier,
     viewModel: WeatherViewModel,
-    locationService: LocationService
+    locationService: LocationService,
+    prefs: DataStore<Preferences>
 ) {
     val scope = rememberCoroutineScope()
     val uiState by viewModel.uiState.collectAsState()
@@ -256,6 +118,31 @@ fun WeatherApp(
     var checked by remember { mutableStateOf(true) }
     //val colors = remember { mutableStateListOf(*Array(items.size) { Color.White }) }
 
+    val snackbarHostState = remember { SnackbarHostState() }
+
+    val counter by prefs
+        .data
+        .map {
+            val counterKey = intPreferencesKey("counter")
+            it[counterKey] ?: 0
+        }
+        .collectAsState(0)
+
+    val isDarkTheme by prefs
+        .data
+        .map {
+            val isDarkThemeKey = booleanPreferencesKey("dark_theme")
+            it[isDarkThemeKey] ?: false
+        }
+        .collectAsState(false)
+
+    val isLocationOn by prefs
+        .data
+        .map {
+            val isLocationOnKey = booleanPreferencesKey("location")
+            it[isLocationOnKey] ?: true
+        }
+        .collectAsState(true)
 
     fun refreshWeather(selectedLocations: List<ObservationLocation>) {
         scope.launch(Dispatchers.IO) {
@@ -301,12 +188,63 @@ fun WeatherApp(
         refreshWeather(selectedLocations)
     }
 
+    Scaffold(
+        modifier = modifier
+            .fillMaxSize(),
+        snackbarHost = { SnackbarHost(hostState = snackbarHostState) }
+    ) { padding ->
     Column(
         modifier = Modifier
             .fillMaxSize()
+            .padding(padding)
             .background(color = SkyBlueColor),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
+
+        Row {
+            Text(
+                text = if (isDarkTheme) "Dark Theme: ON" else "Dark Theme: OFF",
+                textAlign = TextAlign.Center,
+                fontSize = 20.sp
+            )
+            Switch(
+                modifier = Modifier
+                    //.weight(3f)
+                    .semantics { contentDescription = "Dark Theme" },
+                checked = isDarkTheme,
+                onCheckedChange = {
+                    scope.launch {
+                        prefs.edit { datastore ->
+                            val isDarkThemeKey = booleanPreferencesKey("dark_theme")
+                            datastore[isDarkThemeKey] = !(datastore[isDarkThemeKey] ?: false)
+                        }
+                    }
+                }
+            )
+        }
+        Row {
+            Text(
+                text = if (isLocationOn) "Paikannus: Päällä" else "Paikannus: Pois",
+                textAlign = TextAlign.Center,
+                fontSize = 20.sp
+            )
+            Switch(
+                modifier = Modifier
+                    //.weight(3f)
+                    .semantics { contentDescription = "Paikannus" },
+                checked = isLocationOn,
+                onCheckedChange = {
+                    scope.launch {
+                        prefs.edit { datastore ->
+                            val isLocationOnKey = booleanPreferencesKey("location")
+                            datastore[isLocationOnKey] = !(datastore[isLocationOnKey] ?: false)
+                        }
+                    }
+                }
+            )
+
+        }
+
         if (uiState.error.isNotBlank()) {
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                 Text(text = uiState.error, color = Color.Red)
@@ -350,17 +288,13 @@ fun WeatherApp(
                     .weight(7f),
                 locations,
                 onLocationSelected = { location ->
-                    // Handle location selection, e.g., show a toast or navigate
-                    println("Selected location: ${location.name}")
+                    scope.launch {
+                        snackbarHostState.showSnackbar(
+                            message = "Selected location: ${location.name}"
+                        )
+                    }
                 },
                 observationLocations = selectedLocations
-            )
-            Switch(
-                modifier = Modifier
-                    .weight(3f)
-                    .semantics { contentDescription = "Paikannus" },
-                checked = checked,
-                onCheckedChange = { checked = it }
             )
         }
 
@@ -413,7 +347,6 @@ fun WeatherApp(
                                 ?.let {
                                     val revice = getWeatherDescription(it.toInt())
                                     revice.first
-                                    //getWeatherDescription(it.toInt())
                                 }
                         )
                     ).filter { it.isNotEmpty() } // Remove empty rows
@@ -446,7 +379,7 @@ fun WeatherApp(
                                     ) {
                                         row.forEachIndexed { index, text ->
                                             Text(
-                                                text = text.toString(),
+                                                text = text,
                                                 fontSize = 16.sp,
                                                 modifier = Modifier.weight(1f)
                                             )
@@ -465,21 +398,22 @@ fun WeatherApp(
                                     } else {
                                         CompassArrow(observation.windDirection, observation.windSpeed, observation.windGust)
                                     }
-//                                    Icon(
-//                                        painter = if (isLongPressed) {
-//                                            painterResource(Res.drawable.baseline_lock_open_24)
-//                                        } else painterResource(Res.drawable.twotone_lock_24),
-//                                        contentDescription = if (isLongPressed) "Locked" else "Unlocked",
-//                                        modifier = Modifier.padding(start = 8.dp)
-//                                    )
-//                                    observation.presentWeather.takeIf { it.isFinite() }
-//                                        ?.let {
-//                                            val revice = getWeatherDescription(it.toInt())
-//                                            if (revice.second != null) Image(
-//                                                painterResource(revice.second!!),
-//                                                revice.first
-//                                            )
-//                                        }
+                                    Icon(
+                                        painter = if (isLongPressed) {
+                                            painterResource(Res.drawable.twotone_lock_24
+                                            )
+                                        } else painterResource(Res.drawable.baseline_lock_open_24),
+                                        contentDescription = if (isLongPressed) "Locked" else "Unlocked",
+                                        modifier = Modifier.padding(start = 8.dp)
+                                    )
+                                    observation.presentWeather.takeIf { it.isFinite() }
+                                        ?.let {
+                                            val revice = getWeatherDescription(it.toInt())
+                                            if (revice.second != null) Image(
+                                                painterResource(revice.second!!),
+                                                revice.first
+                                            )
+                                        }
                                 }
                             }
                         }
@@ -492,54 +426,100 @@ fun WeatherApp(
             }
         }
         }
-
-
-        //                        GlideImage()
-        //                        (
-        //                            model = forecast.iconUrl,
-        //                            contentDescription = "Forecast Icon",
-        //                            modifier = Modifier.size(30.dp)
-        //                        )
-//        Spacer(modifier = Modifier.height(24.dp))
-//        uiState.forecastInfo?.let { list ->
-//            LazyColumn(modifier = Modifier.fillMaxWidth()) {
-//                item {
-//                    Text(
-//                        modifier = Modifier.fillMaxWidth(),
-//                        textAlign = TextAlign.Center,
-//                        text = "Upcoming forecast",
-//                        style = MaterialTheme.typography.headlineSmall.copy(color = Color.White)
-//                    )
-//                }
-//                items(list) { forecast ->
-//                    Row(
-//                        modifier = Modifier
-//                            .padding(horizontal = 12.dp, vertical = 8.dp)
-//                            .fillMaxWidth()
-//                            .background(Color.White, shape = MaterialTheme.shapes.medium)
-//                            .padding(horizontal = 12.dp, vertical = 4.dp),
-//                        verticalAlignment = Alignment.CenterVertically
-//                    ) {
-//                        Text(text = forecast.date)
-//                        Spacer(modifier = Modifier.weight(1f))
-//                        Text(text = formatValue(forecast.temperature.toFloat()) + " C")
-//                        Spacer(modifier = Modifier.weight(1f))
-////                        GlideImage()
-////                        (
-////                            model = forecast.iconUrl,
-////                            contentDescription = "Forecast Icon",
-////                            modifier = Modifier.size(30.dp)
-////                        )
-//                        Spacer(modifier = Modifier.width(12.dp))
-//                    }
-//                }
-//            }
-//        }
+    }
 
     }
 }
 
+/*
+// MaterialTheme (
+val factory = rememberPermissionsControllerFactory()
+val controller = remember(factory) {
+    factory.createPermissionsController()
+}
 
-//fun formatValue(float: Float): String {
-//    return String.format(Locale.getDefault(), "%.2f", float)
-//}
+BindEffect(controller)
+
+val viewModel = viewModel {
+    PermissionsViewModel(controller)
+}
+
+Column(
+    modifier = Modifier
+        .fillMaxSize(),
+    verticalArrangement = Arrangement.Center,
+    horizontalAlignment = Alignment.CenterHorizontally
+) {
+    when(viewModel.state) {
+        PermissionState.Granted -> {
+            Text("Location permission granted!")
+        }
+        PermissionState.DeniedAlways -> {
+            Text("Permission was permanently declined.")
+            Button(onClick = {
+                controller.openAppSettings()
+            }) {
+                Text("Open app settings")
+            }
+        }
+        else -> {
+            Button(
+                onClick = {
+                    viewModel.provideOrRequestRecordAudioPermission()
+                }
+            ) {
+                Text("Request permission")
+            }
+        }
+    }
+}
+ */
+
+class TestViewModel : ViewModel() {
+    val longPressedItems = mutableStateListOf<ObservationLocation>()
+
+    fun toggleLongPress(item: ObservationLocation) {
+        if (longPressedItems.contains(item)) {
+            longPressedItems.remove(item) // Remove if already long-pressed
+        } else {
+            longPressedItems.add(item) // Add if not already long-pressed
+        }
+    }
+}
+
+
+@OptIn(ExperimentalFoundationApi::class)
+@Composable
+fun MyLazyList(viewModel: TestViewModel) {
+    val haptics = LocalHapticFeedback.current
+
+    LazyColumn {
+        items(locations) { item ->
+            val isLongPressed = viewModel.longPressedItems.contains(item)
+            val backgroundColor = if (isLongPressed) Color.Red else Color.White
+
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp)
+                    .background(backgroundColor)
+                    .combinedClickable(
+                        onClick = {
+
+                        },
+                        onLongClick = {
+                            viewModel.toggleLongPress(item)
+                            haptics.performHapticFeedback(HapticFeedbackType.LongPress)
+                        }
+                    )
+            )
+            {
+                Text(
+                    text = item.name,
+                    style = MaterialTheme.typography.bodyLarge,
+                    modifier = Modifier.padding(8.dp)
+                )
+            }
+        }
+    }
+}
