@@ -31,7 +31,6 @@ class WeatherViewModel(
     private val getObservationUseCase: GetObservationUseCase,
     private val locationService: LocationService,
     settingsRepository: SettingsRepository
-    //private val settingsRepository: SettingsRepository
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(UiState())
@@ -55,18 +54,13 @@ class WeatherViewModel(
             initialValue = true
         )
 
-//    val userName: StateFlow<String?> = settingsRepository.userName
-//
-//    fun saveUserName(name: String) {
-//        viewModelScope.launch {
-//            settingsRepository.saveUserName(name)
-//        }
-//    }
     fun getLocationPermission(): Boolean {
         return locationService.isPermissionGranted()
     }
 
     fun refreshWeather(selectedLocations: List<ObservationLocation>) {
+        println("Selected Locations are being fecthed from API")
+        println(selectedLocations)
         viewModelScope.launch(Dispatchers.IO) {
             if (locationService.isPermissionGranted()) {
                 locationService.getLocation()?.let { location ->
@@ -91,6 +85,10 @@ class WeatherViewModel(
                                     selectedLocations
                                 )
                             }
+                        }
+                    } else {
+                        viewModelScope.launch(Dispatchers.IO) {
+                            getObservation(null, null, selectedLocations)
                         }
                     }
                     // You might want to update the UI state to indicate permission denied.

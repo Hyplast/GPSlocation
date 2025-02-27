@@ -3,14 +3,18 @@ package fi.infinitygrow.gpslocation.presentation.settings_page
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import fi.infinitygrow.gpslocation.data.repository.SettingsRepository
+import fi.infinitygrow.gpslocation.presentation.permission.LocationService
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
 class SettingsViewModel(
-    private val repository: SettingsRepository
+    private val repository: SettingsRepository,
+    private val locationService: LocationService
 ) : ViewModel() {
+
+    val isPermissionGranted = locationService.isPermissionGranted()
 
     // Expose dark theme as a StateFlow.
     val darkTheme: StateFlow<Boolean> = repository.darkThemeFlow
@@ -27,10 +31,22 @@ class SettingsViewModel(
         }
     }
 
-    // Call repository function to update location setting.
-    fun toggleLocation() {
-        viewModelScope.launch {
-            repository.setLocationOn(!isLocationOn.value)
+    // Updated function that returns success/failure
+    suspend fun toggleLocation(): Boolean {
+        // Check permission first
+        if (!locationService.isPermissionGranted()) {
+            return false // Permission denied
         }
+
+        // Permission granted, toggle the setting
+        repository.setLocationOn(!isLocationOn.value)
+        return true // Success
     }
+
+    // Call repository function to update location setting.
+//    fun toggleLocation() {
+//        viewModelScope.launch {
+//            repository.setLocationOn(!isLocationOn.value)
+//        }
+//    }
 }

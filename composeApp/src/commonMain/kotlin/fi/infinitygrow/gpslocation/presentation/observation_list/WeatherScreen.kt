@@ -1,6 +1,5 @@
 package fi.infinitygrow.gpslocation.presentation.observation_list
 
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -11,14 +10,12 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
-import androidx.compose.material3.Text
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -30,27 +27,17 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
-import androidx.datastore.core.DataStore
-import androidx.datastore.preferences.core.Preferences
-import androidx.datastore.preferences.core.booleanPreferencesKey
 import fi.infinitygrow.gpslocation.core.presentation.SkyBlueColor
 import fi.infinitygrow.gpslocation.domain.model.locations
 import fi.infinitygrow.gpslocation.presentation.observation_list.components.LocationSearchScreen
-import fi.infinitygrow.gpslocation.presentation.observation_list.components.LocationSearchWithSnackbar
 import fi.infinitygrow.gpslocation.presentation.observation_list.components.ObservationsList
 import fi.infinitygrow.gpslocation.presentation.observation_list.components.WeatherSummary
-import fi.infinitygrow.gpslocation.presentation.permission.LocationService
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun WeatherScreen(
-    //modifier: Modifier = Modifier,
-    //viewModel: WeatherViewModel,
-    //locationService: LocationService,
-    //prefs: DataStore<Preferences>,
     onNavigateToSettings: () -> Unit,
     weatherViewModel: WeatherViewModel
 ) {
@@ -58,16 +45,6 @@ fun WeatherScreen(
     val uiState by weatherViewModel.uiState.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
 
-    // Collect preferences from DataStore. You might eventually move this to a separate
-    // settings-view model.
-//    val isDarkTheme by prefs.data
-//        .map { it[booleanPreferencesKey("dark_theme")] ?: false }
-//        .collectAsState(initial = false)
-//    val isLocationOn by prefs.data
-//        .map { it[booleanPreferencesKey("location")] ?: true }
-//        .collectAsState(initial = true)
-
-    // If the screen needs to refresh
     LaunchedEffect(Unit) {
         weatherViewModel.refreshWeather(weatherViewModel.selectedLocations)
     }
@@ -124,6 +101,7 @@ fun WeatherScreen(
                     scope.launch {
                         snackbarHostState.showSnackbar(message = "${location.name} sääasema lisätty.")
                     }
+                    weatherViewModel.refreshWeather(weatherViewModel.selectedLocations)
                     //onLocationSelected(location)
                 },
                 observationLocations = weatherViewModel.selectedLocations
