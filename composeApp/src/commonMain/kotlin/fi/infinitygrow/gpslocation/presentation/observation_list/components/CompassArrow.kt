@@ -66,7 +66,7 @@ fun CompassArrow(bearing: Double, speed: Double, gust: Double) {
         Text(
             text = speed.roundToInt().toString(),
             color = Color.Black, // Change color as needed
-            fontSize = 17.sp, // Adjust font size as needed
+            fontSize = 19.sp, // Adjust font size as needed
             fontWeight = FontWeight.Bold,
             modifier = Modifier
                 .align(Alignment.Center) // Center the text over the arrow

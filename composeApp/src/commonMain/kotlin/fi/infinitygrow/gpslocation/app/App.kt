@@ -17,10 +17,14 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
@@ -53,15 +57,23 @@ import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.lifecycle.ViewModel
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
 import fi.infinitygrow.gpslocation.core.presentation.LeafGreenColor
 import fi.infinitygrow.gpslocation.core.presentation.SkyBlueColor
+import fi.infinitygrow.gpslocation.domain.model.ObservationData
 import fi.infinitygrow.gpslocation.domain.model.ObservationLocation
+import fi.infinitygrow.gpslocation.domain.model.Weather
 import fi.infinitygrow.gpslocation.domain.model.getObservationLocation
 import fi.infinitygrow.gpslocation.domain.model.locations
+import fi.infinitygrow.gpslocation.presentation.observation_list.WeatherScreen
 import fi.infinitygrow.gpslocation.presentation.observation_list.WeatherViewModel
 import fi.infinitygrow.gpslocation.presentation.observation_list.components.CompassArrow
 import fi.infinitygrow.gpslocation.presentation.observation_list.components.LocationSearchScreen
 import fi.infinitygrow.gpslocation.presentation.permission.LocationService
+import fi.infinitygrow.gpslocation.presentation.settings_page.SettingsScreen
+import fi.infinitygrow.gpslocation.presentation.settings_page.SettingsViewModel
 import fi.infinitygrow.gpslocation.presentation.utils.constructLanguageString
 import fi.infinitygrow.gpslocation.presentation.utils.convertUnixTimeToHHMM
 import fi.infinitygrow.gpslocation.presentation.utils.formatValue
@@ -69,8 +81,6 @@ import fi.infinitygrow.gpslocation.presentation.utils.getWeatherDescription
 import gpslocation.composeapp.generated.resources.Res
 import gpslocation.composeapp.generated.resources.baseline_lock_open_24
 import gpslocation.composeapp.generated.resources.twotone_lock_24
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.IO
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.painterResource
@@ -83,27 +93,63 @@ import org.koin.compose.viewmodel.koinViewModel
 fun App() {
     MaterialTheme {
         val viewModel = koinViewModel<WeatherViewModel>()
-        val testViewModel = koinViewModel<TestViewModel>()
-        val locationService = koinInject<LocationService>()
-        val prefs: DataStore<Preferences> = koinInject()
+        val settingsViewModel = koinViewModel<SettingsViewModel>()
+        //val locationService = koinInject<LocationService>()
+        //val prefs: DataStore<Preferences> = koinInject()
 
-        WeatherApp(
-            modifier = Modifier
-                .fillMaxSize(),
-            viewModel = viewModel,
-            locationService = locationService,
-            prefs = prefs
+        WeatherAppNav(
+            weatherViewModel = viewModel,
+            settingsViewModel = settingsViewModel,
+            //locationService = locationService,
+            //prefs = prefs
         )
-
     }
+}
+
+@Composable
+fun WeatherAppNav(
+    weatherViewModel: WeatherViewModel,
+    settingsViewModel: SettingsViewModel,
+    //locationService: LocationService,
+    //prefs: DataStore<Preferences>
+) {
+    val navController = rememberNavController()
+
+    NavHost(
+        navController = navController,
+        startDestination = "weather"
+    ) {
+        composable("weather") {
+            WeatherScreen(
+                weatherViewModel = weatherViewModel,
+                //locationService = locationService,
+                //prefs = prefs,
+                onNavigateToSettings = { navController.navigate("settings") }
+            )
+        }
+        composable("settings") {
+            SettingsScreen(
+                settingsViewModel = settingsViewModel,
+                onNavigateBack = { navController.popBackStack() }
+            )
+        }
+    }
+
+//    WeatherApp2(
+//        modifier = Modifier
+//            .fillMaxSize(),
+//        viewModel = weatherViewModel,
+//        //locationService = locationService,
+//        prefs = prefs
+//    )
+
 }
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
-fun WeatherApp(
+fun WeatherApp2(
     modifier: Modifier = Modifier,
     viewModel: WeatherViewModel,
-    locationService: LocationService,
     prefs: DataStore<Preferences>
 ) {
     val scope = rememberCoroutineScope()
@@ -144,48 +190,10 @@ fun WeatherApp(
         }
         .collectAsState(true)
 
-    fun refreshWeather(selectedLocations: List<ObservationLocation>) {
-        scope.launch(Dispatchers.IO) {
-            println("WeatherApp Checking location permission")
-            if (locationService.isPermissionGranted()) {
-                println("Permission granted, fetching location")
-                val location = locationService.getLocation()
-                location?.let {
-                    println("Location received: $location")
-                    viewModel.getCurrentWeatherInfo(it.latitude, it.longitude)
-                    viewModel.getForecastInfo(it.latitude, it.longitude)
-                    if (checked) {
-                        viewModel.getObservation(it.latitude, it.longitude, selectedLocations)
-                    } else {
-                        viewModel.getObservation(null, null, selectedLocations)
-                    }
-                }
-            } else {
-                println("Permission not granted, asking for permission")
-                locationService.requestLocationPermission { granted ->
-                    if (granted) {
-                        scope.launch(Dispatchers.IO) {
-                            val location = locationService.getLocation()
-                            location?.let {
-                                viewModel.getCurrentWeatherInfo(it.latitude, it.longitude)
-                                viewModel.getForecastInfo(it.latitude, it.longitude)
-                                if (checked) {
-                                    viewModel.getObservation(it.latitude, it.longitude, selectedLocations)
-                                } else {
-                                    viewModel.getObservation(null, null, selectedLocations)
-                                }
-                            }
 
-                        }
-                    }
-                    println("Permission denied")
-                }
-            }
-        }
-    }
 
     LaunchedEffect(Unit) {
-        refreshWeather(selectedLocations)
+        viewModel.refreshWeather(selectedLocations)
     }
 
     Scaffold(
@@ -235,7 +243,7 @@ fun WeatherApp(
                 checked = isLocationOn,
                 onCheckedChange = {
                     scope.launch {
-                        if (!locationService.isPermissionGranted()) {
+                        if (!viewModel.getLocationPermission()) {
                             snackbarHostState.showSnackbar(
                                 message = "Location permission denied. Please change location settings."
                             )
@@ -309,7 +317,7 @@ fun WeatherApp(
             isRefreshing = isRefreshing,
             onRefresh = {
                 isRefreshing = true
-                refreshWeather(selectedLocations) }
+                viewModel.refreshWeather(selectedLocations) }
         ) {
 
         val lazyColumnColor = if (isDarkTheme) Color(0xFFF0F0F0) else Color(0xFFFFFF)

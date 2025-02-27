@@ -17,7 +17,7 @@ import fi.infinitygrow.gpslocation.data.datastore.dataStore
 import fi.infinitygrow.gpslocation.data.repository.SettingsRepository
 
 private val viewModelModule = module {
-    viewModel { WeatherViewModel(get(), get(), get()) }
+    viewModel { WeatherViewModel(get(), get(), get(), get(), get()) }
     //single<LocationService> { getLocationService() }
     single { LocationService(androidApplication()) }
     //single { AndroidLocationService(androidApplication(),get()) }

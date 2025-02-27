@@ -2,47 +2,39 @@ package fi.infinitygrow.gpslocation.data.repository
 
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
-import androidx.datastore.preferences.core.stringPreferencesKey
-import fi.infinitygrow.gpslocation.domain.repository.PreferencesRepository
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.IO
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
 
 class SettingsRepository(private val dataStore: DataStore<Preferences>) {
 
-    private val USER_NAME_KEY = stringPreferencesKey("user_name")
+    // Define the preference keys.
+    private val darkThemeKey = booleanPreferencesKey("dark_theme")
+    private val locationKey = booleanPreferencesKey("location")
 
-    // MutableStateFlow to hold the user name
-    private val _userName = MutableStateFlow<String?>(null)
-    val userName: StateFlow<String?> get() = _userName
+    // Expose flow to observe dark theme settings; default is false.
+    val darkThemeFlow: Flow<Boolean> = dataStore.data
+        .map { preferences -> preferences[darkThemeKey] ?: false }
 
-    init {
-        // Load the user name from DataStore when the repository is initialized
-        loadUserName()
-    }
+    // Expose flow to observe location toggle; default is true.
+    val locationFlow: Flow<Boolean> = dataStore.data
+        .map { preferences -> preferences[locationKey] ?: true }
 
-    private fun loadUserName() {
-        // Load user name from DataStore and update the StateFlow
-        CoroutineScope(Dispatchers.IO).launch {
-            dataStore.data.collect { preferences ->
-                _userName.value = preferences[USER_NAME_KEY]
-            }
+    // Function to update dark theme preference.
+    suspend fun setDarkTheme(isDark: Boolean) {
+        dataStore.edit { preferences ->
+            preferences[darkThemeKey] = isDark
         }
     }
 
-    // Save user name
-    suspend fun saveUserName(name: String) {
+    // Function to update location toggle preference.
+    suspend fun setLocationOn(isOn: Boolean) {
         dataStore.edit { preferences ->
-            preferences[USER_NAME_KEY] = name
-            _userName.value = name // Update the StateFlow
+            preferences[locationKey] = isOn
         }
     }
 }
-
 //private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "app_preferences")
 
 /*
