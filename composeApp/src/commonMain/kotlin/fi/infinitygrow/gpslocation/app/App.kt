@@ -235,6 +235,11 @@ fun WeatherApp(
                 checked = isLocationOn,
                 onCheckedChange = {
                     scope.launch {
+                        if (!locationService.isPermissionGranted()) {
+                            snackbarHostState.showSnackbar(
+                                message = "Location permission denied. Please change location settings."
+                            )
+                        }
                         prefs.edit { datastore ->
                             val isLocationOnKey = booleanPreferencesKey("location")
                             datastore[isLocationOnKey] = !(datastore[isLocationOnKey] ?: false)
@@ -290,7 +295,7 @@ fun WeatherApp(
                 onLocationSelected = { location ->
                     scope.launch {
                         snackbarHostState.showSnackbar(
-                            message = "Selected location: ${location.name}"
+                            message = "${location.name} lisätty."
                         )
                     }
                 },
@@ -307,11 +312,13 @@ fun WeatherApp(
                 refreshWeather(selectedLocations) }
         ) {
 
+        val lazyColumnColor = if (isDarkTheme) Color(0xFFF0F0F0) else Color(0xFFFFFF)
+
         uiState.observationInfo?.let { list ->
             isRefreshing = false
             LazyColumn(
                 modifier = Modifier
-                    .background(Color(0xFFF0F0F0)) // Light gray background for the list
+                    .background(lazyColumnColor) // Light gray background for the list
                     .fillMaxSize()
             ) {
                 items(viewModel.getNewestObservations(list)) { observation ->
