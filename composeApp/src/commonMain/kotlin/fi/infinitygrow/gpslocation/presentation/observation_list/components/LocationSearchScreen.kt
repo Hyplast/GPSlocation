@@ -1,5 +1,6 @@
 package fi.infinitygrow.gpslocation.presentation.observation_list.components
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -16,6 +17,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.unit.dp
 import fi.infinitygrow.gpslocation.domain.model.ObservationLocation
@@ -60,7 +62,8 @@ fun LocationSearchScreen(
     // Get the keyboard controller
     val keyboardController = LocalSoftwareKeyboardController.current
 
-    Column(modifier = Modifier.fillMaxWidth()) {
+    Column(modifier = Modifier.fillMaxWidth()
+    ) {
         // Search Bar
         TextField(
             value = searchQuery,

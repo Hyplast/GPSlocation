@@ -58,68 +58,44 @@ fun WeatherScreen(
                 .background(color = SkyBlueColor)
                 .padding(padding)
         ) {
-
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(padding)
-                .background(color = SkyBlueColor),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
-        ) {
-//            PreferencesSection(
-//                isDarkTheme = isDarkTheme,
-//                isLocationOn = isLocationOn,
-//                onDarkThemeToggle = {
-//                    scope.launch {
-//                        prefs.edit { datastore ->
-//                            val key = booleanPreferencesKey("dark_theme")
-//                            datastore[key] = !(datastore[key] ?: false)
-//                        }
-//                    }
-//                },
-//                onLocationToggle = {
-//                    scope.launch {
-//                        // Check permission if needed, then update
-//                        if (!locationService.isPermissionGranted()) {
-//                            snackbarHostState.showSnackbar(
-//                                message = "Location permission denied. Please change location settings."
-//                            )
-//                        }
-//                        prefs.edit { datastore ->
-//                            val key = booleanPreferencesKey("location")
-//                            datastore[key] = !(datastore[key] ?: false)
-//                        }
-//                    }
-//                }
-//            )
-            WeatherSummary(currentWeather = uiState.currentWeather, isDarkTheme = weatherViewModel.isDarkTheme.value)
-            LocationSearchScreen(
-                modifier = Modifier,
-                locations = locations,
-                onLocationSelected = { location ->
-                    scope.launch {
-                        snackbarHostState.showSnackbar(message = "${location.name} sääasema lisätty.")
-                    }
-                    weatherViewModel.refreshWeather(weatherViewModel.selectedLocations)
-                    //onLocationSelected(location)
-                },
-                observationLocations = weatherViewModel.selectedLocations
-            )
-            Spacer(modifier = Modifier.height(24.dp))
-            PullToRefreshBox(
-                isRefreshing = uiState.isRefreshing, // You could have that within your uiState
-                onRefresh = { weatherViewModel.refreshWeather(weatherViewModel.selectedLocations) }
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(padding)
+                    .background(color = SkyBlueColor),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
             ) {
-                uiState.observationInfo?.let { observations ->
-                    ObservationsList(
-                        observations = observations,
-                        viewModel = weatherViewModel,
-                        isDarkTheme = weatherViewModel.isDarkTheme.value
-                    )
+                WeatherSummary(
+                    currentWeather = uiState.currentWeather,
+                    isDarkTheme = weatherViewModel.isDarkTheme.value
+                )
+                LocationSearchScreen(
+                    modifier = Modifier,
+                    locations = locations,
+                    onLocationSelected = { location ->
+                        scope.launch {
+                            snackbarHostState.showSnackbar(message = "${location.name} sääasema lisätty.")
+                        }
+                        weatherViewModel.refreshWeather(weatherViewModel.selectedLocations)
+                        //onLocationSelected(location)
+                    },
+                    observationLocations = weatherViewModel.selectedLocations
+                )
+                Spacer(modifier = Modifier.height(24.dp))
+                PullToRefreshBox(
+                    isRefreshing = uiState.isRefreshing, // You could have that within your uiState
+                    onRefresh = { weatherViewModel.refreshWeather(weatherViewModel.selectedLocations) }
+                ) {
+                    uiState.observationInfo?.let { observations ->
+                        ObservationsList(
+                            observations = observations,
+                            viewModel = weatherViewModel,
+                            isDarkTheme = weatherViewModel.isDarkTheme.value
+                        )
+                    }
                 }
             }
-        }
             IconButton(
                 onClick = onNavigateToSettings,
                 modifier = Modifier

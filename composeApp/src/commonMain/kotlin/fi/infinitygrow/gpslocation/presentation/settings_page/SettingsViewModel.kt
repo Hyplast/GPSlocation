@@ -43,6 +43,11 @@ class SettingsViewModel(
         return true // Success
     }
 
+    suspend fun toggleTalkService() {
+        viewModelScope.launch {
+            repository.setDarkTheme(!darkTheme.value)
+        }
+    }
     // Call repository function to update location setting.
 //    fun toggleLocation() {
 //        viewModelScope.launch {

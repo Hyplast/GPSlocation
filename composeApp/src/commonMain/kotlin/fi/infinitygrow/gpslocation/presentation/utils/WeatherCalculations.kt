@@ -58,7 +58,7 @@ fun pressureFromAltitude(
     val temperatureAtAltitude = calcTemperatureAtAltitude(altitude, heightStationM, temperatureAtStation)
     val altitudeDiff = altitude - heightStationM
 
-    return pressureAtSeaLevel * exp((-g0 * M * altitudeDiff) / (R * temperatureAtStation))//temperatureAtAltitude))
+    return pressureAtSeaLevel * exp((-g0 * M * altitude) / (R * temperatureAtAltitude))//temperatureAtAltitude))
 }
 
 fun calcTemperatureAtAltitude(altitude: Double, measurementAltitude: Double, measuredTemperature: Double): Double {
@@ -209,7 +209,7 @@ fun pressureTemperatureAltitude(
     altitude: Double
 ): Double {
     val pa = pressTempAlt(p, t, altitude)
-    return altcalc(p, t, pa)
+    return altcalc(t = t, pa = pa)
 }
 
 
@@ -227,7 +227,7 @@ fun calculateAltitude(
     pressureAtSeaLevel: Double,
     heightMeasurementStation: Double = 0.0
 ): Double {
-    val pressureAtAltitude = pressureFromAltitude(altitudeInMeters, temperature) // Convert feet to meters and calculate air pressure at given altitude and temperature
-    val airPressureAtSeaLevel = altitudeFromPressure(pressureAtAltitude, temperature, pressureAtSeaLevel) // Convert Pa to kPa and calculate air pressure at sea level using calculated air pressure at given altitude and temperature
-    return heightMeasurementStation + airPressureAtSeaLevel // Convert kPa to Pa and calculate final altitude using calculated air pressure at sea level and given temperature
+    val pressureAtAltitude = pressureFromAltitude(altitudeInMeters, temperature, pressureAtSeaLevel, heightMeasurementStation) // Convert feet to meters and calculate air pressure at given altitude and temperature
+    val altitudeAtPressure = altitudeFromPressure(pressureAtAltitude, temperature, pressureAtSeaLevel) // Convert Pa to kPa and calculate air pressure at sea level using calculated air pressure at given altitude and temperature
+    return altitudeAtPressure // Convert kPa to Pa and calculate final altitude using calculated air pressure at sea level and given temperature
 }

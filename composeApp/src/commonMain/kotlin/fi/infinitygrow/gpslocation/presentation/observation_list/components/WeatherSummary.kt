@@ -17,16 +17,18 @@ fun WeatherSummary(
     currentWeather: Weather?, // Your weather model type
     isDarkTheme: Boolean
 ) {
+    val fontColor = if (isDarkTheme) Color.Black else Color.White
+
     currentWeather?.let { weather ->
         Spacer(modifier = Modifier.height(32.dp))
         Text(
             text = "${formatValue(weather.temperature.toFloat())} °C",
-            style = MaterialTheme.typography.headlineLarge.copy(fontSize = 60.sp, color = Color.White)
+            style = MaterialTheme.typography.headlineLarge.copy(fontSize = 60.sp, color = fontColor)
         )
         Spacer(modifier = Modifier.height(12.dp))
         Text(
             text = weather.name,
-            style = MaterialTheme.typography.headlineMedium.copy(color = Color.White)
+            style = MaterialTheme.typography.headlineMedium.copy(color = fontColor)
         )
         Spacer(modifier = Modifier.height(12.dp))
     }
