@@ -1,8 +1,10 @@
 package fi.infinitygrow.gpslocation.data.remote
 
 import fi.infinitygrow.gpslocation.data.mapper.deserializeObservation
+import fi.infinitygrow.gpslocation.data.mapper.deserializeRadiation
 import fi.infinitygrow.gpslocation.domain.model.ObservationData
 import fi.infinitygrow.gpslocation.domain.model.ObservationLocation
+import fi.infinitygrow.gpslocation.domain.model.RadiationData
 import fi.infinitygrow.gpslocation.presentation.permission.Location
 import io.ktor.client.HttpClient
 import io.ktor.client.request.get
@@ -57,8 +59,31 @@ class KtorFmiApiService(
 
     override suspend fun sunRadiation(
         longitude: Double, latitude: Double
-    ) {
-        TODO("Not yet implemented")
+    ): List<RadiationData> {
+        return try {
+            var newLongitude = longitude
+            var newlatitude = latitude
+            if (longitude == null && latitude == null) {
+                //bbox = null.toString()
+                newLongitude = 999.9
+                newlatitude = 999.9
+            } else {
+
+            }
+            val requestBuilder = FMIRequestBuilder()
+            val time = requestBuilder.getCurrentTimeInUTCWithOffset(1)
+
+            val url = "https://opendata.fmi.fi/wfs?service=WFS&version=2.0.0&request=getFeature&storedquery_id=fmi::observations::radiation::multipointcoverage&starttime=${time.second}&endtime=${time.first}&timestep=5&"
+
+            val response = client.get(url)
+            val xmlString = response.bodyAsText()
+            val fetchedFromLocation = Location(newlatitude!!, newLongitude!!)
+            deserializeRadiation(xmlString, fetchedFromLocation)
+
+        } catch (e: Exception) {
+            e.printStackTrace()
+            emptyList()
+        }
     }
 
     override suspend fun lightningStrikes(

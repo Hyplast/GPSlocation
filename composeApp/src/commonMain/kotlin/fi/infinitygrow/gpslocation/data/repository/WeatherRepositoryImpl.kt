@@ -6,6 +6,7 @@ import fi.infinitygrow.gpslocation.data.remote.FmiApiService
 import fi.infinitygrow.gpslocation.domain.model.ForeCast
 import fi.infinitygrow.gpslocation.domain.model.ObservationData
 import fi.infinitygrow.gpslocation.domain.model.ObservationLocation
+import fi.infinitygrow.gpslocation.domain.model.RadiationData
 import fi.infinitygrow.gpslocation.domain.model.Weather
 import fi.infinitygrow.gpslocation.domain.repository.WeatherRepository
 
@@ -25,8 +26,8 @@ class WeatherRepositoryImpl(
         return fmiApiService.observation(latitude, longitude, observationList)//.toDomain()
     }
 
-    override suspend fun getSunRadiation(latitude: Double, longitude: Double): String {
-        TODO("Not yet implemented")
+    override suspend fun getSunRadiation(latitude: Double, longitude: Double): List<RadiationData> {
+        return fmiApiService.sunRadiation(latitude, longitude)
     }
 
     override suspend fun getLightningStrikes(latitude: Double, longitude: Double): String {

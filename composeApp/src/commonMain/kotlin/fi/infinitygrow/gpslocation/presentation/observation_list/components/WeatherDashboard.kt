@@ -90,10 +90,10 @@ fun WeatherChart2(
         ) {
             // Create 5 division labels on the y-axis
             val steps = 5
-            var prev = 99999
+            var prev = 99999.9f
             (steps downTo 0).forEach { i ->
                 val value = minValue + (range * i / steps)
-                val textValue = (round(value * 10) / 10).toInt()
+                val textValue = (round(value * 10) / 10)
                 var textString = ""
                 if (textValue != prev) textString = textValue.toString() else {
                 }
@@ -223,34 +223,6 @@ fun WeatherChart2(
     }
 }
 
-
-// Usage example
-@Composable
-fun WeatherDashboard2(weatherData: List<WeatherObservation>) {
-    Column(modifier = Modifier.fillMaxSize().padding(16.dp)) {
-        // Temperature chart
-        WeatherChart(
-            observations = weatherData,
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(200.dp),
-            dataType = WeatherDataType.TEMPERATURE
-        )
-
-        Spacer(modifier = Modifier.height(20.dp))
-
-        // Humidity chart
-        WeatherChart(
-            observations = weatherData,
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(200.dp),
-            dataType = WeatherDataType.HUMIDITY
-        )
-
-        // You can add more charts for pressure and wind speed
-    }
-}
 
 @Composable
 fun WeatherChart(
@@ -454,7 +426,7 @@ private fun formatValueWithUnit(value: Float, type: WeatherDataType): String {
     }
 }
 
-private fun formatTimestamp(timestamp: Long): String {
+fun formatTimestamp(timestamp: Long): String {
     val dateTime = Instant.fromEpochSeconds(timestamp)
         .toLocalDateTime(TimeZone.currentSystemDefault())
 

@@ -33,6 +33,7 @@ assertk = "0.28.1"
 coreKtx = "1.6.1"
 composeTest = "1.7.8"
 datastore = "1.1.2"
+junitJupiter = "5.8.1"
 
 
 [libraries]
@@ -97,6 +98,7 @@ assertk = { module = "com.willowtreeapps.assertk:assertk", version.ref = "assert
 compose-ui-test-junit4-android = { module = "androidx.compose.ui:ui-test-junit4-android", version.ref = "composeTest" }
 compose-ui-test-manifest = { module = "androidx.compose.ui:ui-test-manifest", version.ref = "composeTest" }
 core-ktx = { group = "androidx.test", name = "core-ktx", version.ref = "coreKtx" }
+junit-jupiter = { group = "org.junit.jupiter", name = "junit-jupiter", version.ref = "junitJupiter" }
 
 
 [plugins]
