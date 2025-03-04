@@ -25,6 +25,9 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import kotlinx.datetime.Instant
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.toLocalDateTime
 import kotlin.math.round
 
 // Weather observation data model
@@ -56,9 +59,11 @@ fun WeatherChart2(
             .background(Color(0xFFF8F8F8))
             .padding(16.dp)
     ) {
-        // Chart title (you might want to customize this)
+        // Title based on data type
         Text(
-            text = "Weather Chart",
+            text = "${dataType1.name.lowercase()
+                    .replaceFirstChar { if (it.isLowerCase()) it.titlecase() else it.toString() }} ${dataType2.name.lowercase()
+                .replaceFirstChar { if (it.isLowerCase()) it.titlecase() else it.toString() }} Chart",
             style = TextStyle(
                 fontSize = 18.sp,
                 color = Color.Black
@@ -80,19 +85,26 @@ fun WeatherChart2(
         Column(
             modifier = Modifier
                 .align(Alignment.CenterStart)
-                .padding(end = 8.dp),
+                .padding(start = 8.dp, top = 16.dp, end = 8.dp),
             verticalArrangement = Arrangement.SpaceBetween
         ) {
             // Create 5 division labels on the y-axis
             val steps = 5
+            var prev = 99999
             (steps downTo 0).forEach { i ->
                 val value = minValue + (range * i / steps)
+                val textValue = (round(value * 10) / 10).toInt()
+                var textString = ""
+                if (textValue != prev) textString = textValue.toString() else {
+                }
                 Text(
-                    text = formatValueWithUnit(round(value * 10) / 10, dataType1),
+                    text = textString,
+                    //text = formatValueWithUnit(round(value * 10) / 10, dataType1),
                     style = TextStyle(fontSize = 12.sp),
                     textAlign = TextAlign.End,
                     modifier = Modifier.padding(vertical = 4.dp)
                 )
+                prev = textValue
             }
         }
 
@@ -283,7 +295,7 @@ fun WeatherChart(
             (steps downTo 0).forEach { i ->
                 val value = minValue + (range * i / steps)
                 Text(
-                    text = formatValueWithUnit(round(value * 10) / 10, dataType),
+                    text =  (round(value * 10) / 10).toInt().toString(),//formatValueWithUnit(round(value * 10) / 10, dataType),
                     style = TextStyle(fontSize = 12.sp),
                     textAlign = TextAlign.End,
                     modifier = Modifier.padding(vertical = 4.dp)
@@ -443,8 +455,16 @@ private fun formatValueWithUnit(value: Float, type: WeatherDataType): String {
 }
 
 private fun formatTimestamp(timestamp: Long): String {
-    // Simple formatting - in a real app, use DateFormatter
-    val hour = (timestamp / 3600) % 24
-    val minute = (timestamp / 60) % 60
-    return "$hour:${minute.toString().padStart(2, '0')}"
+    val dateTime = Instant.fromEpochSeconds(timestamp)
+        .toLocalDateTime(TimeZone.currentSystemDefault())
+
+    return "${dateTime.hour.toString().padStart(2, '0')}:${dateTime.minute.toString().padStart(2, '0')}"
 }
+
+
+//private fun formatTimestamp(timestamp: Long): String {
+//    // Simple formatting - in a real app, use DateFormatter
+//    val hour = (timestamp / 3600) % 24
+//    val minute = (timestamp / 60) % 60
+//    return "$hour:${minute.toString().padStart(2, '0')}"
+//}

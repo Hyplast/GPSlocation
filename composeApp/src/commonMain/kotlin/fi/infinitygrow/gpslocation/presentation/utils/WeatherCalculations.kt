@@ -19,7 +19,7 @@ fun calculateCloudBaseHeight(temperatureC: Double, dewPointC: Double, heightStat
     return ((temperatureC - dewPointC) / 10) * 1247 + heightStationM
 }
 
-private const val Tb = 288 // Standard temperature at sea level in Kelvin
+private const val Tb = 288.15 // Standard temperature at sea level in Kelvin
 private const val Lb = -0.0065 // Standard temperature lapse rate in Kelvin per meter
 private const val R = 8.31432 // Universal gas constant in J/(mol*K)
 private const val g0 = 9.80665 // Standard gravitational acceleration in m/s^2
@@ -208,8 +208,19 @@ fun pressureTemperatureAltitude(
     t: Double = tDefault,
     altitude: Double
 ): Double {
-    val pa = pressTempAlt(p, t, altitude)
-    return altcalc(t = t, pa = pa)
+    val pa = pressTempAlt(h = altitude)
+    return altcalc(p = p,t = t, pa = pa)
+}
+
+fun pressureTemperatureAltitudeWHeight(
+    p: Double = pDefault,
+    t: Double = tDefault,
+    altitude: Double,
+    stationHeight: Double
+): Double {
+    val pa = pressTempAlt(h = altitude)
+    val seaLevelTemp = calcSeaLevelTemperature(t, stationHeight)
+    return altcalc(p = p,t = seaLevelTemp, pa = pa)
 }
 
 

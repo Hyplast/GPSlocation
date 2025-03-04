@@ -159,7 +159,7 @@ fun constructLanguageString(data: ObservationData?, location: Location): String?
             pressure * 100, 
             data.temperature + 273.15, 
             1981.20
-        ).toInt()} metriä."
+        ).toInt()} - ${pressureTemperatureAltitudeWHeight(pressure*100,data.temperature+273.15,1981.20,getAltitudeByName(data.name).toDouble()).toInt()} metriä."
         )
         parts.add(
             "Lentopinnan 95 korkeus ${calculateAltitude(

@@ -72,10 +72,289 @@ fun getMatchingWindData(
         }
 }
 
-
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun ObservationCard2(
+fun ObservationCard(
+    observation: ObservationData,
+    observationsList: List<ObservationData>,
+    isLongPressed: Boolean,
+    onShortPress: () -> Unit,
+    onLongPress: () -> Unit
+) {
+    // Toggle state for showing/hiding the chart
+    var showChart by remember { mutableStateOf(false) }
+    // Toggle state for selecting which chart to display
+    var selectedChartIndex by remember { mutableStateOf(0) }
+    // You can substitute these labels with your own desired chart combinations.
+    val chartOptions = listOf("Temp & Dew", "Humidity", "Wind & Gust")
+
+    val cardBackground = if (isLongPressed) LeafGreenColor else Color.LightGray
+
+    // Filter and prepare the observations based on the station name
+    val currentStationName = observation.name
+    val chartObservations = remember(observationsList, currentStationName) {
+        observationsList.filter { it.name == currentStationName }.mapNotNull { observationData ->
+            WeatherObservation(
+                timestamp = observationData.unixTime,
+                temperature = observationData.temperature.toFloat(),
+                dewPoint = observationData.dewPoint.toFloat(),
+                humidity = observationData.humidity.toFloat(),
+                pressure = observationData.pressure.toFloat(),
+                windSpeed = observationData.windSpeed.toFloat(),
+                windGust = observationData.windGust.toFloat(),
+                rainIntensity = observationData.precipitationIntensity.toFloat()
+            )
+        }
+    }
+
+    // Matching wind data remains as in your original code.
+    val matchingWindData = remember(observationsList, currentStationName) {
+        getMatchingWindData(observationsList, currentStationName)
+    }
+
+    Box(modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp)) {
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .combinedClickable(
+                    onClick = {
+                        showChart = !showChart
+                        onShortPress()
+                    },
+                    onLongClick = onLongPress
+                ),
+            colors = CardDefaults.cardColors(containerColor = cardBackground),
+            shape = RoundedCornerShape(12.dp),
+            elevation = CardDefaults.cardElevation(defaultElevation = 6.dp)
+        ) {
+            Column(modifier = Modifier.padding(16.dp)) {
+                // Top row with basic observation summary information
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Center
+                ) {
+                    Box(
+                        modifier = Modifier.weight(1f),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = observation.unixTime.convertUnixTimeToHHMM(),
+                            fontSize = 16.sp
+                        )
+                    }
+                    Box(
+                        modifier = Modifier.weight(1f),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = observation.name.split(" ", "-", "_", "/")
+                                .take(2)
+                                .joinToString(" "),
+                            fontSize = 20.sp
+                        )
+                    }
+                    Box(
+                        modifier = Modifier.weight(1f),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = observation.temperature.takeIf { it.isFinite() }
+                                ?.let { "${formatValue(it.toFloat())} °C" } ?: ""
+                        )
+                    }
+                }
+                Spacer(modifier = Modifier.height(8.dp))
+
+                // Second row with additional observation details.
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Center
+                ) {
+                    Box(
+                        modifier = Modifier.weight(1f),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        observation.presentWeather.takeIf { it.isFinite() }?.let { weatherVal ->
+                            val (description, iconRes) = getWeatherDescription(weatherVal.toInt())
+                            var showDescription by remember { mutableStateOf(false) }
+                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                if (iconRes != null) {
+                                    Image(
+                                        painter = painterResource(iconRes),
+                                        contentDescription = description,
+                                        modifier = Modifier
+                                            .size(48.dp)
+                                            .clickable { showDescription = !showDescription }
+                                    )
+                                    AnimatedVisibility(
+                                        visible = showDescription,
+                                        enter = fadeIn() + expandVertically(),
+                                        exit = fadeOut() + shrinkVertically()
+                                    ) {
+                                        Text(
+                                            text = description,
+                                            style = MaterialTheme.typography.bodyMedium,
+                                            modifier = Modifier.padding(top = 4.dp),
+                                            textAlign = TextAlign.Center
+                                        )
+                                    }
+                                } else {
+                                    Text(
+                                        text = description,
+                                        style = MaterialTheme.typography.bodyMedium
+                                    )
+                                }
+                            }
+                        }
+                    }
+                    Box(
+                        modifier = Modifier.weight(1f),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        if (
+                            !observation.windDirection.isNaN() &&
+                            !observation.windSpeed.isNaN() &&
+                            !observation.windGust.isNaN()
+                        ) {
+                            var isAnimating by remember { mutableStateOf(false) }
+                            var currentDataIndex by remember { mutableStateOf(0) }
+                            val (bearing, speed, gust) = if (
+                                isAnimating &&
+                                matchingWindData.size > currentDataIndex
+                            ) {
+                                matchingWindData[currentDataIndex]
+                            } else {
+                                Triple(
+                                    observation.windDirection,
+                                    observation.windSpeed,
+                                    observation.windGust
+                                )
+                            }
+                            LaunchedEffect(isAnimating) {
+                                if (isAnimating && matchingWindData.size > 1) {
+                                    val delayPerSet = 3000L / matchingWindData.size.coerceAtMost(6)
+                                    for (i in matchingWindData.indices.take(6)) {
+                                        currentDataIndex = i
+                                        delay(delayPerSet)
+                                    }
+                                    isAnimating = false
+                                    currentDataIndex = 0
+                                }
+                            }
+                            Box(
+                                modifier = Modifier.clickable {
+                                    if (matchingWindData.size > 1) {
+                                        isAnimating = true
+                                    }
+                                }
+                            ) {
+                                CompassArrow(
+                                    bearing = bearing,
+                                    speed = speed,
+                                    gust = gust
+                                )
+                            }
+                        }
+                    }
+                    Box(
+                        modifier = Modifier.weight(1f),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Column {
+                            observation.pressure.takeIf { it.isFinite() && it != 0.0 }
+                                ?.let { Text(text = "$it hPa") }
+                            observation.cloudAmount.takeIf { it.isFinite() && it != 0.0 }
+                                ?.let { Text(text = "${it.toInt()}/8 pilvisyys") }
+                            observation.precipitationIntensity.takeIf {
+                                it.isFinite() && it != 0.0
+                            }?.let { Text(text = "$it mm/10min") }
+                            observation.snowDepth.takeIf { it.isFinite() && it != 0.0 }?.let {
+                                Text(text = "${it.toInt()} cm lunta")
+                            }
+                        }
+                    }
+                }
+
+                // Show charts based on the toggle state
+                AnimatedVisibility(visible = showChart) {
+                    Column {
+                        // A divider to separate the observation summary from the charts
+                        HorizontalDivider(
+                            modifier = Modifier
+                                .padding(vertical = 8.dp)
+                                .fillMaxWidth(),
+                            color = Color.Gray.copy(alpha = 0.3f)
+                        )
+
+                        // Chart type selection buttons
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceEvenly
+                        ) {
+                            chartOptions.forEachIndexed { index, title ->
+                                Text(
+                                    text = title,
+                                    color = if (index == selectedChartIndex)
+                                        MaterialTheme.colorScheme.primary
+                                    else MaterialTheme.colorScheme.onBackground,
+                                    modifier = Modifier
+                                        .clickable { selectedChartIndex = index }
+                                        .padding(8.dp)
+                                )
+                            }
+                        }
+
+                        // Toggle which chart to display based on selectedChartIndex
+                        when (selectedChartIndex) {
+                            0 -> {
+                                // Temperature & Dew Point Chart
+                                WeatherChart2(
+                                    observations1 = chartObservations,
+                                    observations2 = chartObservations,
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .height(200.dp),
+                                    dataType1 = WeatherDataType.TEMPERATURE,
+                                    dataType2 = WeatherDataType.DEW_POINT
+                                )
+                            }
+                            1 -> {
+                                // Humidity Chart (using just one data series)
+                                WeatherChart(
+                                    observations = chartObservations,
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .height(200.dp),
+                                    dataType = WeatherDataType.HUMIDITY
+                                )
+                            }
+                            2 -> {
+                                // Wind Chart example, you could show wind speed vs. wind gust
+                                WeatherChart2(
+                                    observations1 = chartObservations,
+                                    observations2 = chartObservations,
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .height(200.dp),
+                                    dataType1 = WeatherDataType.WIND_SPEED,
+                                    dataType2 = WeatherDataType.WIND_GUST
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+
+/*
+@OptIn(ExperimentalFoundationApi::class)
+@Composable
+fun ObservationCard3(
     observation: ObservationData,
     observationsList: List<ObservationData>,
     isLongPressed: Boolean,
@@ -356,6 +635,9 @@ fun ObservationCard2(
     }
 }
 
+ */
+
+/*
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun ObservationCard(
@@ -591,6 +873,8 @@ fun ObservationCard(
             contentDescription = if (isLongPressed) "Locked" else "Unlocked"
         )
 }}
+
+ */
 
 /*
 

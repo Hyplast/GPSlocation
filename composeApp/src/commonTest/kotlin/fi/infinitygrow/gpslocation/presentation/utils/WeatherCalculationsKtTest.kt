@@ -261,16 +261,50 @@ class WeatherCalculationsKtTest {
     @Test
     fun `pressureTemperatureAltitude should return correct value`() {
         // Arrange
-        val p = P_DEFAULT
-        val t = T_DEFAULT
-        val altitude = 5000.0
-        val expectedAltitude = 5000.0
+        val p = 98700.0
+        val t = 268.15
+        val targetAltitude = 1981.20
+        val expectedAltitude = 1646.38
 
         // Act
-        val actualAltitude = pressureTemperatureAltitude(p, t, altitude)
+        val calulatedlAltitude = pressureTemperatureAltitude(p, t, targetAltitude)
+
+        // Assert
+        assertEquals(expectedAltitude, calulatedlAltitude, DELTA)
+    }
+    @Test
+    fun `altcalc should return correct values`() {
+        // Arrange
+        val p = 98700.0
+        val t = 268.15
+        val pressure = 79680.95
+        val expectedAltitude = 1648.24
+
+        // Act
+        val actualAltitude = altcalc(p, t, pressure)
 
         // Assert
         assertEquals(expectedAltitude, actualAltitude, DELTA)
     }
+
+    @Test
+    fun `pressTempAlt should return correct values`() {
+        // Arrange
+        val p = 101300.0
+        val t = 288.15
+        val altitude = 1981.20
+        val expectedPressure = 79680.95
+
+        // Act
+        val actualPressure = pressTempAlt(p, t, altitude)
+
+        // Assert
+        assertEquals(expectedPressure, actualPressure, DELTA)
+    }
+
+
+    //fun calculateAltitude(
+    // pressTempAlt
+
 }
 

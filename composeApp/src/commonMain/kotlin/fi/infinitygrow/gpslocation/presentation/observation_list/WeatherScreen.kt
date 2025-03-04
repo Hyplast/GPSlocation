@@ -84,7 +84,7 @@ fun WeatherScreen(
                     },
                     observationLocations = weatherViewModel.selectedLocations
                 )
-                Spacer(modifier = Modifier.height(24.dp))
+                Spacer(modifier = Modifier.height(18.dp))
 
 //                val weatherData = listOf(
 //                    WeatherObservation(1678916600, 22.5f, 65.0f, 1013.2f, 3.2f),
@@ -101,7 +101,7 @@ fun WeatherScreen(
 //                    WeatherObservation(1678923200, 24.2f, 60.0f, 1012.5f, 4.5f),
 //                )
 //                WeatherDashboard(weatherData)
-                Spacer(modifier = Modifier.height(24.dp))
+                //Spacer(modifier = Modifier.height(24.dp))
                 PullToRefreshBox(
                     isRefreshing = uiState.isRefreshing, // You could have that within your uiState
                     onRefresh = { weatherViewModel.refreshWeather(weatherViewModel.selectedLocations) }
