@@ -31,6 +31,8 @@ import fi.infinitygrow.gpslocation.core.presentation.SkyBlueColor
 import fi.infinitygrow.gpslocation.domain.model.locations
 import fi.infinitygrow.gpslocation.presentation.observation_list.components.LocationSearchScreen
 import fi.infinitygrow.gpslocation.presentation.observation_list.components.ObservationsList
+//import fi.infinitygrow.gpslocation.presentation.observation_list.components.WeatherDashboard
+//import fi.infinitygrow.gpslocation.presentation.observation_list.components.WeatherObservation
 import fi.infinitygrow.gpslocation.presentation.observation_list.components.WeatherSummary
 import kotlinx.coroutines.launch
 
@@ -82,6 +84,23 @@ fun WeatherScreen(
                     },
                     observationLocations = weatherViewModel.selectedLocations
                 )
+                Spacer(modifier = Modifier.height(24.dp))
+
+//                val weatherData = listOf(
+//                    WeatherObservation(1678916600, 22.5f, 65.0f, 1013.2f, 3.2f),
+//                    WeatherObservation(1678917200, 23.1f, 62.5f, 1012.8f, 4.1f),
+//                    WeatherObservation(1678917800, 24.2f, 60.0f, 1012.5f, 4.5f),
+//                    WeatherObservation(1678918400, 22.5f, 65.0f, 1013.2f, 3.2f),
+//                    WeatherObservation(1678919000, 23.1f, 62.5f, 1012.8f, 4.1f),
+//                    WeatherObservation(1678919600, 24.2f, 60.0f, 1012.5f, 4.5f),
+//                    WeatherObservation(1678920200, 22.5f, 65.0f, 1013.2f, 3.2f),
+//                    WeatherObservation(1678920800, 23.1f, 62.5f, 1012.8f, 4.1f),
+//                    WeatherObservation(1678921400, 24.2f, 60.0f, 1012.5f, 4.5f),
+//                    WeatherObservation(1678922000, 22.5f, 65.0f, 1013.2f, 3.2f),
+//                    WeatherObservation(1678922600, 23.1f, 62.5f, 1012.8f, 4.1f),
+//                    WeatherObservation(1678923200, 24.2f, 60.0f, 1012.5f, 4.5f),
+//                )
+//                WeatherDashboard(weatherData)
                 Spacer(modifier = Modifier.height(24.dp))
                 PullToRefreshBox(
                     isRefreshing = uiState.isRefreshing, // You could have that within your uiState

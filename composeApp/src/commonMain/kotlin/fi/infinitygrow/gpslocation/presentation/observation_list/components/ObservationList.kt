@@ -42,7 +42,7 @@ fun ObservationsList(
             val backgroundColor = if (isLongPressed) LeafGreenColor else Color.White
 
             Column {
-                ObservationCard(
+                ObservationCard2(
                     observation = observation,
                     observationsList = observations,
                     isLongPressed = isLongPressed,

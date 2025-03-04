@@ -23,6 +23,8 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Divider
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -73,6 +75,289 @@ fun getMatchingWindData(
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
+fun ObservationCard2(
+    observation: ObservationData,
+    observationsList: List<ObservationData>,
+    isLongPressed: Boolean,
+    onShortPress: () -> Unit,
+    onLongPress: () -> Unit
+) {
+    var showChart by remember { mutableStateOf(false) }
+
+    val cardBackground = if (isLongPressed) LeafGreenColor else Color.LightGray
+    // First, get the current observation name
+    val currentStationName = observation.name
+
+    // Get all matching wind data
+    val matchingWindData = remember(observationsList, currentStationName) {
+        getMatchingWindData(observationsList, currentStationName)
+    }
+
+    // Prepare data for chart (convert ObservationData to your chart-compatible format)
+    val chartObservations = remember(observationsList, currentStationName) {
+        observationsList
+            .filter { it.name == currentStationName }
+            .mapNotNull { observationData ->
+                // Convert ObservationData to WeatherObservation
+                // You'll need to adjust this based on your exact ObservationData structure
+                WeatherObservation(
+                    timestamp = observationData.unixTime,
+                    temperature = observationData.temperature.toFloat(),
+                    dewPoint = observationData.dewPoint.toFloat(),
+                    humidity = observationData.humidity.toFloat(),
+                    pressure = observationData.pressure.toFloat(),
+                    windSpeed = observationData.windSpeed.toFloat(),
+                    windGust = observationData.windGust.toFloat(),
+                    rainIntensity = observationData.precipitationIntensity.toFloat(),
+                )
+            }
+    }
+
+    Box(modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp)) {
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .combinedClickable(
+                    onClick = {
+                        showChart = !showChart
+                        onShortPress()
+                    },
+                    onLongClick = onLongPress
+                ),
+            colors = CardDefaults.cardColors(containerColor = cardBackground),
+            shape = RoundedCornerShape(12.dp),
+            elevation = CardDefaults.cardElevation(defaultElevation = 6.dp)
+        ) {
+            Column(
+                modifier = Modifier
+                    .padding(16.dp)
+            ) {
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.Center
+                    ) {
+                        Box(
+                            modifier = Modifier.weight(1f)
+                            /*.border(1.dp, Color.Gray)*/,
+                            contentAlignment = Alignment.Center,
+                        ) {
+                            Text(
+                                text = observation.unixTime.convertUnixTimeToHHMM(),
+                                fontSize = 16.sp
+                            )
+                        }
+                        Box(
+                            modifier = Modifier.weight(1f)
+                            /*.border(1.dp, Color.Gray)*/,
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically // Add this line
+                            )  {
+                                Text(
+                                    text = observation.name.split(" ", "-", "_", "/")
+                                        .take(2)
+                                        .joinToString(" "),
+                                    fontSize = 20.sp
+                                )
+                            }
+                        }
+                        Box(
+                            modifier = Modifier.weight(1f)
+                            /*.border(1.dp, Color.Gray)*/,
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                text = observation.temperature.takeIf { it.isFinite() }?.let { "${formatValue(it.toFloat())} °C" } ?: ""
+                            )
+                        }
+                    }
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth()
+                        /*.border(1.dp, Color.Blue)*/,
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.Center
+                    )  {
+                        Box(
+                            modifier = Modifier.weight(1f)
+                            /*.border(1.dp, Color.Gray)*/,
+                            contentAlignment = Alignment.Center
+                        ) {
+                            observation.presentWeather.takeIf { it.isFinite() }?.let { weatherVal ->
+                                val (description, iconRes) = getWeatherDescription(weatherVal.toInt())
+
+                                if (iconRes != null) {
+                                    // If we have an icon, show it with click functionality to reveal text
+                                    var showDescription by remember { mutableStateOf(false) }
+
+                                    Column(
+                                        horizontalAlignment = Alignment.CenterHorizontally
+                                    ) {
+                                        Image(
+                                            painter = painterResource(iconRes),
+                                            contentDescription = description,
+                                            modifier = Modifier
+                                                .size(48.dp)
+                                                .clickable { showDescription = !showDescription }
+                                        )
+
+                                        // Show description text only when the image is clicked
+                                        AnimatedVisibility(
+                                            visible = showDescription,
+                                            enter = fadeIn() + expandVertically(),
+                                            exit = fadeOut() + shrinkVertically()
+                                        ) {
+                                            Text(
+                                                text = description,
+                                                style = MaterialTheme.typography.bodyMedium,
+                                                textAlign = TextAlign.Center,
+                                                modifier = Modifier.padding(top = 4.dp)
+                                            )
+                                        }
+                                    }
+                                } else {
+                                    // If no icon is available, just show the description text
+                                    Text(
+                                        text = description,
+                                        style = MaterialTheme.typography.bodyMedium
+                                    )
+                                }
+                            }
+                        }
+                        Box(
+                            modifier = Modifier.weight(1f)
+                            /*.border(1.dp, Color.Gray)*/,
+                            contentAlignment = Alignment.Center
+                        ) {
+                            if (
+                                !observation.windDirection.isNaN() &&
+                                !observation.windSpeed.isNaN() &&
+                                !observation.windGust.isNaN()
+                            ) {
+                                // Remember animation state
+                                var isAnimating by remember { mutableStateOf(false) }
+
+                                // Remember current data set index
+                                var currentDataIndex by remember { mutableStateOf(0) }
+
+                                // Get current parameters - either from animation or default
+                                val (bearing, speed, gust) = if (isAnimating && matchingWindData.size > currentDataIndex) {
+                                    matchingWindData[currentDataIndex]
+                                } else {
+                                    Triple(observation.windDirection, observation.windSpeed, observation.windGust)
+                                }
+                                //println("doing som")
+                                //println(matchingWindData)
+                                // Create effect to handle animation
+                                LaunchedEffect(isAnimating) {
+                                    //println("IsANimatin")
+                                    if (isAnimating && matchingWindData.size > 1) {
+                                        // Cycle through all matching data over 3 seconds
+                                        val delayPerSet = 3000L / matchingWindData.size.coerceAtMost(6)
+
+                                        for (i in matchingWindData.indices.take(6)) {
+                                            currentDataIndex = i
+                                            delay(delayPerSet)
+                                        }
+
+                                        // Reset after animation completes
+                                        isAnimating = false
+                                        currentDataIndex = 0
+                                    }
+                                }
+
+                                Box(
+                                    modifier = Modifier
+                                        .clickable {
+                                            if (matchingWindData.size > 1) {
+                                                isAnimating = true
+                                            } else {
+
+                                            }
+                                        }
+                                ) {
+
+                                    // Render the compass with current parameters and click handler
+                                    CompassArrow(
+                                        bearing = bearing,
+                                        speed = speed,
+                                        gust = gust
+                                    )
+                                }
+
+
+//                            // The CompassArrow composable can be customized as needed.
+//                            CompassArrow(
+//                                bearing = observation.windDirection,
+//                                speed = observation.windSpeed,
+//                                gust = observation.windGust
+//                            )
+                            }
+                        }
+                        Box(
+                            modifier = Modifier.weight(1f),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Column {
+                                observation.pressure.takeIf { it.isFinite() && it != 0.0 }?.let {
+                                    Text(text = "$it hPa")
+                                }
+                                observation.cloudAmount.takeIf { it.isFinite() && it != 0.0 }?.let {
+                                    Text(text = "${it.toInt()}/8 pilvisyys")
+                                }
+                                observation.precipitationIntensity.takeIf { it.isFinite() && it != 0.0 }?.let {
+                                    Text(text = "$it mm/10min")
+                                }
+                                observation.snowDepth.takeIf { it.isFinite() && it != 0.0 }?.let {
+                                    Text(text = "${it.toInt()} cm lunta")
+                                }
+
+                            }
+                        }
+                    }
+
+                // Conditionally show chart when showChart is true
+                AnimatedVisibility(visible = showChart) {
+                    Column {
+                        HorizontalDivider(
+                            modifier = Modifier
+                                .padding(vertical = 8.dp)
+                                .fillMaxWidth(),
+                            color = Color.Gray.copy(alpha = 0.3f)
+                        )
+
+                        // Temperature Chart
+                        WeatherChart2(
+                            observations1 = chartObservations,
+                            observations2 = chartObservations,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(200.dp),
+                            dataType1 = WeatherDataType.TEMPERATURE,
+                            dataType2 = WeatherDataType.DEW_POINT
+                        )
+
+                        // Humidity Chart
+//                        WeatherChart(
+//                            observations = chartObservations,
+//                            modifier = Modifier
+//                                .fillMaxWidth()
+//                                .height(200.dp),
+//                            dataType = WeatherDataType.HUMIDITY
+//                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalFoundationApi::class)
+@Composable
 fun ObservationCard(
     observation: ObservationData,
     observationsList: List<ObservationData>,
@@ -112,7 +397,7 @@ fun ObservationCard(
                 ) {
                     Box(
                         modifier = Modifier.weight(1f)
-                            .border(1.dp, Color.Gray),
+                            /*.border(1.dp, Color.Gray)*/,
                         contentAlignment = Alignment.Center,
                     ) {
                         Text(
@@ -122,7 +407,7 @@ fun ObservationCard(
                     }
                     Box(
                         modifier = Modifier.weight(1f)
-                            .border(1.dp, Color.Gray),
+                            /*.border(1.dp, Color.Gray)*/,
                         contentAlignment = Alignment.Center
                     ) {
                         Row(
@@ -138,7 +423,7 @@ fun ObservationCard(
                     }
                     Box(
                         modifier = Modifier.weight(1f)
-                            .border(1.dp, Color.Gray),
+                            /*.border(1.dp, Color.Gray)*/,
                         contentAlignment = Alignment.Center
                     ) {
                         Text(
@@ -150,13 +435,13 @@ fun ObservationCard(
 
                 Row(
                     modifier = Modifier.fillMaxWidth()
-                        .border(1.dp, Color.Blue),
+                        /*.border(1.dp, Color.Blue)*/,
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.Center
                 )  {
                     Box(
                         modifier = Modifier.weight(1f)
-                            .border(1.dp, Color.Gray),
+                            /*.border(1.dp, Color.Gray)*/,
                         contentAlignment = Alignment.Center
                     ) {
                             observation.presentWeather.takeIf { it.isFinite() }?.let { weatherVal ->
@@ -202,7 +487,7 @@ fun ObservationCard(
                     }
                     Box(
                         modifier = Modifier.weight(1f)
-                            .border(1.dp, Color.Gray),
+                            /*.border(1.dp, Color.Gray)*/,
                         contentAlignment = Alignment.Center
                     ) {
                         if (
@@ -222,11 +507,11 @@ fun ObservationCard(
                             } else {
                                 Triple(observation.windDirection, observation.windSpeed, observation.windGust)
                             }
-                            println("doing som")
-                            println(matchingWindData)
+                            //println("doing som")
+                            //println(matchingWindData)
                             // Create effect to handle animation
                             LaunchedEffect(isAnimating) {
-                                println("IsANimatin")
+                                //println("IsANimatin")
                                 if (isAnimating && matchingWindData.size > 1) {
                                     // Cycle through all matching data over 3 seconds
                                     val delayPerSet = 3000L / matchingWindData.size.coerceAtMost(6)
