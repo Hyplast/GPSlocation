@@ -14,6 +14,7 @@ import org.koin.core.component.get
 import org.koin.core.module.Module
 import org.koin.dsl.module
 import fi.infinitygrow.gpslocation.data.datastore.dataStore
+import fi.infinitygrow.gpslocation.data.database.DatabaseFactory
 import platform.Foundation.NSDocumentDirectory
 import platform.Foundation.NSFileManager
 import platform.Foundation.NSUserDomainMask
@@ -23,7 +24,7 @@ private val viewModelModule = module {
 //    single<DataStore<Preferences>> { createDataStore(
 //        function = get()
 //    ) }
-        single { dataStore()}
+    single { dataStore()}
         //single<DataStore<Preferences>> { createDataStore {  }
         //createDataStore {  }
 //        createDataStore {
@@ -40,6 +41,7 @@ private val viewModelModule = module {
     single<HttpClientEngine> { Darwin.create() }
     single { WeatherViewModel(get(),get(),get(), get(), get()) }
     single { LocationService() }
+    single { DatabaseFactory() }
 }
 
 //fun <T> single(definition: T) {

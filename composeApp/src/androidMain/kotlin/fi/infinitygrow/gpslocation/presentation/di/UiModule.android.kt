@@ -13,6 +13,7 @@ import org.koin.core.module.Module
 import org.koin.dsl.module
 //import fi.infinitygrow.gpslocation.data.PreferencesFactory
 import fi.infinitygrow.gpslocation.data.createDataStore
+import fi.infinitygrow.gpslocation.data.database.DatabaseFactory
 import fi.infinitygrow.gpslocation.data.datastore.dataStore
 import fi.infinitygrow.gpslocation.data.repository.SettingsRepository
 
@@ -29,6 +30,7 @@ private val viewModelModule = module {
 //    }
     single { dataStore(androidApplication())}
 
+    single { DatabaseFactory(androidApplication()) }
 }
 
 actual fun sharedViewModelModule(): Module = viewModelModule

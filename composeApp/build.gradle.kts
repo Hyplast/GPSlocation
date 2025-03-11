@@ -1,4 +1,5 @@
 import org.jetbrains.compose.ExperimentalComposeLibrary
+import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 
@@ -15,6 +16,7 @@ plugins {
 
 kotlin {
     androidTarget {
+        @OptIn(ExperimentalKotlinGradlePluginApi::class)
         compilerOptions {
             jvmTarget.set(JvmTarget.JVM_11)
         }
@@ -77,9 +79,10 @@ kotlin {
             api(libs.datastore)
 
             implementation(libs.bundles.ktor)
+            implementation(libs.bundles.coil)
             implementation(libs.accompanist.permissions)
 
-            implementation(libs.glide.compose)
+            //implementation(libs.glide.compose)
             //implementation("com.github.skydoves:landscapist-glide:2.4.7")
             implementation(libs.xmlutil)
 

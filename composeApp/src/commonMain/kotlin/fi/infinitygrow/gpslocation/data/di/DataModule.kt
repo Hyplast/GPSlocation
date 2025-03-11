@@ -2,7 +2,10 @@ package fi.infinitygrow.gpslocation.data.di
 
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
+import androidx.sqlite.driver.bundled.BundledSQLiteDriver
 import fi.infinitygrow.gpslocation.core.data.HttpClientFactory
+import fi.infinitygrow.gpslocation.data.database.DatabaseFactory
+import fi.infinitygrow.gpslocation.data.database.StationDatabase
 import fi.infinitygrow.gpslocation.data.datastore.DATA_STORE_FILE_NAME
 //import fi.infinitygrow.gpslocation.data.PreferencesFactory
 import fi.infinitygrow.gpslocation.data.datastore.PreferencesManager
@@ -22,6 +25,14 @@ import org.koin.dsl.module
 val dataModule = module {
 
    // single { PreferencesManager(get()) }
+
+    single {
+        get<DatabaseFactory>().create()
+            .setDriver(BundledSQLiteDriver())
+            .build()
+    }
+    single { get<StationDatabase>().stationDao }
+
 
     single<DataStore<Preferences>> {
         // Provide the DataStore instance

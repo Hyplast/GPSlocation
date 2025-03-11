@@ -37,7 +37,17 @@ class KtorFmiApiService(
                 newlatitude = 999.9
             } else {
                 if (longitude != null) {
-                    bbox = "${(latitude?.minus(0.4))},${(longitude - 0.4)},${(latitude?.plus(0.4))},${(longitude + 0.4)}"
+                    if (latitude != null) {
+                        bbox = "${
+                            (((latitude - 0.7) * 100).toInt() / 100.0)
+                        },${
+                            (((longitude - 0.35) * 100).toInt() / 100.0)
+                        },${
+                            (((latitude + 0.6) * 100).toInt() / 100.0)
+                        },${
+                            (((longitude + 0.35) * 100).toInt() / 100.0)
+                        }"
+                    }
                 }
             }
             val requestBuilder = FMIRequestBuilder()
