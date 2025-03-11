@@ -8,6 +8,8 @@ plugins {
     alias(libs.plugins.composeMultiplatform)
     alias(libs.plugins.composeCompiler)
     alias(libs.plugins.jetbrains.kotlin.serialization)
+    alias(libs.plugins.ksp)
+    alias(libs.plugins.room)
     kotlin("kapt")
 }
 
@@ -28,6 +30,11 @@ kotlin {
             isStatic = true
         }
     }
+
+    room {
+        schemaDirectory("$projectDir/schemas")
+    }
+
     
     sourceSets {
         
@@ -60,6 +67,8 @@ kotlin {
             implementation(libs.kotlinx.serialization.json)
             api(libs.moko.permissions)
             api(libs.moko.permissions.compose)
+            implementation(libs.androidx.room.runtime)
+            implementation(libs.sqlite.bundled)
             implementation(libs.koin.compose)
             implementation(libs.koin.compose.viewmodel)
             api(libs.koin.core)
@@ -86,6 +95,9 @@ kotlin {
         }
         iosMain.dependencies {
             implementation(libs.ktor.client.darwin)
+        }
+        dependencies {
+            ksp(libs.androidx.room.compiler)
         }
     }
 }
@@ -118,7 +130,6 @@ android {
 }
 
 dependencies {
-    testImplementation(libs.junit.jupiter)
     debugImplementation(compose.uiTooling)
 }
 

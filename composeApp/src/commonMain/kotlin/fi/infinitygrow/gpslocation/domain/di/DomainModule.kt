@@ -1,7 +1,7 @@
 package fi.infinitygrow.gpslocation.domain.di
 
 import fi.infinitygrow.gpslocation.presentation.permissions_page.PermissionsViewModel
-import fi.infinitygrow.gpslocation.app.TestViewModel
+//import fi.infinitygrow.gpslocation.app.TestViewModel
 import fi.infinitygrow.gpslocation.domain.use_case.GetCurrentWeatherInfoUseCase
 import fi.infinitygrow.gpslocation.domain.use_case.GetForecastInfoUseCase
 import fi.infinitygrow.gpslocation.domain.use_case.GetObservationUseCase

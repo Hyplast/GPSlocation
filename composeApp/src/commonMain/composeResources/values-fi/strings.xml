@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <resources>
-    <string name="weather_code_0">Ei merkittävää säätä</string>
+    <string name="weather_code_0">Ei merkittäviä sääilmiöitä</string>
     <string name="weather_code_1">Pilvet yleisesti hajoavat tai vähenevät</string>
     <string name="weather_code_2">Taivaan tila pysynyt muuttumattomana</string>
     <string name="weather_code_3">Pilvet yleisesti muodostuvat tai kehittyvät</string>
@@ -10,7 +10,7 @@
     <string name="weather_code_11">Jääneulasia</string>
     <string name="weather_code_12">Kaukaista salamointia</string>
     <string name="weather_code_18">Puuskia</string>
-    <string name="weather_code_20">Sumu</string>
+    <string name="weather_code_20">Sumua</string>
     <string name="weather_code_21">Sadetta</string>
     <string name="weather_code_22">Tihkua tai lumijyväsiä</string>
     <string name="weather_code_23">Vesisadetta</string>
@@ -21,14 +21,14 @@
     <string name="weather_code_28"><![CDATA[Tuiskuttaa tai lentävää hiekkaa, näkyvyys >= 1 km]]></string>
     <string name="weather_code_29"><![CDATA[Tuiskuttaa tai lentävää hiekkaa, näkyvyys < 1 km]]></string>
     <string name="weather_code_30">Sumua</string>
-    <string name="weather_code_31">Sumua tai jääsumua laikkuina</string>
+    <string name="weather_code_31">Sumua tai jääsumua erillisinä hattaroina</string>
     <string name="weather_code_32">Sumu tai jääsumu ohenee</string>
     <string name="weather_code_33">Sumu tai jääsumu ennallaan</string>
     <string name="weather_code_34">Sumu tai jääsumu tihenee</string>
     <string name="weather_code_35">Kuuraa muodostava sumu</string>
     <string name="weather_code_40">Sadetta</string>
     <string name="weather_code_41">Heikkoa tai kohtalaista sadetta</string>
-    <string name="weather_code_42">Runsasta sadetta</string>
+    <string name="weather_code_42">Kovaa sadetta </string>
     <string name="weather_code_43">Heikkoa tai kohtalaista vesisadetta</string>
     <string name="weather_code_44">Runsasta vesisadetta</string>
     <string name="weather_code_45">Heikkoa tai kohtalaista kiinteää sadetta</string>
@@ -45,9 +45,9 @@
     <string name="weather_code_57">Heikkoa tihkua ja vesisadetta</string>
     <string name="weather_code_58">Kohtalaista tai runsasta tihkua ja vesisadetta</string>
     <string name="weather_code_60">Vesisadetta</string>
-    <string name="weather_code_61">Heikkoa vesisadetta</string>
-    <string name="weather_code_62">Kohtalaista vesisadetta</string>
-    <string name="weather_code_63">Runsasta vesisadetta</string>
+    <string name="weather_code_61">Heikkoa vesisadetta, ei jäätävää</string>
+    <string name="weather_code_62">Kohtalaista vesisadetta, ei jäätävää</string>
+    <string name="weather_code_63">Runsasta vesisadetta, ei jäätävää</string>
     <string name="weather_code_64">Heikkoa jäätävää vesisadetta</string>
     <string name="weather_code_65">Kohtalaista jäätävää vesisadetta</string>
     <string name="weather_code_66">Runsasta jäätävää vesisadetta</string>
@@ -65,11 +65,11 @@
     <string name="weather_code_80">Kuuroja tai ajoittaista sadetta</string>
     <string name="weather_code_81">Heikkoja vesikuuroja</string>
     <string name="weather_code_82">Kohtalaisia vesikuuroja</string>
-    <string name="weather_code_83">Runsaita vesikuuroja</string>
-    <string name="weather_code_84">Voimakkaita vesikuuroja</string>
+    <string name="weather_code_83">Kovia vesikuuroja</string>
+    <string name="weather_code_84">Ankaria vesikuuroja</string>
     <string name="weather_code_85">Heikkoja lumikuuroja</string>
     <string name="weather_code_86">Kohtalaisia lumikuuroja</string>
-    <string name="weather_code_87">Runsaita lumikuuroja</string>
+    <string name="weather_code_87">Kovia lumikuuroja</string>
     <string name="weather_code_89">Rakeita</string>
     <string name="weather_code_90">Ukkosta</string>
     <string name="weather_code_91">Heikkoa tai kohtalaista ukkosta, ei sadetta</string>

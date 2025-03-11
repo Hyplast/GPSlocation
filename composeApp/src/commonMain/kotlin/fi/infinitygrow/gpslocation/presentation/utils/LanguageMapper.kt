@@ -115,17 +115,19 @@ import kotlin.math.roundToInt
 fun constructLanguageString(data: ObservationData?, location: Location): String? {
     if (data == null) return null
 
-    val dist = getDistance(data.longitude, data.latitude, location.longitude, location.latitude)
-        .takeIf { it.isFinite() }?.roundToInt()
-
-    val bear = getBearing(location.longitude, location.latitude, data.longitude, data.latitude)
-        .takeIf { it.isFinite() }?.let { bearingToDirection(it) }
-
     val parts = mutableListOf<String>()
-
     parts.add(data.name)
-    dist?.let { parts.add("Etäisyys $it kilometriä. ") }
-    bear?.let { parts.add(it) }
+
+    if (location.longitude != 999.9) {
+        val dist = getDistance(data.longitude, data.latitude, location.longitude, location.latitude)
+            .takeIf { it.isFinite() }?.roundToInt()
+
+        val bear = getBearing(location.longitude, location.latitude, data.longitude, data.latitude)
+            .takeIf { it.isFinite() }?.let { bearingToDirection(it) }
+
+        dist?.let { parts.add("Etäisyys $it kilometriä") }
+        bear?.let { parts.add("$it.") }
+    }
 
     data.precipitationIntensity.takeIf { it.isFinite() && it != 0.0 }?.let {
         parts.add("Sadetta $it millimetriä.")

@@ -238,7 +238,7 @@ fun calculateAltitude(
     pressureAtSeaLevel: Double,
     heightMeasurementStation: Double = 0.0
 ): Double {
-    val pressureAtAltitude = pressureFromAltitude(altitudeInMeters, temperature, pressureAtSeaLevel, heightMeasurementStation) // Convert feet to meters and calculate air pressure at given altitude and temperature
+    val pressureAtAltitude = pressureFromAltitude(altitude = altitudeInMeters, temperatureAtStation = temperature, heightStationM = heightMeasurementStation) // Convert feet to meters and calculate air pressure at given altitude and temperature
     val altitudeAtPressure = altitudeFromPressure(pressureAtAltitude, temperature, pressureAtSeaLevel) // Convert Pa to kPa and calculate air pressure at sea level using calculated air pressure at given altitude and temperature
     return altitudeAtPressure // Convert kPa to Pa and calculate final altitude using calculated air pressure at sea level and given temperature
 }
