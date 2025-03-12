@@ -13,6 +13,8 @@ import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
@@ -28,6 +30,8 @@ fun ObservationsList(
     viewModel: WeatherViewModel,
     isDarkTheme: Boolean
 ) {
+    val favorites by viewModel.favorites.collectAsState()
+
     LazyVerticalGrid(
         columns = GridCells.Adaptive(324.dp), // You can adjust the number of columns
         modifier = Modifier
@@ -38,7 +42,8 @@ fun ObservationsList(
         verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         items(viewModel.getNewestObservations(observations)) { observation ->
-            val isLongPressed = viewModel.longPressedItems.contains(observation)
+            val isLongPressed2 = viewModel.longPressedItems.contains(observation)
+            val isLongPressed = favorites.any { it.name.equals(observation.name, ignoreCase = true) }
             val backgroundColor = if (isLongPressed) LeafGreenColor else Color.White
 
             Column {
@@ -52,12 +57,12 @@ fun ObservationsList(
                         // update long pressed location if needed
                     }
                 )
-                constructLanguageString(observation, location = observation.coordinates)?.let { langString ->
-                    Text(
-                        text = langString,
-                        modifier = Modifier.padding(start = 12.dp, bottom = 8.dp)
-                    )
-                }
+//                constructLanguageString(observation, location = observation.coordinates)?.let { langString ->
+//                    Text(
+//                        text = langString,
+//                        modifier = Modifier.padding(start = 12.dp, bottom = 8.dp)
+//                    )
+//                }
             }
         }
     }

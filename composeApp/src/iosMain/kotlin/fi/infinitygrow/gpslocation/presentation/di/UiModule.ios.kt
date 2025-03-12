@@ -39,7 +39,7 @@ private val viewModelModule = module {
 //        }
     
     single<HttpClientEngine> { Darwin.create() }
-    single { WeatherViewModel(get(),get(),get(), get(), get()) }
+    //single { WeatherViewModel(get(),get(),get(), get(), get()) }
     single { LocationService() }
     single { DatabaseFactory() }
 }

@@ -5,6 +5,8 @@ import fi.infinitygrow.gpslocation.data.model.forecast.ForecastResponse
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.request.get
+import io.ktor.client.statement.HttpResponse
+import io.ktor.client.statement.bodyAsText
 import io.ktor.http.URLProtocol
 import io.ktor.http.path
 
@@ -42,6 +44,18 @@ class ApiService(val client: HttpClient) {
                 parameters.append("appid", APP_ID)
             }
         }.body<ForecastResponse>()
+    }
+
+    suspend fun fetchHolfuyData(): String {
+        val client = HttpClient()
+        val url = "https://holfuy.com/en/weather/546"
+
+        return try {
+            val response: HttpResponse = client.get(url)
+            response.bodyAsText() // Get the full HTML
+        } finally {
+            client.close()
+        }
     }
 
 }

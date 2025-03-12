@@ -347,6 +347,18 @@ fun ObservationCard(
                 }
             }
         }
+        // Overlay a lock icon at the top-end corner of the card.
+        Icon(
+            modifier = Modifier
+                .align(Alignment.TopEnd)
+                .size(36.dp)
+                .padding(8.dp),
+            painter = if (isLongPressed)
+                painterResource(Res.drawable.twotone_lock_24)
+            else
+                painterResource(Res.drawable.baseline_lock_open_24),
+            contentDescription = if (isLongPressed) "Locked" else "Unlocked"
+        )
     }
 }
 

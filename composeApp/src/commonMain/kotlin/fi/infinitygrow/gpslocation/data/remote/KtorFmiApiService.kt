@@ -33,6 +33,7 @@ class KtorFmiApiService(
             var newlatitude = latitude
             if (longitude == null && latitude == null) {
                 //bbox = null.toString()
+                println("Longitude and latitude are null!")
                 newLongitude = 999.9
                 newlatitude = 999.9
             } else {

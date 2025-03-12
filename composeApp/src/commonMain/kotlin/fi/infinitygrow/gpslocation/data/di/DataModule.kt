@@ -14,8 +14,10 @@ import fi.infinitygrow.gpslocation.data.remote.ApiService
 import fi.infinitygrow.gpslocation.data.remote.FmiApiService
 import fi.infinitygrow.gpslocation.data.remote.KtorClient
 import fi.infinitygrow.gpslocation.data.remote.KtorFmiApiService
+import fi.infinitygrow.gpslocation.data.repository.FavoritesRepositoryImpl
 import fi.infinitygrow.gpslocation.data.repository.SettingsRepository
 import fi.infinitygrow.gpslocation.data.repository.WeatherRepositoryImpl
+import fi.infinitygrow.gpslocation.domain.repository.FavoritesRepository
 import fi.infinitygrow.gpslocation.domain.repository.WeatherRepository
 import fi.infinitygrow.gpslocation.presentation.permission.LocationService
 import org.koin.core.module.dsl.singleOf
@@ -42,6 +44,7 @@ val dataModule = module {
    // single { PreferencesFactory.createDataStore() }
     single { HttpClientFactory.create(get()) }
     singleOf(::KtorFmiApiService).bind<FmiApiService>()
+    singleOf(::FavoritesRepositoryImpl).bind<FavoritesRepository>()
     factory { KtorClient.client }
     factory <ApiService>{ ApiService(get()) }
     factory<WeatherRepository> { WeatherRepositoryImpl(get(), get()) }

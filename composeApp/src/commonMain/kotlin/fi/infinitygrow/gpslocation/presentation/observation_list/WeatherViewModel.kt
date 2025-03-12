@@ -5,11 +5,14 @@ import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.remember
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import fi.infinitygrow.gpslocation.data.repository.FavoritesRepositoryImpl
 import fi.infinitygrow.gpslocation.data.repository.SettingsRepository
 import fi.infinitygrow.gpslocation.domain.model.ForeCast
 import fi.infinitygrow.gpslocation.domain.model.ObservationData
 import fi.infinitygrow.gpslocation.domain.model.ObservationLocation
 import fi.infinitygrow.gpslocation.domain.model.Weather
+import fi.infinitygrow.gpslocation.domain.model.getObservationLocation
+import fi.infinitygrow.gpslocation.domain.repository.FavoritesRepository
 import fi.infinitygrow.gpslocation.domain.use_case.GetCurrentWeatherInfoUseCase
 import fi.infinitygrow.gpslocation.domain.use_case.GetForecastInfoUseCase
 import fi.infinitygrow.gpslocation.domain.use_case.GetObservationUseCase
@@ -30,13 +33,15 @@ class WeatherViewModel(
     private val getForecastInfoUseCase: GetForecastInfoUseCase,
     private val getObservationUseCase: GetObservationUseCase,
     private val locationService: LocationService,
+    private val favoritesRepository: FavoritesRepository,
     settingsRepository: SettingsRepository
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(UiState())
     val uiState = _uiState.asStateFlow().common()
 
-    val longPressedItems = mutableStateListOf<ObservationData>()
+    val longPressedItems =  mutableStateListOf<ObservationData>()
+    //val longPressedItems2 = getObservationLocation(favorites)
     val selectedLocations = mutableStateListOf<ObservationLocation>()
 
     val isDarkTheme: StateFlow<Boolean> = settingsRepository.darkThemeFlow
@@ -54,6 +59,34 @@ class WeatherViewModel(
             initialValue = true
         )
 
+    // Expose observable favorites
+    val favorites: StateFlow<List<ObservationLocation>> =
+        favoritesRepository.observeFavorites()
+            .stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
+
+
+    init {
+        // Synchronize the selectedLocations list whenever favorites updates.
+        viewModelScope.launch {
+            favorites.collect { favList ->
+                selectedLocations.clear()
+                selectedLocations.addAll(favList)
+            }
+        }
+    }
+
+    fun addFavorite(favorite: ObservationLocation) {
+        viewModelScope.launch {
+            favoritesRepository.addFavorite(favorite)
+        }
+    }
+
+    fun removeFavorite(name: String) {
+        viewModelScope.launch {
+            favoritesRepository.removeFavorite(name)
+        }
+    }
+
     fun getLocationPermission(): Boolean {
         return locationService.isPermissionGranted()
     }
@@ -64,6 +97,7 @@ class WeatherViewModel(
         viewModelScope.launch(Dispatchers.IO) {
             if (locationService.isPermissionGranted()) {
                 locationService.getLocation()?.let { location ->
+                    println("fetching weather is PermissionGranted!")
                     getCurrentWeatherInfo(location.latitude, location.longitude)
                     getForecastInfo(location.latitude, location.longitude)
                     getObservation(
@@ -77,6 +111,7 @@ class WeatherViewModel(
                     if (granted) {
                         viewModelScope.launch(Dispatchers.IO) {
                             locationService.getLocation()?.let { location ->
+                                println("fetching weather requestLocationPermission!")
                                 getCurrentWeatherInfo(location.latitude, location.longitude)
                                 getForecastInfo(location.latitude, location.longitude)
                                 getObservation(
@@ -88,6 +123,7 @@ class WeatherViewModel(
                         }
                     } else {
                         viewModelScope.launch(Dispatchers.IO) {
+                            println("fething weather, location permission denied!")
                             getObservation(null, null, selectedLocations)
                         }
                     }
@@ -100,8 +136,14 @@ class WeatherViewModel(
     fun toggleLongPress(item: ObservationData) {
         if (longPressedItems.contains(item)) {
             longPressedItems.remove(item) // Remove if already long-pressed
+            getObservationLocation(item)?.let {
+                removeFavorite(item.name)
+            }
         } else {
             longPressedItems.add(item) // Add if not already long-pressed
+            getObservationLocation(item)?.let {
+                addFavorite(favorite = it)
+            }
         }
     }
 
