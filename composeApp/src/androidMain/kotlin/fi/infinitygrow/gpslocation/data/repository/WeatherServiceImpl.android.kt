@@ -78,29 +78,55 @@ actual class WeatherServiceImpl() : Service(), WeatherService {
                                 observationLocations
                             )
 
-                            // Pick the closest or most relevant observation
-                            val observation = observations.firstOrNull()
-                            println(observation)
+                            val newestObservations = getNewestObservationsWithWind(observations)
 
-                            // Construct the language string using your existing function
-                            val weatherSpeech = if (observation != null) {
+                            println("Lokaatio")
+                            println(loc.latitude)
+                            println(loc.longitude)
+                            println("obsevaatio")
+                            println(newestObservations[0].latitude)
+                            println(newestObservations[0].longitude)
+
+
+                            var weatherSpeech2 = ""
+
+                            // Construct a single string from all observations
+                            val weatherSpeech = newestObservations.joinToString(separator = ". ") { observation ->
                                 constructLocalizedString(context, observation, loc)
-                            } else {
-                                ""
-                                // Fallback to basic weather info
-//                                "Lämpötila ${weather.temperature} astetta, " +
-//                                        "olosuhde on ${weather.condition} ja " +
-//                                        "ilmankosteus ${weather.humidity} prosenttia. " +
-//                                        "Tuulen nopeus ${weather.windSpeed} metriä sekunnissa."
                             }
 
-                            // Speak the weather information
-                            weatherSpeech?.let {
-                                textToSpeechHelper.speak(it)
+                            // Speak the final message
+                            if (weatherSpeech.isNotBlank()) {
+                                textToSpeechHelper.speak(weatherSpeech)
                             }
+
+//                            // Loop through newest observations and speak each one
+//                            newestObservations.forEach { observation ->
+//                                val weatherSpeech = constructLocalizedString(context, observation, loc)
+//                                weatherSpeech?.let {
+//                                    textToSpeechHelper.speak(it)
+//                                    weatherSpeech2 = weatherSpeech
+//                                }
+//                            }
+
+//                            // Pick the closest or most relevant observation
+//                            val observation = newestObservations.firstOrNull()
+//                            println(observation)
+//
+//                            // Construct the language string using your existing function
+//                            val weatherSpeech = if (observation != null) {
+//                                constructLocalizedString(context, observation, loc)
+//                            } else {
+//                                ""
+//                            }
+//
+//                            // Speak the weather information
+//                            weatherSpeech?.let {
+//                                textToSpeechHelper.speak(it)
+//                            }
 
                             // Update the notification
-                            val notificationText = weatherSpeech ?: "Sää päivitys saatavilla"
+                            val notificationText = weatherSpeech2 ?: "Sää päivitys saatavilla"
                             val notification = createNotification(notificationText)
                             val notificationManager = getSystemService(
                                 Context.NOTIFICATION_SERVICE
@@ -124,7 +150,7 @@ actual class WeatherServiceImpl() : Service(), WeatherService {
                 }
 
                 // Wait for a minute
-                delay(1.minutes.inWholeMilliseconds)
+                delay(10.minutes.inWholeMilliseconds)
 
 
             }
@@ -214,25 +240,60 @@ actual class WeatherServiceImpl() : Service(), WeatherService {
     private fun constructLocalizedString(context: Context, data: ObservationData?, location: Location): String {
         val parts = constructLanguageStringNonComposable(data, location)
 
+        println("printing parts")
+        println(parts)
+        println("DONE with parts")
+
         return parts.joinToString(" ") { (key, value) ->
             when (key) {
                 "weather_station_name" -> context.getString(R.string.weather_station_name, value.toString())
                 "distance_km" -> context.getString(R.string.distance_km, value.toString())
-                "direction" -> context.getString(R.string.direction, value.toString())
+                //"direction" -> context.getString(R.string.direction, bearingToDirection(value).toString())
                 "rain_mm" -> context.getString(R.string.rain_mm, value.toString())
                 "wind_speed" -> context.getString(R.string.wind_speed, value.toString())
                 "wind_gust" -> context.getString(R.string.wind_gust, value.toString())
                 "wind_direction" -> context.getString(R.string.wind_direction, value.toString())
-                "clouds" -> context.getString(R.string.cloud_base, value.toString())
+                "cloud_base" -> context.getString(R.string.cloud_base, value.toString())
+                "fl_65" -> context.getString(R.string.fl_65, value.toString())
                 else -> value.toString() // Fallback if no translation exists
             }
         }
     }
 
+    private fun getNewestObservations(observations: List<ObservationData>): List<ObservationData> {
+        // Group observations by name
+        val groupedObservations = observations.groupBy { it.name }
+
+        // Select the newest observation for each location
+        return groupedObservations.map { (_, obsList) ->
+            obsList.maxByOrNull { it.unixTime } // Get the observation with the latest unixTime
+        }.filterNotNull() // Remove any nulls in case there were empty groups
+    }
+
+    private fun getNewestObservationsWithWind(observations: List<ObservationData>): List<ObservationData> {
+        // Group observations by name
+        val groupedObservations = observations.groupBy { it.name }
+
+        // Select the newest observation for each location, filtering out those with invalid windSpeed
+        return groupedObservations.mapNotNull { (_, obsList) ->
+            obsList
+                .filter { it.windSpeed.isFinite() && it.windSpeed != 0.0 } // Keep only valid windSpeed
+                .maxByOrNull { it.unixTime } // Get the observation with the latest unixTime
+        }
+    }
+
+    private fun bearingToDirection(bearing: Double): String {
+        val directions = arrayOf(context.getString(R.string.north), context.getString(R.string.north_east), context.getString(R.string.east), context.getString(R.string.south_east), context.getString(R.string.south), context.getString(R.string.south_west), context.getString(R.string.west), context.getString(R.string.north_west))
+        val index = ((bearing + 22.5) / 45).toInt() and 7
+        return directions[index]
+    }
+
+
 }
 
 // Expect declaration that will be implemented differently on each platform
 // In androidMain
+@Suppress("EXPECT_ACTUAL_CLASSIFIERS_ARE_IN_BETA_WARNING")
 actual class WeatherServiceController(
     private val context: Context
 ) {

@@ -6,7 +6,7 @@
     <string name="weather_updates_description">Puhuu säähavainnot ääneen</string>
     <string name="no_location_permission">Sijainti oikeudet tarvitaan havainto päivityksiin</string>
     <string name="weather_station_name">%1$s</string>
-    <string name="distance_km">Etäisyys: %1$s kilometriä</string>
+    <string name="distance_km">Etäisyys: %1$s kilometriä. </string>
     <string name="direction">%1$s</string>
     <string name="north">pohjoiseen</string>
     <string name="north_east">koiliseen</string>
@@ -17,14 +17,14 @@
     <string name="west">länteen</string>
     <string name="north_west">luoteeseen</string>
     <string name="rain_mm">Sadetta: %1$s millimetriä</string>
-    <string name="wind_speed">Tuuli: %1$s</string>
-    <string name="wind_gust">Puuska: %1$s</string>
-    <string name="wind_direction">Suunta: %1$s</string>">
+    <string name="wind_speed">Tuuli: %1$s .</string>
+    <string name="wind_gust"> Puuska: %1$s. </string>
+    <string name="wind_direction"> Suunta: %1$s astetta.</string>">
     <string name="no_clouds">Ei pilviä havaittu</string>
     <string name="overcast">Täyspilvikatto</string>
-    <string name="cloud_base">Pilvenpohjat: %1$s metriä</string>">
-    <string name="fl_65">Lentopinta 65 %1$s metriä</string>
-    <string name="fl_95">Lentopinta 95 %1$s metriä</string>
+    <string name="cloud_base">Pilvenpohjat: %1$s metriä.</string>">
+    <string name="fl_65">Lentopinta 65. %1$s metriä</string>
+    <string name="fl_95">Lentopinta 95. %1$s metriä</string>
 
     <string name="weather_code_0">Ei merkittäviä sääilmiöitä</string>
     <string name="weather_code_1">Pilvet yleisesti hajoavat tai vähenevät</string>

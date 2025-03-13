@@ -282,14 +282,14 @@ fun constructLanguageStringNonComposable(data: ObservationData?, location: Locat
     println(data.name)
 
     if (location.longitude != 999.9) {
-        val dist = getDistance(data.longitude, data.latitude, location.longitude, location.latitude)
+        val dist = getDistance(data.longitude, data.latitude, location.latitude, location.longitude)
             .takeIf { it.isFinite() }?.roundToInt()
 
-        val bear = getBearing(location.longitude, location.latitude, data.longitude, data.latitude)
-            .takeIf { it.isFinite() }?.let { bearingToDirection(it) }
+//        val bear = getBearing(location.latitude, location.longitude, data.longitude, data.latitude)
+//            .takeIf { it.isFinite() }
 
         dist?.let { parts.add("distance_km" to it) }
-        bear?.let { parts.add("direction" to it) }
+       // bear?.let { parts.add("direction" to it) }
     }
 
     data.precipitationIntensity.takeIf { it.isFinite() && it != 0.0 }?.let {
@@ -298,6 +298,31 @@ fun constructLanguageStringNonComposable(data: ObservationData?, location: Locat
 
     data.windSpeed.takeIf { it.isFinite() }?.roundToInt()?.let {
         parts.add("wind_speed" to it)
+    }
+
+    data.windGust.takeIf { it.isFinite() }?.roundToInt()?.let {
+        parts.add("wind_gust" to it)
+    }
+
+    data.windDirection.takeIf { it.isFinite() }?.roundToNearestFive()?.let {
+        parts.add("wind_direction" to it)
+    }
+
+    calculateCloudBaseHeight(data.temperature, data.dewPoint, getAltitudeByName(data.name).toDouble())
+        .takeIf { it.isFinite() }
+        ?.roundToNearestHundred()
+        ?.let {
+            parts.add("cloud_base" to it)
+        }
+
+
+    data.pressure.takeIf { it.isFinite() }
+        ?.let { pressure ->
+        parts.add("fl_65" to pressureTemperatureAltitudeWHeight(
+                pressure * 100, data.temperature + 273.15, 1981.20,
+                getAltitudeByName(data.name).toDouble()
+            ).toInt()
+        )
     }
 
     return parts

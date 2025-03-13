@@ -112,11 +112,13 @@ fun getBearing(lat1: Double, long1: Double, lat2: Double, long2: Double): Double
 //    return Math.toDegrees(atan2(y, x))
 //}
 
-fun bearingToDirection(bearing: Double): String {
-    val directions = arrayOf("pohjoiseen", "koiliseen", "itään", "kaakkoon", "etelään", "lounaaseen", "länteen", "luoteeseen")
-    val index = ((bearing + 22.5) / 45).toInt() and 7
-    return directions[index]
-}
+
+
+//fun bearingToDirection(bearing: Double): String {
+//    val directions = arrayOf("pohjoiseen", "koiliseen", "itään", "kaakkoon", "etelään", "lounaaseen", "länteen", "luoteeseen")
+//    val index = ((bearing + 22.5) / 45).toInt() and 7
+//    return directions[index]
+//}
 
 fun calculateTimeToWait(currentTime: Long): Long {
     val millisSinceCurrentHour = currentTime % 3600000
