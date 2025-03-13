@@ -21,6 +21,34 @@
     <string name="fl_65">Lentopinta 65 %1$s metriä</string>
     <string name="fl_95">Lentopinta 95 %1$s metriä</string>
 
+
+
+    <string name="one_or_all_neareast">Lähin</string>
+    <string name="one_or_all_all">Kaikki</string>
+    <string name="station_name">Nimi</string>">
+    <string name="distance">Etäisyys</string>
+    <string name="temperature">Lämpötila</string>
+    <string name="humidity">Kosteus</string>
+    <string name="wind">Tuuli</string>
+    <string name="gust">Puuska</string>
+    <string name="direction_plain">Suunta</string>
+    <string name="clouds_height">Pilvikorkeus</string>
+    <string name="flight_levels">Lentopinnat</string>
+
+
+
+    <string name="settings">Asetukset</string>
+    <string name="back">Takaisin</string>
+    <string name="dark_theme">Tumma teema</string>
+    <string name="location">Sijainti</string>
+    <string name="location_denied">Sijaintilupa evätty. Voit aktivoida luvan puhelimen asetuksista.</string>
+    <string name="talk_service">Puhu havainnot</string>
+    <string name="start">Käynnistä</string>
+    <string name="start_service">Käynnistä palvelu</string>
+    <string name="stop_service">Pysäytä palvelu</string>
+    <string name="service_running">Palvelu käynnissä</string>
+    <string name="service_stopped">Palvelu pysäytetty</string>
+
     <string name="weather_code_0">Ei merkittäviä sääilmiöitä</string>
     <string name="weather_code_1">Pilvet yleisesti hajoavat tai vähenevät</string>
     <string name="weather_code_2">Taivaan tila pysynyt muuttumattomana</string>

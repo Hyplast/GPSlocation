@@ -12,6 +12,18 @@ class SettingsRepository(private val dataStore: DataStore<Preferences>) {
     // Define the preference keys.
     private val darkThemeKey = booleanPreferencesKey("dark_theme")
     private val locationKey = booleanPreferencesKey("location")
+    private val textToSpeechKey = booleanPreferencesKey("text_to_speech")
+    private val ttsNameKey = booleanPreferencesKey("tts_location_name")
+    private val ttsDistanceKey = booleanPreferencesKey("tts_distance")
+    private val ttsOneOrAllKey = booleanPreferencesKey("tts_amount_of_locations")
+    private val ttsTemperatureKey = booleanPreferencesKey("tts_temperature")
+    private val ttsHumidityKey = booleanPreferencesKey("tts_humidity")
+    private val ttsWindSpeedKey = booleanPreferencesKey("tts_wind_speed")
+    private val ttsWindGustKey = booleanPreferencesKey("tts_wind_gust")
+    private val ttsWindDirectionKey = booleanPreferencesKey("tts_wind_direction")
+    private val ttsCloudBaseKey = booleanPreferencesKey("tts_cloud_base")
+    private val ttsFlightLevel65Key = booleanPreferencesKey("tts_fl65")
+    private val ttsFlightLevel95Key = booleanPreferencesKey("tts_fl95")
 
     // Expose flow to observe dark theme settings; default is false.
     val darkThemeFlow: Flow<Boolean> = dataStore.data
@@ -20,6 +32,43 @@ class SettingsRepository(private val dataStore: DataStore<Preferences>) {
     // Expose flow to observe location toggle; default is true.
     val locationFlow: Flow<Boolean> = dataStore.data
         .map { preferences -> preferences[locationKey] ?: true }
+
+    val textToSpeechFlow: Flow<Boolean> = dataStore.data
+        .map { preferences -> preferences[textToSpeechKey] ?: false }
+
+    val ttsNameFlow: Flow<Boolean> = dataStore.data
+        .map { preferences -> preferences[ttsNameKey] ?: true }
+
+    val ttsDistanceFlow: Flow<Boolean> = dataStore.data
+        .map { preferences -> preferences[ttsDistanceKey] ?: true }
+
+    val ttsOneOrAllFlow: Flow<Boolean> = dataStore.data
+        .map { preferences -> preferences[ttsOneOrAllKey] ?: true }
+
+    val ttsTemperatureFlow: Flow<Boolean> = dataStore.data
+        .map { preferences -> preferences[ttsTemperatureKey] ?: false }
+
+    val ttsHumidityFlow: Flow<Boolean> = dataStore.data
+        .map { preferences -> preferences[ttsHumidityKey] ?: false }
+
+    val ttsWindSpeedFlow: Flow<Boolean> = dataStore.data
+        .map { preferences -> preferences[ttsWindSpeedKey] ?: true }
+
+    val ttsWindGustFlow: Flow<Boolean> = dataStore.data
+        .map { preferences -> preferences[ttsWindGustKey] ?: true }
+
+    val ttsWindDirectionFlow: Flow<Boolean> = dataStore.data
+        .map { preferences -> preferences[ttsWindDirectionKey] ?: true }
+
+    val ttsCloudBaseFlow: Flow<Boolean> = dataStore.data
+        .map { preferences -> preferences[ttsCloudBaseKey] ?: true }
+
+    val ttsFlightLevel65Flow: Flow<Boolean> = dataStore.data
+        .map { preferences -> preferences[ttsFlightLevel65Key] ?: true }
+
+    val ttsFlightLevel95Flow: Flow<Boolean> = dataStore.data
+        .map { preferences -> preferences[ttsFlightLevel95Key] ?: true }
+
 
     // Function to update dark theme preference.
     suspend fun setDarkTheme(isDark: Boolean) {
@@ -34,6 +83,67 @@ class SettingsRepository(private val dataStore: DataStore<Preferences>) {
             preferences[locationKey] = isOn
         }
     }
+    suspend fun setTtsName(isOn: Boolean) {
+        dataStore.edit { preferences ->
+            preferences[ttsNameKey] = isOn
+        }
+    }
+    suspend fun setTtsDistance(isOn: Boolean) {
+        dataStore.edit { preferences ->
+            preferences[ttsDistanceKey] = isOn
+        }
+    }
+    suspend fun setTtsOneOrAll(isOn: Boolean) {
+        dataStore.edit { preferences ->
+            preferences[ttsOneOrAllKey] = isOn
+        }
+    }
+    suspend fun setTtsTemperature(isOn: Boolean) {
+        dataStore.edit { preferences ->
+            preferences[ttsTemperatureKey] = isOn
+        }
+    }
+    suspend fun setTtsHumidity(isOn: Boolean) {
+        dataStore.edit { preferences ->
+            preferences[ttsHumidityKey] = isOn
+        }
+    }
+    suspend fun setTtsWindSpeed(isOn: Boolean) {
+        dataStore.edit { preferences ->
+            preferences[ttsWindSpeedKey] = isOn
+        }
+    }
+    suspend fun setTtsWindGust(isOn: Boolean) {
+        dataStore.edit { preferences ->
+            preferences[ttsWindGustKey] = isOn
+        }
+    }
+    suspend fun setTtsWindDirection(isOn: Boolean) {
+        dataStore.edit { preferences ->
+            preferences[ttsWindDirectionKey] = isOn
+        }
+    }
+    suspend fun setTtsCloudBase(isOn: Boolean) {
+        dataStore.edit { preferences ->
+            preferences[ttsCloudBaseKey] = isOn
+        }
+    }
+    suspend fun setTtsFlightLevel65(isOn: Boolean) {
+        dataStore.edit { preferences ->
+            preferences[ttsFlightLevel65Key] = isOn
+        }
+    }
+    suspend fun setTtsFlightLevel95(isOn: Boolean) {
+        dataStore.edit { preferences ->
+            preferences[ttsFlightLevel95Key] = isOn
+        }
+    }
+    suspend fun clearPreferences() {
+        dataStore.edit { preferences ->
+            preferences.clear()
+        }
+    }
+
 }
 //private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "app_preferences")
 

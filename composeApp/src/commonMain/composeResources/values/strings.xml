@@ -22,6 +22,31 @@
     <string name="fl_95">Flight level 95 %1$s meters</string>
 
 
+    <string name="one_or_all_neareast">Closest</string>
+    <string name="one_or_all_all">All</string>
+    <string name="station_name">Name</string>">
+    <string name="distance">Distance</string>
+    <string name="temperature">Temperature</string>
+    <string name="humidity">Humidity</string>
+    <string name="wind">Wind</string>
+    <string name="gust">Gust</string>
+    <string name="direction_plain">Direction</string>
+    <string name="clouds_height">Cloudbase</string>
+    <string name="flight_levels">Flight levels</string>
+
+    <string name="settings">Settings</string>
+    <string name="back">Back</string>
+    <string name="dark_theme">Dark theme</string>
+    <string name="location">Location</string>
+    <string name="location_denied">Location permission denied. Please enable in settings.</string>
+    <string name="talk_service">Speak observations</string>
+    <string name="start">Start</string>
+    <string name="start_service">Start Service</string>
+    <string name="stop_service">Stop Service</string>
+    <string name="service_running">Service running</string>
+    <string name="service_stopped">Service stopped</string>
+
+
     <string name="weather_code_0">No significant weather observed</string>
     <string name="weather_code_1">Clouds generally dissolving or becoming less developed</string>
     <string name="weather_code_2">State of sky on the whole unchanged</string>

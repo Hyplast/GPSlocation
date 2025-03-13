@@ -22,6 +22,7 @@ import androidx.compose.material3.AssistChip
 import androidx.compose.material3.Button
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -45,7 +46,25 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.util.fastForEachIndexed
 import fi.infinitygrow.gpslocation.presentation.settings_page.components.WeatherServiceControls
+import gpslocation.composeapp.generated.resources.Res
+import gpslocation.composeapp.generated.resources.back
+import gpslocation.composeapp.generated.resources.clouds_height
+import gpslocation.composeapp.generated.resources.dark_theme
+import gpslocation.composeapp.generated.resources.direction_plain
+import gpslocation.composeapp.generated.resources.distance
+import gpslocation.composeapp.generated.resources.gust
+import gpslocation.composeapp.generated.resources.humidity
+import gpslocation.composeapp.generated.resources.location
+import gpslocation.composeapp.generated.resources.location_denied
+import gpslocation.composeapp.generated.resources.one_or_all_all
+import gpslocation.composeapp.generated.resources.settings
+import gpslocation.composeapp.generated.resources.start
+import gpslocation.composeapp.generated.resources.station_name
+import gpslocation.composeapp.generated.resources.talk_service
+import gpslocation.composeapp.generated.resources.temperature
+import gpslocation.composeapp.generated.resources.wind
 import kotlinx.coroutines.launch
+import org.jetbrains.compose.resources.stringResource
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
@@ -56,6 +75,22 @@ fun SettingsScreen(
     // Collect settings state from the view model.
     val darkTheme by settingsViewModel.darkTheme.collectAsState()
     val isLocationOn by settingsViewModel.isLocationOn.collectAsState()
+    val isServiceRunning by settingsViewModel.isServiceRunning.collectAsState()
+    val textToSpeech by settingsViewModel.textToSpeech.collectAsState()
+    val ttsName by settingsViewModel.ttsName.collectAsState()
+    val ttsDistance by settingsViewModel.ttsDistance.collectAsState()
+    val ttsOneOrAll by settingsViewModel.ttsOneOrAll.collectAsState()
+    val ttsTemperature by settingsViewModel.ttsTemperature.collectAsState()
+    val ttsHumidity by settingsViewModel.ttsHumidity.collectAsState()
+    val ttsWindSpeed by settingsViewModel.ttsWindSpeed.collectAsState()
+    val ttsWindGust by settingsViewModel.ttsWindGust.collectAsState()
+    val ttsWindDirection by settingsViewModel.ttsWindDirection.collectAsState()
+    val ttsCloudBase by settingsViewModel.ttsCloudBase.collectAsState()
+
+    val ttsFlightLevel65 by settingsViewModel.ttsFlightLevel65.collectAsState()
+    val ttsFlightLevel95 by settingsViewModel.ttsFlightLevel95.collectAsState()
+
+
     var talkService by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
 
@@ -69,17 +104,36 @@ fun SettingsScreen(
     var selected by remember { mutableStateOf(false) }
     var showChips by remember { mutableStateOf(false) }
 
-    val colorNames =
+    val locationDeniedText = stringResource(Res.string.location_denied)
+
+    val chipLabels =
         listOf(
-            "Etäisyys",
-            "Lämpötila",
-            "Kosteus",
-            "Tuuli",
-            "Puuska",
-            "Suunta",
-            "Pilvikorkeus",
-            "Lentopinnat"
+            stringResource(Res.string.one_or_all_all),
+            stringResource(Res.string.station_name),
+            stringResource(Res.string.distance),
+            stringResource(Res.string.temperature),
+            stringResource(Res.string.humidity),
+            stringResource(Res.string.wind),
+            stringResource(Res.string.gust),
+            stringResource(Res.string.direction_plain),
+            stringResource(Res.string.clouds_height),
+            "FL65",
+            "FL95"
         )
+
+    val chipSelections = listOf(
+        ttsOneOrAll,
+        ttsName,
+        ttsDistance,
+        ttsTemperature,
+        ttsHumidity,
+        ttsWindSpeed,
+        ttsWindGust,
+        ttsWindDirection,
+        ttsCloudBase,
+        ttsFlightLevel65,
+        ttsFlightLevel95
+    )
 
 
     LaunchedEffect(Unit) {
@@ -95,12 +149,12 @@ fun SettingsScreen(
         snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
         topBar = {
             CenterAlignedTopAppBar(
-                title = { Text("Settings") },
+                title = { stringResource(Res.string.settings) },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Back"
+                            contentDescription = stringResource(Res.string.back)
                         )
                     }
                 }
@@ -122,7 +176,7 @@ fun SettingsScreen(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = "Dark Theme",
+                    text = stringResource(Res.string.dark_theme),
                     color = fontColor
                 )
                 Switch(
@@ -142,7 +196,7 @@ fun SettingsScreen(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = "Location",
+                    text = stringResource(Res.string.location),
                     color = fontColor
                 )
                 Switch(
@@ -153,7 +207,7 @@ fun SettingsScreen(
                             if (!success) {
                                 // Show snackbar if permission is denied
                                 snackbarHostState.showSnackbar(
-                                    message = "Location permission denied. Please enable in settings."
+                                    message = locationDeniedText,
                                 )
                             }
                         }
@@ -168,19 +222,19 @@ fun SettingsScreen(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = "Puhu havainnot",
+                    text = stringResource(Res.string.talk_service),
                     color = fontColor
                 )
                 Switch(
                     checked = talkService,
                     onCheckedChange = { checked ->
-                        showChips = checked
+                        talkService = checked
                     }
                 )
             }
 
             Spacer(modifier = Modifier.height(16.dp))
-            if (showChips) {
+            if (talkService) {
                 Column {
                     FlowRow(
                         modifier =
@@ -201,37 +255,60 @@ fun SettingsScreen(
                         ) {
                             VerticalDivider()
                         }
-                        colorNames.fastForEachIndexed { index, element ->
-                            AssistChip(
-                                modifier =
-                                Modifier.padding(horizontal = 4.dp),
-                                onClick = { /* do something*/ },
-                                label = { Text(element) }
+                        chipLabels.forEachIndexed { index, label ->
+                            FilterChip(
+                                selected = chipSelections[index],
+                                onClick = {
+                                    // Toggle corresponding TTS variable via the view model.
+                                    when (index) {
+                                        0 -> settingsViewModel.toggleTtsOneOrAll()
+                                        1 -> settingsViewModel.toggleTtsName()
+                                        2 -> settingsViewModel.toggleTtsDistance()
+                                        3 -> settingsViewModel.toggleTtsTemperature()
+                                        4 -> settingsViewModel.toggleTtsHumidity()
+                                        5 -> settingsViewModel.toggleTtsWindSpeed()
+                                        6 -> settingsViewModel.toggleTtsWindGust()
+                                        7 -> settingsViewModel.toggleTtsWindDirection()
+                                        8 -> settingsViewModel.toggleTtsCloudBase()
+                                        9 -> settingsViewModel.toggleTtsFlightLevel65()
+                                        10 -> settingsViewModel.toggleTtsFlightLevel95()
+                                    }
+                                },
+                                label = { Text(label) },
+                                modifier = Modifier.padding(horizontal = 4.dp)
                             )
+                        }
+//                            AssistChip(
+//                                modifier =
+//                                Modifier.padding(horizontal = 4.dp),
+//                                onClick = { /* do something*/ },
+//                                label = { Text(element) }
+//                            )
                         }
                     }
 
-                    Column(modifier = Modifier
-                        .fillMaxWidth(),
-                         horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-
-                    Button(
-                        onClick = {
-                            //showChips = false
-                            settingsViewModel.toggleTalkService()
-                        }, // Trigger the lambda when the button is clicked
-                        modifier = Modifier.padding(16.dp)
-                    ) {
-                        Text("Käynnistä")
-                    }
-                    }
-                }
+//                Column(
+//                    modifier = Modifier
+//                        .fillMaxWidth(),
+//                    horizontalAlignment = Alignment.CenterHorizontally
+//                ) {
+//
+//                    Button(
+//                        onClick = {
+//                            //showChips = false
+//                            settingsViewModel.toggleTalkService()
+//                        }, // Trigger the lambda when the button is clicked
+//                        modifier = Modifier.padding(16.dp)
+//                    ) {
+//                        Text(stringResource(Res.string.start))
+//                    }
+//                }
+                Spacer(modifier = Modifier.height(16.dp))
+                WeatherServiceControls(settingsViewModel)
             }
-            Spacer(modifier = Modifier.height(16.dp))
-            WeatherServiceControls(settingsViewModel)
         }
     }
 }
+
 
 

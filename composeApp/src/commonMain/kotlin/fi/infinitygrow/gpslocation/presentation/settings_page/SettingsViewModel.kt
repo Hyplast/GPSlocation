@@ -38,12 +38,118 @@ class SettingsViewModel(
     val isLocationOn: StateFlow<Boolean> = repository.locationFlow
         .stateIn(viewModelScope, SharingStarted.Eagerly, true)
 
+    val ttsName: StateFlow<Boolean> = repository.ttsNameFlow
+        .stateIn(viewModelScope, SharingStarted.Eagerly, true)
+
+    val ttsDistance: StateFlow<Boolean> = repository.ttsDistanceFlow
+        .stateIn(viewModelScope, SharingStarted.Eagerly, true)
+
+    val ttsOneOrAll: StateFlow<Boolean> = repository.ttsOneOrAllFlow
+        .stateIn(viewModelScope, SharingStarted.Eagerly, true)
+
+    val ttsTemperature: StateFlow<Boolean> = repository.ttsTemperatureFlow
+        .stateIn(viewModelScope, SharingStarted.Eagerly, false)
+
+    val ttsHumidity: StateFlow<Boolean> = repository.ttsHumidityFlow
+        .stateIn(viewModelScope, SharingStarted.Eagerly, false)
+
+    val ttsWindSpeed: StateFlow<Boolean> = repository.ttsWindSpeedFlow
+        .stateIn(viewModelScope, SharingStarted.Eagerly, true)
+
+    val ttsWindGust: StateFlow<Boolean> = repository.ttsWindGustFlow
+        .stateIn(viewModelScope, SharingStarted.Eagerly, true)
+
+    val ttsWindDirection: StateFlow<Boolean> = repository.ttsWindDirectionFlow
+        .stateIn(viewModelScope, SharingStarted.Eagerly, true)
+
+    val ttsCloudBase: StateFlow<Boolean> = repository.ttsCloudBaseFlow
+        .stateIn(viewModelScope, SharingStarted.Eagerly, true)
+
+    val ttsFlightLevel65: StateFlow<Boolean> = repository.ttsFlightLevel65Flow
+        .stateIn(viewModelScope, SharingStarted.Eagerly, true)
+
+    val ttsFlightLevel95: StateFlow<Boolean> = repository.ttsFlightLevel95Flow
+        .stateIn(viewModelScope, SharingStarted.Eagerly, true)
+
+    val textToSpeech: StateFlow<Boolean> = repository.textToSpeechFlow
+        .stateIn(viewModelScope, SharingStarted.Eagerly, false)
+
+
+
     // Call repository function to update dark theme.
     fun toggleDarkTheme() {
         viewModelScope.launch {
             repository.setDarkTheme(!darkTheme.value)
         }
     }
+
+    fun toggleTtsName() {
+        viewModelScope.launch {
+            repository.setTtsName(!ttsName.value)
+        }
+    }
+    fun toggleTtsDistance() {
+        viewModelScope.launch {
+            repository.setTtsDistance(!ttsDistance.value)
+        }
+    }
+    fun toggleTtsOneOrAll() {
+        viewModelScope.launch {
+            repository.setTtsOneOrAll(!ttsOneOrAll.value)
+        }
+    }
+    fun toggleTtsTemperature() {
+        viewModelScope.launch {
+            repository.setTtsTemperature(!ttsTemperature.value)
+        }
+    }
+    fun toggleTtsHumidity() {
+        viewModelScope.launch {
+            repository.setTtsHumidity(!ttsHumidity.value)
+        }
+    }
+    fun toggleTtsWindSpeed() {
+        viewModelScope.launch {
+            repository.setTtsWindSpeed(!ttsWindSpeed.value)
+        }
+    }
+    fun toggleTtsWindGust() {
+        viewModelScope.launch {
+            repository.setTtsWindGust(!ttsWindGust.value)
+        }
+    }
+    fun toggleTtsWindDirection() {
+        viewModelScope.launch {
+            repository.setTtsWindDirection(!ttsWindDirection.value)
+        }
+    }
+    fun toggleTtsCloudBase() {
+        viewModelScope.launch {
+            repository.setTtsCloudBase(!ttsCloudBase.value)
+        }
+    }
+    fun toggleTtsFlightLevel65() {
+        viewModelScope.launch {
+            repository.setTtsFlightLevel65(!ttsFlightLevel65.value)
+        }
+    }
+    fun toggleTtsFlightLevel95() {
+        viewModelScope.launch {
+            repository.setTtsFlightLevel95(!ttsFlightLevel95.value)
+        }
+    }
+    fun toggleTextToSpeech() {
+        viewModelScope.launch {
+            repository.setTtsFlightLevel95(!textToSpeech.value)
+        }
+    }
+    fun clearPreferences() {
+        viewModelScope.launch {
+            repository.clearPreferences()
+        }
+    }
+
+
 
     // Updated function that returns success/failure
     suspend fun toggleLocation(): Boolean {

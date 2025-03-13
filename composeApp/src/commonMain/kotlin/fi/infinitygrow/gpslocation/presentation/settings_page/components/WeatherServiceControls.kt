@@ -15,6 +15,12 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import fi.infinitygrow.gpslocation.presentation.settings_page.SettingsViewModel
+import gpslocation.composeapp.generated.resources.Res
+import gpslocation.composeapp.generated.resources.service_running
+import gpslocation.composeapp.generated.resources.service_stopped
+import gpslocation.composeapp.generated.resources.start_service
+import gpslocation.composeapp.generated.resources.stop_service
+import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun WeatherServiceControls(
@@ -27,18 +33,18 @@ fun WeatherServiceControls(
             .fillMaxWidth()
             .padding(16.dp)
     ) {
-        Text(
-            text = "Sää Äänipalvelu",
-            style = MaterialTheme.typography.headlineSmall,
-            modifier = Modifier.padding(bottom = 8.dp)
-        )
+//        Text(
+//            text = "Sää Äänipalvelu",
+//            style = MaterialTheme.typography.headlineSmall,
+//            modifier = Modifier.padding(bottom = 8.dp)
+//        )
 
         Row(
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier.fillMaxWidth()
         ) {
             Text(
-                text = if (isServiceRunning) "Palvelu käynnissä" else "Palvelu pysäytetty",
+                text = if (isServiceRunning) stringResource(Res.string.service_running) else stringResource(Res.string.service_stopped),
                 modifier = Modifier.weight(1f)
             )
 
@@ -52,7 +58,7 @@ fun WeatherServiceControls(
                 )
             ) {
                 Text(
-                    text = if (isServiceRunning) "Pysäytä palvelu" else "Käynnistä palvelu"
+                    text = if (isServiceRunning) stringResource(Res.string.stop_service) else stringResource(Res.string.start_service)
                 )
             }
         }
@@ -76,12 +82,12 @@ fun WeatherServiceControls(
 //            )
 //        }
 
-        Button(
-            onClick = { settingsViewModel.speak() },
-        ) {
-            Text(
-                text = "Puhu"
-            )
-        }
+//        Button(
+//            onClick = { settingsViewModel.speak() },
+//        ) {
+//            Text(
+//                text = "Puhu"
+//            )
+//        }
     }
 }

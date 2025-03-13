@@ -30,6 +30,9 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.delay
+import kotlinx.datetime.Clock
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.toLocalDateTime
 import kotlin.time.Duration.Companion.minutes
 import org.koin.android.ext.android.inject
 
@@ -150,11 +153,22 @@ actual class WeatherServiceImpl() : Service(), WeatherService {
                 }
 
                 // Wait for a minute
-                delay(10.minutes.inWholeMilliseconds)
-
+                //delay(10.minutes.inWholeMilliseconds)
+                waitUntilNextObservation()
 
             }
         }
+    }
+
+    private suspend fun waitUntilNextObservation() {
+        val now = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault())
+        val currentMinutes = now.minute
+        val nextUpdateMinutes = listOf(2, 12, 22, 32, 42, 52).firstOrNull { it > currentMinutes } ?: 2
+        val minutesToWait = (nextUpdateMinutes - currentMinutes).let { if (it < 0) it + 60 else it }
+        println(minutesToWait)
+        println("Waiting this amount of minutes")
+
+        delay(minutesToWait.minutes.inWholeMilliseconds)
     }
 
 
