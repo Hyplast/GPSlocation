@@ -9,7 +9,9 @@ import android.content.Context
 import android.content.Intent
 import android.os.Build
 import android.os.IBinder
+import androidx.compose.runtime.mutableStateListOf
 import androidx.core.app.NotificationCompat
+import androidx.lifecycle.viewModelScope
 import fi.infinitygrow.gpslocation.R
 import fi.infinitygrow.gpslocation.data.remote.ApiService
 import fi.infinitygrow.gpslocation.data.remote.FmiApiService
@@ -30,6 +32,10 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.datetime.Clock
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
@@ -44,7 +50,14 @@ actual class WeatherServiceImpl() : Service(), WeatherService {
     private val locationService: LocationService by inject()
     private val textToSpeechHelper: TextToSpeechHelperImpl by inject()
     private val context: Context by inject()
+    private val favoritesRepository: FavoritesRepositoryImpl by inject()
+    private val settingsRepository: SettingsRepository by inject()
 
+    val favorites: StateFlow<List<ObservationLocation>> =
+        favoritesRepository.observeFavorites()
+            .stateIn(serviceScope, SharingStarted.Lazily, emptyList())
+
+    val selectedLocations = mutableStateListOf<ObservationLocation>()
 
     companion object {
         private const val NOTIFICATION_ID = 1
@@ -69,27 +82,28 @@ actual class WeatherServiceImpl() : Service(), WeatherService {
         weatherJob = serviceScope.launch {
             while (isActive) {
                 try {
+                    serviceScope.launch {
+                        favorites.collect { favList ->
+                            selectedLocations.clear()
+                            selectedLocations.addAll(favList)
+                        }
+                    }
+                    serviceScope.launch {
+                        val ttsSettings = settingsRepository.ttsSettingsFlow.first()
+                    }
                     // Check for location permission
                     if (locationService.isPermissionGranted()) {
                         val location = locationService.getLocation()
                         location?.let { loc ->
                             // Get observation data
-                            val observationLocations = emptyList<ObservationLocation>()//getObservationLocations() // Implement or inject this
+                            //val observationLocations = emptyList<ObservationLocation>()//getObservationLocations() // Implement or inject this
                             val observations = weatherRepository.getObservation(
                                 loc.latitude,
                                 loc.longitude,
-                                observationLocations
+                                selectedLocations
                             )
 
                             val newestObservations = getNewestObservationsWithWind(observations)
-
-                            println("Lokaatio")
-                            println(loc.latitude)
-                            println(loc.longitude)
-                            println("obsevaatio")
-                            println(newestObservations[0].latitude)
-                            println(newestObservations[0].longitude)
-
 
                             var weatherSpeech2 = ""
 
@@ -102,31 +116,6 @@ actual class WeatherServiceImpl() : Service(), WeatherService {
                             if (weatherSpeech.isNotBlank()) {
                                 textToSpeechHelper.speak(weatherSpeech)
                             }
-
-//                            // Loop through newest observations and speak each one
-//                            newestObservations.forEach { observation ->
-//                                val weatherSpeech = constructLocalizedString(context, observation, loc)
-//                                weatherSpeech?.let {
-//                                    textToSpeechHelper.speak(it)
-//                                    weatherSpeech2 = weatherSpeech
-//                                }
-//                            }
-
-//                            // Pick the closest or most relevant observation
-//                            val observation = newestObservations.firstOrNull()
-//                            println(observation)
-//
-//                            // Construct the language string using your existing function
-//                            val weatherSpeech = if (observation != null) {
-//                                constructLocalizedString(context, observation, loc)
-//                            } else {
-//                                ""
-//                            }
-//
-//                            // Speak the weather information
-//                            weatherSpeech?.let {
-//                                textToSpeechHelper.speak(it)
-//                            }
 
                             // Update the notification
                             val notificationText = weatherSpeech2 ?: "Sää päivitys saatavilla"
@@ -148,14 +137,9 @@ actual class WeatherServiceImpl() : Service(), WeatherService {
                     }
                 } catch (e: Exception) {
                     println(e)
-                    // Log the error
                     println("WeatherService, Error fetching weather")
                 }
-
-                // Wait for a minute
-                //delay(10.minutes.inWholeMilliseconds)
                 waitUntilNextObservation()
-
             }
         }
     }
@@ -254,9 +238,9 @@ actual class WeatherServiceImpl() : Service(), WeatherService {
     private fun constructLocalizedString(context: Context, data: ObservationData?, location: Location): String {
         val parts = constructLanguageStringNonComposable(data, location)
 
-        println("printing parts")
+//        println("printing parts")
         println(parts)
-        println("DONE with parts")
+//        println("DONE with parts")
 
         return parts.joinToString(" ") { (key, value) ->
             when (key) {
@@ -269,6 +253,7 @@ actual class WeatherServiceImpl() : Service(), WeatherService {
                 "wind_direction" -> context.getString(R.string.wind_direction, value.toString())
                 "cloud_base" -> context.getString(R.string.cloud_base, value.toString())
                 "fl_65" -> context.getString(R.string.fl_65, value.toString())
+                "fl_95" -> context.getString(R.string.fl_95, value.toString())
                 else -> value.toString() // Fallback if no translation exists
             }
         }

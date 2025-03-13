@@ -278,8 +278,8 @@ fun constructLanguageStringNonComposable(data: ObservationData?, location: Locat
 
     parts.add("weather_station_name" to data.name)
 
-    println("Printing station name")
-    println(data.name)
+//    println("Printing station name")
+//    println(data.name)
 
     if (location.longitude != 999.9) {
         val dist = getDistance(data.longitude, data.latitude, location.latitude, location.longitude)
@@ -323,6 +323,73 @@ fun constructLanguageStringNonComposable(data: ObservationData?, location: Locat
                 getAltitudeByName(data.name).toDouble()
             ).toInt()
         )
+    }
+
+    return parts
+}
+
+fun constructLanguageStringNonComposable2(
+    data: ObservationData?,
+    location: Location,
+    prefs: UserPreferences
+): List<Pair<String, Any?>> {
+    if (data == null) return emptyList()
+
+    val parts = mutableListOf<Pair<String, Any?>>()
+
+    if (prefs.includeWeatherStationName) {
+        parts.add("weather_station_name" to data.name)
+    }
+
+    if (prefs.includeDistance && location.longitude != 999.9) {
+        val dist =
+            getDistance(data.longitude, data.latitude, location.latitude, location.longitude)
+                .takeIf { it.isFinite() }?.roundToInt()
+        dist?.let { parts.add("distance_km" to it) }
+    }
+
+    if (prefs.includeRain) {
+        data.precipitationIntensity.takeIf { it.isFinite() && it != 0.0 }
+            ?.let { parts.add("rain_mm" to it) }
+    }
+
+    if (prefs.includeWindSpeed) {
+        data.windSpeed.takeIf { it.isFinite() }
+            ?.roundToInt()?.let { parts.add("wind_speed" to it) }
+    }
+
+    if (prefs.includeWindGust) {
+        data.windGust.takeIf { it.isFinite() }
+            ?.roundToInt()?.let { parts.add("wind_gust" to it) }
+    }
+
+    if (prefs.includeWindDirection) {
+        data.windDirection.takeIf { it.isFinite() }
+            ?.roundToNearestFive()?.let { parts.add("wind_direction" to it) }
+    }
+
+    if (prefs.includeCloudBase) {
+        calculateCloudBaseHeight(
+            data.temperature,
+            data.dewPoint,
+            getAltitudeByName(data.name).toDouble()
+        )
+            .takeIf { it.isFinite() }
+            ?.roundToNearestHundred()
+            ?.let { parts.add("cloud_base" to it) }
+    }
+
+    if (prefs.includeFlightLevel) {
+        data.pressure.takeIf { it.isFinite() }?.let { pressure ->
+            parts.add(
+                "fl_65" to pressureTemperatureAltitudeWHeight(
+                    pressure * 100,
+                    data.temperature + 273.15,
+                    1981.20,
+                    getAltitudeByName(data.name).toDouble()
+                ).toInt()
+            )
+        }
     }
 
     return parts

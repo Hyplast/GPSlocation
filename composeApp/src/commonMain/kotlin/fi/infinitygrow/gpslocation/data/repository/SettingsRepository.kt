@@ -6,6 +6,7 @@ import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.combine
 
 class SettingsRepository(private val dataStore: DataStore<Preferences>) {
 
@@ -68,6 +69,35 @@ class SettingsRepository(private val dataStore: DataStore<Preferences>) {
 
     val ttsFlightLevel95Flow: Flow<Boolean> = dataStore.data
         .map { preferences -> preferences[ttsFlightLevel95Key] ?: true }
+
+    // Combine the individual flows into one flow emitting a TtsSettings object.
+    val ttsSettingsFlow: Flow<TtsSettings> = combine(
+        ttsOneOrAllFlow,
+        ttsNameFlow,
+        ttsDistanceFlow,
+        ttsTemperatureFlow,
+        ttsHumidityFlow,
+        ttsWindSpeedFlow,
+        ttsWindGustFlow,
+        ttsWindDirectionFlow,
+        ttsCloudBaseFlow,
+        ttsFlightLevel65Flow,
+        ttsFlightLevel95Flow
+    ) { settings: Array<Boolean> ->
+        TtsSettings(
+            includeAllOrClosest = settings[0],
+            includeName = settings[1],
+            includeDistance = settings[2],
+            includeTemperature = settings[3],
+            includeHumidity = settings[4],
+            includeWindSpeed = settings[5],
+            includeWindGust = settings[6],
+            includeWindDirection = settings[7],
+            includeCloudBase = settings[8],
+            includeFlightLevel65 = settings[9],
+            includeFlightLevel95 = settings[10]
+        )
+    }
 
 
     // Function to update dark theme preference.
@@ -145,6 +175,22 @@ class SettingsRepository(private val dataStore: DataStore<Preferences>) {
     }
 
 }
+
+data class TtsSettings(
+    val includeAllOrClosest: Boolean,
+    val includeName: Boolean,
+    val includeDistance: Boolean,
+    val includeTemperature: Boolean,
+    val includeHumidity: Boolean,
+    val includeWindSpeed: Boolean,
+    val includeWindGust: Boolean,
+    val includeWindDirection: Boolean,
+    val includeCloudBase: Boolean,
+    val includeFlightLevel65: Boolean,
+    val includeFlightLevel95: Boolean // if you need both or just one flag
+)
+
+
 //private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "app_preferences")
 
 /*
