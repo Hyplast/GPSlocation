@@ -44,6 +44,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.util.fastForEachIndexed
+import fi.infinitygrow.gpslocation.presentation.settings_page.components.WeatherServiceControls
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
@@ -217,7 +218,8 @@ fun SettingsScreen(
 
                     Button(
                         onClick = {
-                            showChips = false
+                            //showChips = false
+                            settingsViewModel.toggleTalkService()
                         }, // Trigger the lambda when the button is clicked
                         modifier = Modifier.padding(16.dp)
                     ) {
@@ -226,6 +228,8 @@ fun SettingsScreen(
                     }
                 }
             }
+            Spacer(modifier = Modifier.height(16.dp))
+            WeatherServiceControls(settingsViewModel)
         }
     }
 }

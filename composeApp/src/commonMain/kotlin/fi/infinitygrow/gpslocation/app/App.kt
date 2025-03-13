@@ -11,6 +11,7 @@ import fi.infinitygrow.gpslocation.presentation.observation_list.WeatherViewMode
 import fi.infinitygrow.gpslocation.presentation.settings_page.SettingsScreen
 import fi.infinitygrow.gpslocation.presentation.settings_page.SettingsViewModel
 import org.jetbrains.compose.ui.tooling.preview.Preview
+import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
 
 /*

@@ -1,6 +1,7 @@
 package fi.infinitygrow.gpslocation.presentation.utils
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import fi.infinitygrow.gpslocation.domain.model.ObservationData
 import fi.infinitygrow.gpslocation.domain.model.getAltitudeByName
 import fi.infinitygrow.gpslocation.presentation.permission.Location
@@ -29,8 +30,6 @@ import gpslocation.composeapp.generated.resources.weather_code_32
 import gpslocation.composeapp.generated.resources.weather_code_33
 import gpslocation.composeapp.generated.resources.weather_code_34
 import gpslocation.composeapp.generated.resources.weather_code_35
-import gpslocation.composeapp.generated.resources.weather_code_37
-import gpslocation.composeapp.generated.resources.weather_code_38
 import gpslocation.composeapp.generated.resources.weather_code_4
 import gpslocation.composeapp.generated.resources.weather_code_40
 import gpslocation.composeapp.generated.resources.weather_code_41
@@ -78,7 +77,6 @@ import gpslocation.composeapp.generated.resources.weather_code_85
 import gpslocation.composeapp.generated.resources.weather_code_86
 import gpslocation.composeapp.generated.resources.weather_code_87
 import gpslocation.composeapp.generated.resources.weather_code_89
-import gpslocation.composeapp.generated.resources.weather_code_9
 import gpslocation.composeapp.generated.resources.weather_code_90
 import gpslocation.composeapp.generated.resources.weather_code_91
 import gpslocation.composeapp.generated.resources.weather_code_92
@@ -107,13 +105,85 @@ import gpslocation.composeapp.generated.resources.weather_icon_strong_rain_showe
 import gpslocation.composeapp.generated.resources.weather_icon_strong_sleet_cloudy
 import gpslocation.composeapp.generated.resources.weather_icon_strong_snow_cloudy
 import org.jetbrains.compose.resources.DrawableResource
-import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
 import kotlin.math.roundToInt
 
-@Composable
-fun constructLanguageString(data: ObservationData?, location: Location): String? {
-    if (data == null) return null
+//@Composable
+//fun constructLanguageString(data: ObservationData?, location: Location): String? {
+//    if (data == null) return null
+//
+//    val parts = mutableListOf<String>()
+//    parts.add(data.name)
+//
+//    if (location.longitude != 999.9) {
+//        val dist = getDistance(data.longitude, data.latitude, location.longitude, location.latitude)
+//            .takeIf { it.isFinite() }?.roundToInt()
+//
+//        val bear = getBearing(location.longitude, location.latitude, data.longitude, data.latitude)
+//            .takeIf { it.isFinite() }?.let { bearingToDirection(it) }
+//
+//        dist?.let { parts.add("Etäisyys $it kilometriä") }
+//        bear?.let { parts.add("$it.") }
+//    }
+//
+//    data.precipitationIntensity.takeIf { it.isFinite() && it != 0.0 }?.let {
+//        parts.add("Sadetta $it millimetriä.")
+//    }
+//
+//    data.windSpeed.takeIf { it.isFinite() }?.roundToInt()?.let {
+//        parts.add("Tuuli $it")
+//    }
+//
+//    data.windGust.takeIf { it.isFinite() }?.roundToInt()?.let {
+//        parts.add("kautta $it metriä sekunnissa.")
+//    }
+//
+//    data.windDirection.takeIf { it.isFinite() }?.roundToNearestFive()?.let {
+//        parts.add("Suunta $it astetta.")
+//    }
+//
+//    calculateCloudBaseHeight(data.temperature, data.dewPoint, getAltitudeByName(data.name).toDouble())
+//        .takeIf { it.isFinite() }
+//        ?.roundToNearestHundred()
+//        ?.let { parts.add("Pilvenpohjat $it metriä.") }
+//
+//    data.pressure.takeIf { it.isFinite() }?.let { pressure ->
+//        parts.add(
+//            "Lentopinnan 65 korkeus ${calculateAltitude(
+//            data.temperature + 273.15,
+//            1981.2,
+//            pressure * 100,
+//            getAltitudeByName(data.name).toDouble()
+//        ).toInt()} - ${pressureTemperatureAltitude(
+//            pressure * 100,
+//            data.temperature + 273.15,
+//            1981.20
+//        ).toInt()} - ${pressureTemperatureAltitudeWHeight(pressure*100,data.temperature+273.15,1981.20,getAltitudeByName(data.name).toDouble()).toInt()} metriä."
+//        )
+//        parts.add(
+//            "Lentopinnan 95 korkeus ${calculateAltitude(
+//            data.temperature + 273.15,
+//            2895.6,
+//            pressure * 100,
+//            getAltitudeByName(data.name).toDouble()
+//        ).toInt()} - ${pressureTemperatureAltitude(
+//            pressure * 100,
+//            data.temperature + 273.15,
+//            2895.60
+//        ).toInt()} metriä."
+//        )
+//    }
+//
+//    data.presentWeather.takeIf { it.isFinite() }?.let {
+//        parts.add(getWeatherDescription(it.toInt()).first)
+//    }
+//    return parts.joinToString(" ")
+//}
+
+
+/*
+fun constructLanguageStringNonComposable(data: ObservationData?, location: Location): Pair<String?, Int?> {
+    if (data == null) return Pair(null, null)
 
     val parts = mutableListOf<String>()
     parts.add(data.name)
@@ -153,34 +223,81 @@ fun constructLanguageString(data: ObservationData?, location: Location): String?
     data.pressure.takeIf { it.isFinite() }?.let { pressure ->
         parts.add(
             "Lentopinnan 65 korkeus ${calculateAltitude(
-            data.temperature + 273.15, 
-            1981.2, 
-            pressure * 100,
-            getAltitudeByName(data.name).toDouble()
-        ).toInt()} - ${pressureTemperatureAltitude(
-            pressure * 100, 
-            data.temperature + 273.15, 
-            1981.20
-        ).toInt()} - ${pressureTemperatureAltitudeWHeight(pressure*100,data.temperature+273.15,1981.20,getAltitudeByName(data.name).toDouble()).toInt()} metriä."
+                data.temperature + 273.15, 1981.2, pressure * 100,
+                getAltitudeByName(data.name).toDouble()
+            ).toInt()} - ${pressureTemperatureAltitude(
+                pressure * 100, data.temperature + 273.15, 1981.20
+            ).toInt()} - ${pressureTemperatureAltitudeWHeight(
+                pressure * 100, data.temperature + 273.15, 1981.20,
+                getAltitudeByName(data.name).toDouble()
+            ).toInt()} metriä."
         )
         parts.add(
             "Lentopinnan 95 korkeus ${calculateAltitude(
-            data.temperature + 273.15, 
-            2895.6, 
-            pressure * 100,
-            getAltitudeByName(data.name).toDouble()
-        ).toInt()} - ${pressureTemperatureAltitude(
-            pressure * 100, 
-            data.temperature + 273.15, 
-            2895.60
-        ).toInt()} metriä."
+                data.temperature + 273.15, 2895.6, pressure * 100,
+                getAltitudeByName(data.name).toDouble()
+            ).toInt()} - ${pressureTemperatureAltitude(
+                pressure * 100, data.temperature + 273.15, 2895.60
+            ).toInt()} metriä."
         )
     }
 
-    data.presentWeather.takeIf { it.isFinite() }?.let {
-        parts.add(getWeatherDescription(it.toInt()).first)
+    // Store only the weather code
+    val weatherCode = data.presentWeather.takeIf { it.isFinite() }?.toInt()
+
+    return Pair(parts.joinToString(" "), weatherCode)
+
+    //return parts.joinToString(" ")
+}
+
+ */
+
+
+/*
+@Composable
+fun constructLanguageString(data: ObservationData?, location: Location): String? {
+    val (baseString, weatherCode) = remember(data, location) { constructLanguageStringNonComposable(data, location) }
+
+    val weatherText = weatherCode?.let { getWeatherDescriptionString(it).first }
+
+    return listOfNotNull(baseString, weatherText).joinToString(" ")
+}
+
+ */
+
+
+//@Composable
+//fun constructLanguageString(data: ObservationData?, location: Location): String? {
+//    return remember(data, location) { constructLanguageStringNonComposable(data, location) }
+//}
+
+fun constructLanguageStringNonComposable(data: ObservationData?, location: Location): List<Pair<String, Any?>> {
+    if (data == null) return emptyList()
+
+    val parts = mutableListOf<Pair<String, Any?>>()
+
+    parts.add("weather_station_name" to data.name)
+
+    if (location.longitude != 999.9) {
+        val dist = getDistance(data.longitude, data.latitude, location.longitude, location.latitude)
+            .takeIf { it.isFinite() }?.roundToInt()
+
+        val bear = getBearing(location.longitude, location.latitude, data.longitude, data.latitude)
+            .takeIf { it.isFinite() }?.let { bearingToDirection(it) }
+
+        dist?.let { parts.add("distance_km" to it) }
+        bear?.let { parts.add("direction" to it) }
     }
-    return parts.joinToString(" ")
+
+    data.precipitationIntensity.takeIf { it.isFinite() && it != 0.0 }?.let {
+        parts.add("rain_mm" to it)
+    }
+
+    data.windSpeed.takeIf { it.isFinite() }?.roundToInt()?.let {
+        parts.add("wind_speed" to it)
+    }
+
+    return parts
 }
 
 
@@ -210,13 +327,36 @@ private fun Double?.roundToNearestHundred(): Int? {
     return null
 }
 
+// Non-Composable function (Business Logic)
+fun getWeatherDescriptionCode(code: Int): Int {
+    val normalizedCode = if (code in 100..199) code % 100 else code
+    return normalizedCode
+}
+
+// Composable function (String Resource Lookup)
 @Composable
-fun getWeatherDescription(code: Int): Pair<String, DrawableResource?> {
-    // Remove first digit if it's 1 and the code is 3 digits
+fun getWeatherDescriptionString(code: Int): Pair<String, DrawableResource?> {
+
     val normalizedCode = if (code in 100..199) code % 100 else code
 
 
     return when (normalizedCode) {
+//        0 -> Pair(stringResource(Res.string.weather_code_0), null)
+//        1 -> Pair(stringResource(Res.string.weather_code_1), Res.drawable.weather_icon_cloudy)
+//        2 -> Pair(stringResource(Res.string.weather_code_2), null)
+//        3 -> Pair(stringResource(Res.string.weather_code_3), Res.drawable.weather_icon_cloudy)
+//        else -> Pair(stringResource(Res.string.weather_code_unknown), null)
+//    }
+//}
+//
+//
+//@Composable
+//fun getWeatherDescription(code: Int): Pair<String, DrawableResource?> {
+//    // Remove first digit if it's 1 and the code is 3 digits
+//    val normalizedCode = if (code in 100..199) code % 100 else code
+//
+
+//    return when (normalizedCode) {
         0 -> Pair(stringResource(Res.string.weather_code_0), null)
         1 -> Pair(stringResource(Res.string.weather_code_1), Res.drawable.weather_icon_cloudy)
         2 -> Pair(stringResource(Res.string.weather_code_2), null)

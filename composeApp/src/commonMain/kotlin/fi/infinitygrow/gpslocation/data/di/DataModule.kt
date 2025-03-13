@@ -16,32 +16,28 @@ import fi.infinitygrow.gpslocation.data.remote.KtorClient
 import fi.infinitygrow.gpslocation.data.remote.KtorFmiApiService
 import fi.infinitygrow.gpslocation.data.repository.FavoritesRepositoryImpl
 import fi.infinitygrow.gpslocation.data.repository.SettingsRepository
+import fi.infinitygrow.gpslocation.data.repository.TextToSpeechHelperImpl
 import fi.infinitygrow.gpslocation.data.repository.WeatherRepositoryImpl
+import fi.infinitygrow.gpslocation.data.repository.WeatherServiceImpl
 import fi.infinitygrow.gpslocation.domain.repository.FavoritesRepository
+import fi.infinitygrow.gpslocation.domain.repository.TextToSpeechHelper
 import fi.infinitygrow.gpslocation.domain.repository.WeatherRepository
+import fi.infinitygrow.gpslocation.domain.repository.WeatherService
 import fi.infinitygrow.gpslocation.presentation.permission.LocationService
 import org.koin.core.module.dsl.singleOf
 import org.koin.dsl.bind
 import org.koin.dsl.module
 
 val dataModule = module {
-
-   // single { PreferencesManager(get()) }
-
     single {
         get<DatabaseFactory>().create()
             .setDriver(BundledSQLiteDriver())
             .build()
     }
     single { get<StationDatabase>().stationDao }
-
-
     single<DataStore<Preferences>> {
-        // Provide the DataStore instance
         createDataStore { DATA_STORE_FILE_NAME }
     }
-    //single { createDataStore(get())}
-   // single { PreferencesFactory.createDataStore() }
     single { HttpClientFactory.create(get()) }
     singleOf(::KtorFmiApiService).bind<FmiApiService>()
     singleOf(::FavoritesRepositoryImpl).bind<FavoritesRepository>()
@@ -49,9 +45,25 @@ val dataModule = module {
     factory <ApiService>{ ApiService(get()) }
     factory<WeatherRepository> { WeatherRepositoryImpl(get(), get()) }
     single { SettingsRepository(get()) }
+
+    //factory<WeatherService>  { WeatherServiceImpl() }
+
+    //singleOf(::WeatherServiceImpl).bind<WeatherService>()
+//    single<WeatherService> { WeatherServiceImpl(androidApplication()) }
+//    single<WeatherServiceController> { WeatherServiceController(androidApplication()) }
+
+
+}
+
+// single { PreferencesManager(get()) }
+// Provide the DataStore instance
+//single { createDataStore(get())}
+// single { PreferencesFactory.createDataStore() }
 //    single(
 //        LocationService,
 //        createdAtStart = TODO(),
 //        definition = TODO()
 //    )
-}
+//singleOf(::WeatherRepositoryImpl).bind<WeatherRepository>()
+//singleOf(::TextToSpeechHelperImpl)
+//singleOf(::TextToSpeechHelperImpl).bind<TextToSpeechHelper>()

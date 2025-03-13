@@ -16,21 +16,31 @@ import fi.infinitygrow.gpslocation.data.createDataStore
 import fi.infinitygrow.gpslocation.data.database.DatabaseFactory
 import fi.infinitygrow.gpslocation.data.datastore.dataStore
 import fi.infinitygrow.gpslocation.data.repository.SettingsRepository
+import fi.infinitygrow.gpslocation.data.repository.TextToSpeechHelperImpl
+import fi.infinitygrow.gpslocation.data.repository.WeatherServiceController
+import fi.infinitygrow.gpslocation.data.repository.WeatherServiceImpl
+import fi.infinitygrow.gpslocation.presentation.settings_page.components.WeatherServiceControls
 
 private val viewModelModule = module {
-    //viewModel { WeatherViewModel(get(), get(), get(), get(), get()) }
-    //single<LocationService> { getLocationService() }
     single { LocationService(androidApplication()) }
-    //single { AndroidLocationService(androidApplication(),get()) }
     single<HttpClientEngine> { OkHttp.create() }
-    //single { SettingsRepository(get()) }
-    //single { PrefencesFactory(androidApplication()) }
+    single { dataStore(androidApplication())}
+    single { DatabaseFactory(androidApplication()) }
+    single { TextToSpeechHelperImpl(androidApplication()) }
+    //single { WeatherServiceImpl(androidApplication()) }
+    single { WeatherServiceImpl() }
+    single { WeatherServiceController(androidApplication()) }
+
+
+}
+
+//viewModel { WeatherViewModel(get(), get(), get(), get(), get()) }
+//single<LocationService> { getLocationService() }
+//single { AndroidLocationService(androidApplication(),get()) }
+//single { SettingsRepository(get()) }
+//single { PrefencesFactory(androidApplication()) }
 //    single<DataStore<Preferences>> {
 //        createDataStore(androidApplication())
 //    }
-    single { dataStore(androidApplication())}
-
-    single { DatabaseFactory(androidApplication()) }
-}
 
 actual fun sharedViewModelModule(): Module = viewModelModule

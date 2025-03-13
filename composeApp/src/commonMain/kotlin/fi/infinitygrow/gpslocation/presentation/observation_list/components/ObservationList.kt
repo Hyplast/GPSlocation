@@ -21,7 +21,7 @@ import androidx.compose.ui.unit.dp
 import fi.infinitygrow.gpslocation.core.presentation.LeafGreenColor
 import fi.infinitygrow.gpslocation.domain.model.ObservationData
 import fi.infinitygrow.gpslocation.presentation.observation_list.WeatherViewModel
-import fi.infinitygrow.gpslocation.presentation.utils.constructLanguageString
+//import fi.infinitygrow.gpslocation.presentation.utils.constructLanguageString
 
 
 @Composable

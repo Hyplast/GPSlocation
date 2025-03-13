@@ -44,7 +44,7 @@ import fi.infinitygrow.gpslocation.core.presentation.LeafGreenColor
 import fi.infinitygrow.gpslocation.domain.model.ObservationData
 import fi.infinitygrow.gpslocation.presentation.utils.convertUnixTimeToHHMM
 import fi.infinitygrow.gpslocation.presentation.utils.formatValue
-import fi.infinitygrow.gpslocation.presentation.utils.getWeatherDescription
+import fi.infinitygrow.gpslocation.presentation.utils.getWeatherDescriptionString
 import gpslocation.composeapp.generated.resources.Res
 import gpslocation.composeapp.generated.resources.baseline_lock_open_24
 import gpslocation.composeapp.generated.resources.twotone_lock_24
@@ -177,7 +177,7 @@ fun ObservationCard(
                         contentAlignment = Alignment.Center
                     ) {
                         observation.presentWeather.takeIf { it.isFinite() }?.let { weatherVal ->
-                            val (description, iconRes) = getWeatherDescription(weatherVal.toInt())
+                            val (description, iconRes) = getWeatherDescriptionString(weatherVal.toInt())
                             var showDescription by remember { mutableStateOf(false) }
                             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                                 if (iconRes != null) {

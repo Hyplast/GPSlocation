@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8" ?>
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="weather_station_name">%1$s</string>
     <string name="distance_km">Etäisyys: %1$s kilometriä</string>

@@ -1,5 +1,27 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <resources>
+    <string name="weather_station_name">%1$s</string>
+    <string name="distance_km">Distance: %1$s kilometers</string>
+    <string name="direction">to: %1$s</string>
+    <string name="north">north</string>
+    <string name="north_east">north east</string>
+    <string name="east">east</string>
+    <string name="south_east">south east</string>
+    <string name="south">south</string>
+    <string name="south_west">south west</string>
+    <string name="west">west</string>
+    <string name="north_west">north west</string>
+    <string name="rain_mm">Rain: %1$s millimeters</string>
+    <string name="wind_speed">Wind speed: %1$s</string>
+    <string name="wind_gust">Wind gust: %1$s</string>
+    <string name="wind_direction">Wind direction: %1$s</string>
+    <string name="no_clouds">No clouds observed</string>
+    <string name="overcast">Overcast</string>
+    <string name="clouds">Cloud base: %1$s meters</string>">
+    <string name="fl_65">Flight level 65 %1$s meters</string>
+    <string name="fl_95">Flight level 95 %1$s meters</string>
+
+
     <string name="weather_code_0">No significant weather observed</string>
     <string name="weather_code_1">Clouds generally dissolving or becoming less developed</string>
     <string name="weather_code_2">State of sky on the whole unchanged</string>

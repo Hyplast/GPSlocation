@@ -8,6 +8,7 @@ import com.google.android.gms.location.LocationServices
 import kotlin.coroutines.resumeWithException
 import kotlin.coroutines.suspendCoroutine
 
+@Suppress("EXPECT_ACTUAL_CLASSIFIERS_ARE_IN_BETA_WARNING")
 actual class LocationService(
     private val context: Context//,
     //private val launcher: ActivityResultLauncher<String>
