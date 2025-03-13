@@ -37,15 +37,10 @@ import org.koin.android.ext.android.inject
 actual class WeatherServiceImpl() : Service(), WeatherService {
     private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     private var weatherJob: Job? = null
-//    private lateinit var weatherRepository: WeatherRepository
-//    private lateinit var locationService: LocationService
-//    private lateinit var textToSpeechHelper: TextToSpeechHelper
-    // Use Koin to inject dependencies
     private val weatherRepository: WeatherRepository by inject()
     private val locationService: LocationService by inject()
-    private val textToSpeechHelper: TextToSpeechHelper by inject()
-    //private val fmiApiService: FmiApiService by inject()
-    private lateinit var context: Context
+    private val textToSpeechHelper: TextToSpeechHelperImpl by inject()
+    private val context: Context by inject()
 
 
     companion object {
@@ -55,17 +50,12 @@ actual class WeatherServiceImpl() : Service(), WeatherService {
 
     override fun onCreate() {
         super.onCreate()
-        // Initialize with your existing implementations
-//        val apiService = ApiService() // You'll need to provide this
-//        val fmiApiService = FmiApiService() // You'll need to provide this
-//        weatherRepository = WeatherRepositoryImpl(apiService, fmiApiService)
-//        locationService = LocationService(this)
-//        textToSpeechHelper = AndroidTextToSpeechHelper(this) // Implement this
         createNotificationChannel()
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        val notification = createNotification("Weather Service Running")
+        val notificationName = context.getString(R.string.weather_service_running)
+        val notification = createNotification(notificationName)
         startForeground(NOTIFICATION_ID, notification)
         startWeatherUpdates()
         return START_STICKY
@@ -90,6 +80,7 @@ actual class WeatherServiceImpl() : Service(), WeatherService {
 
                             // Pick the closest or most relevant observation
                             val observation = observations.firstOrNull()
+                            println(observation)
 
                             // Construct the language string using your existing function
                             val weatherSpeech = if (observation != null) {
@@ -119,7 +110,7 @@ actual class WeatherServiceImpl() : Service(), WeatherService {
                     } else {
                         // Handle permission not granted
                         val notification = createNotification(
-                            "Sijainti oikeudet tarvitaan sää päivityksiin"
+                            context.getString(R.string.no_location_permission)
                         )
                         val notificationManager = getSystemService(
                             Context.NOTIFICATION_SERVICE
@@ -127,6 +118,7 @@ actual class WeatherServiceImpl() : Service(), WeatherService {
                         notificationManager.notify(NOTIFICATION_ID, notification)
                     }
                 } catch (e: Exception) {
+                    println(e)
                     // Log the error
                     println("WeatherService, Error fetching weather")
                 }
@@ -195,8 +187,8 @@ actual class WeatherServiceImpl() : Service(), WeatherService {
 
     private fun createNotificationChannel() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val name = "Weather Updates"
-            val descriptionText = "Provides spoken weather updates"
+            val name = context.getString(R.string.weather_updates)
+            val descriptionText = context.getString(R.string.weather_updates_description)
             val importance = NotificationManager.IMPORTANCE_HIGH
             val channel = NotificationChannel(CHANNEL_ID, name, importance).apply {
                 description = descriptionText
@@ -211,7 +203,7 @@ actual class WeatherServiceImpl() : Service(), WeatherService {
 
     private fun createNotification(content: String): Notification {
         return NotificationCompat.Builder(this, CHANNEL_ID)
-            .setContentTitle("Weather Service")
+            .setContentTitle(context.getString(R.string.weather_service))
             .setContentText(content)
             .setSmallIcon(android.R.drawable.ic_menu_compass)
             .setPriority(NotificationCompat.PRIORITY_HIGH)
@@ -229,6 +221,9 @@ actual class WeatherServiceImpl() : Service(), WeatherService {
                 "direction" -> context.getString(R.string.direction, value.toString())
                 "rain_mm" -> context.getString(R.string.rain_mm, value.toString())
                 "wind_speed" -> context.getString(R.string.wind_speed, value.toString())
+                "wind_gust" -> context.getString(R.string.wind_gust, value.toString())
+                "wind_direction" -> context.getString(R.string.wind_direction, value.toString())
+                "clouds" -> context.getString(R.string.cloud_base, value.toString())
                 else -> value.toString() // Fallback if no translation exists
             }
         }

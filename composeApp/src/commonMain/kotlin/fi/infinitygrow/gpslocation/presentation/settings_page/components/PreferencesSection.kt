@@ -1,4 +1,4 @@
-package fi.infinitygrow.gpslocation.presentation.settings_page
+package fi.infinitygrow.gpslocation.presentation.settings_page.components
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column

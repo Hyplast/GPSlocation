@@ -75,5 +75,13 @@ fun WeatherServiceControls(
 //                modifier = Modifier.padding(top = 8.dp)
 //            )
 //        }
+
+        Button(
+            onClick = { settingsViewModel.speak() },
+        ) {
+            Text(
+                text = "Puhu"
+            )
+        }
     }
 }

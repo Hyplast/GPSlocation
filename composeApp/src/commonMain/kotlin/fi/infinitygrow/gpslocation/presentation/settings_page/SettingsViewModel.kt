@@ -3,6 +3,7 @@ package fi.infinitygrow.gpslocation.presentation.settings_page
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import fi.infinitygrow.gpslocation.data.repository.SettingsRepository
+import fi.infinitygrow.gpslocation.data.repository.TextToSpeechHelperImpl
 import fi.infinitygrow.gpslocation.data.repository.WeatherServiceController
 import fi.infinitygrow.gpslocation.data.repository.WeatherServiceImpl
 import fi.infinitygrow.gpslocation.domain.repository.WeatherService
@@ -19,6 +20,7 @@ class SettingsViewModel(
     private val locationService: LocationService,
     //private val weatherService: WeatherServiceImpl,
     private val serviceController: WeatherServiceController,
+    private val textToSpeechEngine: TextToSpeechHelperImpl
 ) : ViewModel() {
 
     val isPermissionGranted = locationService.isPermissionGranted()
@@ -65,6 +67,10 @@ class SettingsViewModel(
         viewModelScope.launch {
             serviceController.toggleWeatherService()
         }
+    }
+
+    fun speak() {
+        textToSpeechEngine.speak("Tämän päivän sää. Todays weather.")
     }
     // Call repository function to update location setting.
 //    fun toggleLocation() {

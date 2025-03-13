@@ -1,6 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-
+    <string name="weather_service">Weather Service</string>
+    <string name="weather_service_running">Weather Service Running</string>
+    <string name="weather_updates">Weather Updates</string>
+    <string name="weather_updates_description">Provides spoken weather updates</string>
+    <string name="no_location_permission">Location permission required for Weather Updates</string>
     <string name="weather_station_name">%1$s</string>
     <string name="distance_km">Distance: %1$s kilometers</string>
     <string name="direction">to: %1$s</string>
@@ -18,7 +22,7 @@
     <string name="wind_direction">Wind direction: %1$s</string>
     <string name="no_clouds">No clouds observed</string>
     <string name="overcast">Overcast</string>
-    <string name="clouds">Cloud base: %1$s meters</string>">
+    <string name="cloud_base">Cloud base: %1$s meters</string>">
     <string name="fl_65">Flight level 65 %1$s meters</string>
     <string name="fl_95">Flight level 95 %1$s meters</string>
 

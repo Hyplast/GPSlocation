@@ -278,6 +278,9 @@ fun constructLanguageStringNonComposable(data: ObservationData?, location: Locat
 
     parts.add("weather_station_name" to data.name)
 
+    println("Printing station name")
+    println(data.name)
+
     if (location.longitude != 999.9) {
         val dist = getDistance(data.longitude, data.latitude, location.longitude, location.latitude)
             .takeIf { it.isFinite() }?.roundToInt()
