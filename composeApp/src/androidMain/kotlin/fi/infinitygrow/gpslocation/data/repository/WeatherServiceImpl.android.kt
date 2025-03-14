@@ -1,6 +1,5 @@
 package fi.infinitygrow.gpslocation.data.repository
 
-import android.app.ActivityManager
 import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
@@ -11,39 +10,39 @@ import android.os.Build
 import android.os.IBinder
 import androidx.compose.runtime.mutableStateListOf
 import androidx.core.app.NotificationCompat
-import androidx.lifecycle.viewModelScope
 import fi.infinitygrow.gpslocation.R
-import fi.infinitygrow.gpslocation.data.remote.ApiService
-import fi.infinitygrow.gpslocation.data.remote.FmiApiService
 import fi.infinitygrow.gpslocation.domain.model.ObservationData
 import fi.infinitygrow.gpslocation.domain.model.ObservationLocation
-import fi.infinitygrow.gpslocation.domain.repository.TextToSpeechHelper
 import fi.infinitygrow.gpslocation.domain.repository.WeatherRepository
 import fi.infinitygrow.gpslocation.domain.repository.WeatherService
 import fi.infinitygrow.gpslocation.presentation.permission.Location
 import fi.infinitygrow.gpslocation.presentation.permission.LocationService
-//import fi.infinitygrow.gpslocation.presentation.utils.constructLanguageString
 import fi.infinitygrow.gpslocation.presentation.utils.constructLanguageStringNonComposable
+import fi.infinitygrow.gpslocation.presentation.utils.getDistance
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.async
 import kotlinx.coroutines.cancel
-import kotlinx.coroutines.isActive
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.isActive
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.datetime.Clock
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
-import kotlin.time.Duration.Companion.minutes
 import org.koin.android.ext.android.inject
+import kotlin.coroutines.cancellation.CancellationException
+import kotlin.time.Duration.Companion.minutes
 
 @Suppress("EXPECT_ACTUAL_CLASSIFIERS_ARE_IN_BETA_WARNING")
-actual class WeatherServiceImpl() : Service(), WeatherService {
+actual class WeatherServiceImpl : Service(), WeatherService {
     private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     private var weatherJob: Job? = null
     private val weatherRepository: WeatherRepository by inject()
@@ -53,15 +52,16 @@ actual class WeatherServiceImpl() : Service(), WeatherService {
     private val favoritesRepository: FavoritesRepositoryImpl by inject()
     private val settingsRepository: SettingsRepository by inject()
 
-    val favorites: StateFlow<List<ObservationLocation>> =
+    private val favorites: StateFlow<List<ObservationLocation>> =
         favoritesRepository.observeFavorites()
             .stateIn(serviceScope, SharingStarted.Lazily, emptyList())
 
-    val selectedLocations = mutableStateListOf<ObservationLocation>()
+    private val selectedLocations = mutableStateListOf<ObservationLocation>()
 
     companion object {
         private const val NOTIFICATION_ID = 1
         private const val CHANNEL_ID = "weather_channel"
+        private val LOCATION_UPDATE_MUTEX = Mutex() // Mutex to control concurrent access to selectedLocations
     }
 
     override fun onCreate() {
@@ -80,118 +80,115 @@ actual class WeatherServiceImpl() : Service(), WeatherService {
     override fun startWeatherUpdates() {
         weatherJob?.cancel()
         weatherJob = serviceScope.launch {
-            while (isActive) {
-                try {
-                    serviceScope.launch {
-                        favorites.collect { favList ->
-                            selectedLocations.clear()
-                            selectedLocations.addAll(favList)
-                        }
+            try {
+                launch {
+                    favorites.collect { favList ->
+                        updateSelectedLocations(favList)
                     }
-                    serviceScope.launch {
-                        val ttsSettings = settingsRepository.ttsSettingsFlow.first()
-                    }
-                    // Check for location permission
-                    if (locationService.isPermissionGranted()) {
-                        val location = locationService.getLocation()
-                        location?.let { loc ->
-                            // Get observation data
-                            //val observationLocations = emptyList<ObservationLocation>()//getObservationLocations() // Implement or inject this
-                            val observations = weatherRepository.getObservation(
-                                loc.latitude,
-                                loc.longitude,
-                                selectedLocations
-                            )
-
-                            val newestObservations = getNewestObservationsWithWind(observations)
-
-                            var weatherSpeech2 = ""
-
-                            // Construct a single string from all observations
-                            val weatherSpeech = newestObservations.joinToString(separator = ". ") { observation ->
-                                constructLocalizedString(context, observation, loc)
-                            }
-
-                            // Speak the final message
-                            if (weatherSpeech.isNotBlank()) {
-                                textToSpeechHelper.speak(weatherSpeech)
-                            }
-
-                            // Update the notification
-                            val notificationText = weatherSpeech2 ?: "Sää päivitys saatavilla"
-                            val notification = createNotification(notificationText)
-                            val notificationManager = getSystemService(
-                                Context.NOTIFICATION_SERVICE
-                            ) as NotificationManager
-                            notificationManager.notify(NOTIFICATION_ID, notification)
-                        }
-                    } else {
-                        // Handle permission not granted
-                        val notification = createNotification(
-                            context.getString(R.string.no_location_permission)
-                        )
-                        val notificationManager = getSystemService(
-                            Context.NOTIFICATION_SERVICE
-                        ) as NotificationManager
-                        notificationManager.notify(NOTIFICATION_ID, notification)
-                    }
-                } catch (e: Exception) {
-                    println(e)
-                    println("WeatherService, Error fetching weather")
                 }
-                waitUntilNextObservation()
+
+                val ttsSettings = async {
+                    // fetch the settings from the repository only once
+                    settingsRepository.ttsSettingsFlow.first().also {
+                        println("Fetched TTS settings: $it")
+                    }
+                }.await()
+
+                while (isActive) {
+                    if (!locationService.isPermissionGranted()) {
+                        notifyNoLocationPermission()
+                    } else {
+                        updateWeatherAndNotify(ttsSettings)
+                    }
+                    waitUntilNextObservation()
+                }
+            } catch (e: CancellationException) {
+                println("Weather updates cancelled.")
+            } catch (e: Exception) {
+                handleWeatherUpdateError(e)
             }
         }
     }
+
+
+    private suspend fun updateSelectedLocations(favList: List<ObservationLocation>) {
+        LOCATION_UPDATE_MUTEX.withLock {
+            selectedLocations.clear()
+            selectedLocations.addAll(favList)
+        }
+    }
+
+    private suspend fun updateWeatherAndNotify(ttsSettings: TtsSettings) {
+        val location = locationService.getLocation()
+        if (location != null) {
+            val observations = fetchObservations(location)
+            if (!ttsSettings.includeAllOrClosest)  {
+                val closestObservation = getClosestObservationWithWind(observations, location.latitude, location.longitude)
+                val closestObservationList = listOfNotNull(closestObservation)
+                val weatherSpeech = constructWeatherSpeech(closestObservationList, location, ttsSettings)
+                if (weatherSpeech.isNotBlank()) {
+                    textToSpeechHelper.speak(weatherSpeech)
+                }
+                notifyWeatherUpdate(weatherSpeech)
+            } else {
+                val weatherSpeech = constructWeatherSpeech(observations, location, ttsSettings)
+                if (weatherSpeech.isNotBlank()) {
+                    textToSpeechHelper.speak(weatherSpeech)
+                }
+                notifyWeatherUpdate(weatherSpeech)
+            }
+        }
+    }
+
+    private suspend fun fetchObservations(location: Location): List<ObservationData> {
+        return LOCATION_UPDATE_MUTEX.withLock {
+            val observations = weatherRepository.getObservation(
+                location.latitude,
+                location.longitude,
+                selectedLocations
+            )
+            getNewestObservationsWithWind(observations)
+        }
+    }
+
+
+    private fun constructWeatherSpeech(observations: List<ObservationData>, location: Location, ttsSettings: TtsSettings): String {
+        return observations.joinToString(separator = ". ") { observation ->
+            constructLocalizedString(context, observation, location, ttsSettings)
+        }
+    }
+
+    private fun notifyWeatherUpdate(weatherSpeech: String) {
+        val notificationText = weatherSpeech.ifBlank { context.getString(R.string.weather_updates) }
+        val notification = createNotification(notificationText)
+        val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        notificationManager.notify(NOTIFICATION_ID, notification)
+    }
+
+    private fun notifyNoLocationPermission() {
+        val notification = createNotification(context.getString(R.string.no_location_permission))
+        val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        notificationManager.notify(NOTIFICATION_ID, notification)
+    }
+
+    private fun handleWeatherUpdateError(e: Exception) {
+        println(e)
+        println("WeatherService, Error fetching weather")
+        // Consider more robust error handling, like logging to a crash reporting service,
+        // or displaying a user-friendly error message
+    }
+
 
     private suspend fun waitUntilNextObservation() {
         val now = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault())
         val currentMinutes = now.minute
         val nextUpdateMinutes = listOf(2, 12, 22, 32, 42, 52).firstOrNull { it > currentMinutes } ?: 2
         val minutesToWait = (nextUpdateMinutes - currentMinutes).let { if (it < 0) it + 60 else it }
-        println(minutesToWait)
-        println("Waiting this amount of minutes")
+//        println(minutesToWait)
+//        println("Waiting this amount of minutes")
 
         delay(minutesToWait.minutes.inWholeMilliseconds)
     }
-
-
-//    actual override fun startWeatherUpdates() {
-//        weatherJob?.cancel()
-//        weatherJob = serviceScope.launch {
-//            while (isActive) {
-//                try {
-//                    val location = locationProvider.getCurrentLocation()
-//                    val weather = weatherApi.getWeatherForLocation(
-//                        location.latitude,
-//                        location.longitude
-//                    )
-//
-//                    val weatherSpeech = "Current weather: ${weather.temperature} degrees, " +
-//                            "condition is ${weather.condition} with " +
-//                            "${weather.humidity}% humidity and wind speed of " +
-//                            "${weather.windSpeed} miles per hour."
-//
-//                    textToSpeechHelper.speak(weatherSpeech)
-//
-//                    // Update the notification
-//                    val notification = createNotification(
-//                        "Weather: ${weather.temperature}°, ${weather.condition}"
-//                    )
-//                    val notificationManager = getSystemService(
-//                        Context.NOTIFICATION_SERVICE
-//                    ) as NotificationManager
-//                    notificationManager.notify(NOTIFICATION_ID, notification)
-//
-//                } catch (e: Exception) {
-//                    // Log the error
-//                }
-//
-//                // Wait for a minute
-//                delay(TimeUnit.MINUTES.toMillis(1))
-//            }
-//        }
-//    }
 
     override fun stopWeatherUpdates() {
         weatherJob?.cancel()
@@ -234,9 +231,13 @@ actual class WeatherServiceImpl() : Service(), WeatherService {
             .build()
     }
 
-
-    private fun constructLocalizedString(context: Context, data: ObservationData?, location: Location): String {
-        val parts = constructLanguageStringNonComposable(data, location)
+    private fun constructLocalizedString(
+        context: Context,
+        data: ObservationData?,
+        location: Location,
+        ttsSettings: TtsSettings
+    ): String {
+        val parts = constructLanguageStringNonComposable(data, location, ttsSettings)
 
 //        println("printing parts")
         println(parts)
@@ -281,6 +282,17 @@ actual class WeatherServiceImpl() : Service(), WeatherService {
         }
     }
 
+    private fun getClosestObservationWithWind(
+        observations: List<ObservationData>,
+        userLat: Double,
+        userLong: Double
+    ): ObservationData? {
+        return observations
+            .filter { it.windSpeed.isFinite() && it.windSpeed != 0.0 } // Keep only valid wind speed
+            .minByOrNull { getDistance(userLong, userLat, it.latitude, it.longitude) } // Find closest
+    }
+
+
     private fun bearingToDirection(bearing: Double): String {
         val directions = arrayOf(context.getString(R.string.north), context.getString(R.string.north_east), context.getString(R.string.east), context.getString(R.string.south_east), context.getString(R.string.south), context.getString(R.string.south_west), context.getString(R.string.west), context.getString(R.string.north_west))
         val index = ((bearing + 22.5) / 45).toInt() and 7
@@ -304,12 +316,6 @@ actual class WeatherServiceController(
     actual fun isServiceRunning(): Boolean {
         return isRunning
     }
-
-//    actual fun isServiceRunning(): Boolean {
-//        val manager = context.getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager
-//        return manager.getRunningServices(Integer.MAX_VALUE)
-//            .any { it.service.className == WeatherServiceImpl::class.java.name }
-//    }
 
     actual fun startWeatherService() {
         val serviceIntent = Intent(context, WeatherServiceImpl::class.java)

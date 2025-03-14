@@ -91,7 +91,9 @@ fun SettingsScreen(
     val ttsFlightLevel95 by settingsViewModel.ttsFlightLevel95.collectAsState()
 
 
-    var talkService by remember { mutableStateOf(false) }
+    //var talkService by remember { mutableStateOf(false) }
+    val talkServiceSwitch by settingsViewModel.talkServiceSwitch.collectAsState()
+
     val scope = rememberCoroutineScope()
 
     val snackbarHostState = remember { SnackbarHostState() }
@@ -226,15 +228,15 @@ fun SettingsScreen(
                     color = fontColor
                 )
                 Switch(
-                    checked = talkService,
+                    checked = talkServiceSwitch,
                     onCheckedChange = { checked ->
-                        talkService = checked
+                        settingsViewModel.setTalkService(checked)
                     }
                 )
             }
 
             Spacer(modifier = Modifier.height(16.dp))
-            if (talkService) {
+            if (talkServiceSwitch) {
                 Column {
                     FlowRow(
                         modifier =

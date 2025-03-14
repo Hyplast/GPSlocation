@@ -25,6 +25,9 @@ class SettingsViewModel(
 
     val isPermissionGranted = locationService.isPermissionGranted()
 
+    private val _talkServiceSwitch = MutableStateFlow(false)
+    val talkServiceSwitch: StateFlow<Boolean> = _talkServiceSwitch
+
     // Service state
     private val _isServiceRunning = MutableStateFlow(serviceController.isServiceRunning())
     val isServiceRunning: StateFlow<Boolean> = _isServiceRunning
@@ -75,6 +78,10 @@ class SettingsViewModel(
         .stateIn(viewModelScope, SharingStarted.Eagerly, false)
 
 
+
+    fun setTalkService(value: Boolean) {
+        _talkServiceSwitch.value = value
+    }
 
     // Call repository function to update dark theme.
     fun toggleDarkTheme() {

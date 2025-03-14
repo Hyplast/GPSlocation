@@ -2,6 +2,7 @@ package fi.infinitygrow.gpslocation.presentation.utils
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
+import fi.infinitygrow.gpslocation.data.repository.TtsSettings
 import fi.infinitygrow.gpslocation.domain.model.ObservationData
 import fi.infinitygrow.gpslocation.domain.model.getAltitudeByName
 import fi.infinitygrow.gpslocation.presentation.permission.Location
@@ -271,7 +272,7 @@ fun constructLanguageString(data: ObservationData?, location: Location): String?
 //    return remember(data, location) { constructLanguageStringNonComposable(data, location) }
 //}
 
-fun constructLanguageStringNonComposable(data: ObservationData?, location: Location): List<Pair<String, Any?>> {
+fun constructLanguageStringNonComposable2(data: ObservationData?, location: Location): List<Pair<String, Any?>> {
     if (data == null) return emptyList()
 
     val parts = mutableListOf<Pair<String, Any?>>()
@@ -328,16 +329,16 @@ fun constructLanguageStringNonComposable(data: ObservationData?, location: Locat
     return parts
 }
 
-fun constructLanguageStringNonComposable2(
+fun constructLanguageStringNonComposable(
     data: ObservationData?,
     location: Location,
-    prefs: UserPreferences
+    prefs: TtsSettings
 ): List<Pair<String, Any?>> {
     if (data == null) return emptyList()
 
     val parts = mutableListOf<Pair<String, Any?>>()
 
-    if (prefs.includeWeatherStationName) {
+    if (prefs.includeName) {
         parts.add("weather_station_name" to data.name)
     }
 
@@ -348,10 +349,10 @@ fun constructLanguageStringNonComposable2(
         dist?.let { parts.add("distance_km" to it) }
     }
 
-    if (prefs.includeRain) {
+    //if (prefs.includeRain) {
         data.precipitationIntensity.takeIf { it.isFinite() && it != 0.0 }
             ?.let { parts.add("rain_mm" to it) }
-    }
+    //}
 
     if (prefs.includeWindSpeed) {
         data.windSpeed.takeIf { it.isFinite() }
@@ -379,13 +380,26 @@ fun constructLanguageStringNonComposable2(
             ?.let { parts.add("cloud_base" to it) }
     }
 
-    if (prefs.includeFlightLevel) {
+    if (prefs.includeFlightLevel65) {
         data.pressure.takeIf { it.isFinite() }?.let { pressure ->
             parts.add(
                 "fl_65" to pressureTemperatureAltitudeWHeight(
                     pressure * 100,
                     data.temperature + 273.15,
                     1981.20,
+                    getAltitudeByName(data.name).toDouble()
+                ).toInt()
+            )
+        }
+    }
+
+    if (prefs.includeFlightLevel95) {
+        data.pressure.takeIf { it.isFinite() }?.let { pressure ->
+            parts.add(
+                "fl_95" to pressureTemperatureAltitudeWHeight(
+                    pressure * 100,
+                    data.temperature + 273.15,
+                    2895.60,
                     getAltitudeByName(data.name).toDouble()
                 ).toInt()
             )
