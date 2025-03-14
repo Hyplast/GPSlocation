@@ -124,7 +124,9 @@ actual class WeatherServiceImpl : Service(), WeatherService {
             val observations = fetchObservations(location)
             if (!ttsSettings.includeAllOrClosest)  {
                 val closestObservation = getClosestObservationWithWind(observations, location.latitude, location.longitude)
-                val closestObservationList = listOfNotNull(closestObservation)
+                val favoriteList = getNewestObservationsForSelectedLocations(observations)
+                val closestObservationList: List<ObservationData> =
+                    listOfNotNull(closestObservation) + favoriteList
                 val weatherSpeech = constructWeatherSpeech(closestObservationList, location, ttsSettings)
                 if (weatherSpeech.isNotBlank()) {
                     textToSpeechHelper.speak(weatherSpeech)
@@ -139,6 +141,32 @@ actual class WeatherServiceImpl : Service(), WeatherService {
             }
         }
     }
+
+    /**
+     * Returns the newest observation for each weather station that is in the selectedLocations list.
+     *
+     * @param observations the list of observations to search through.
+     * @return a list of ObservationData representing the latest observation
+     *         from each selected location.
+     */
+    private fun getNewestObservationsForSelectedLocations(
+        observations: List<ObservationData>
+    ): List<ObservationData> {
+        // Create a set of station names from selectedLocations for quick lookup.
+        val selectedStationNames = selectedLocations.map { it.name }.toSet()
+
+        // Filter observations to include only those whose name is in the selected list.
+        val filteredObservations = observations.filter { it.name in selectedStationNames }
+
+        // Group the filtered observations by station name.
+        val groupedObservations = filteredObservations.groupBy { it.name }
+
+        // For each group, select the observation with the latest unixTime.
+        return groupedObservations.mapNotNull { (_, obsList) ->
+            obsList.maxByOrNull { it.unixTime }
+        }
+    }
+
 
     private suspend fun fetchObservations(location: Location): List<ObservationData> {
         return LOCATION_UPDATE_MUTEX.withLock {
