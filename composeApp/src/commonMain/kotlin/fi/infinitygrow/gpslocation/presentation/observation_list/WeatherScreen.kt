@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountBox
 import androidx.compose.material.icons.filled.Face
@@ -49,6 +50,17 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.remember
 import fi.infinitygrow.gpslocation.presentation.observation_list.components.ObservationsRoadList
+import gpslocation.composeapp.generated.resources.Res
+import gpslocation.composeapp.generated.resources.WeatherIcons
+import gpslocation.composeapp.generated.resources.circlearrow_green
+import gpslocation.composeapp.generated.resources.circlearrow_yellow
+import gpslocation.composeapp.generated.resources.ic_cloudy
+import gpslocation.composeapp.generated.resources.icon_balloon
+import gpslocation.composeapp.generated.resources.icon_road_celsius
+import gpslocation.composeapp.generated.resources.icon_thermometer
+import org.jetbrains.compose.resources.imageResource
+import org.jetbrains.compose.resources.painterResource
+import org.jetbrains.compose.resources.stringResource
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -62,6 +74,7 @@ fun WeatherScreen(
     val snackbarHostState = remember { SnackbarHostState() }
     var state by remember { mutableStateOf(0) }
     val icons = listOf(Icons.Filled.Face, Icons.Filled.AccountBox, Icons.Filled.Warning)
+    val icons2 = listOf(painterResource(Res.drawable.icon_thermometer), painterResource(Res.drawable.icon_road_celsius), painterResource(Res.drawable.icon_balloon))
 
     LaunchedEffect(Unit) {
         weatherViewModel.refreshWeather(weatherViewModel.selectedLocations)
@@ -105,11 +118,15 @@ fun WeatherScreen(
 
                 // Tabs row stays fixed.
                 SecondaryTabRow(selectedTabIndex = state) {
-                    icons.forEachIndexed { index, icon ->
+                    icons2.forEachIndexed { index, icon ->
                         Tab(
                             selected = state == index,
                             onClick = { state = index },
-                            icon = { Icon(icon, contentDescription = "Tab $index") }
+                            icon = { Icon(
+                                icon,
+                                contentDescription = "Tab $index",
+                                modifier = Modifier.size(24.dp)
+                            ) }
                         )
                     }
                 }
