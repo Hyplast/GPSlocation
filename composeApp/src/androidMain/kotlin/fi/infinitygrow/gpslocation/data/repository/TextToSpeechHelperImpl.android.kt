@@ -15,7 +15,9 @@ actual class TextToSpeechHelperImpl(private val context: Context) : TextToSpeech
             initialized = status == TextToSpeech.SUCCESS
             if (initialized) {
                 //textToSpeech?.language = Locale.US
-                textToSpeech?.language = Locale("fi", "FI") // Using Finnish since your text is in Finnish
+                val deviceLocale = Locale.getDefault() // Get the phone's current language
+                textToSpeech?.language = deviceLocale
+                //textToSpeech?.language = Locale("fi", "FI") // Using Finnish since your text is in Finnish
             }
         }
     }
@@ -27,6 +29,11 @@ actual class TextToSpeechHelperImpl(private val context: Context) : TextToSpeech
     }
 
     actual override fun stop() {
+        textToSpeech?.stop()
+        textToSpeech?.shutdown()
+    }
+
+    actual override fun destroy() {
         textToSpeech?.stop()
         textToSpeech?.shutdown()
     }

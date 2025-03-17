@@ -7,4 +7,6 @@ expect class TextToSpeechHelperImpl : TextToSpeechHelper {
     override fun speak(text: String)
 
     override fun stop()
+
+    override fun destroy()
 }

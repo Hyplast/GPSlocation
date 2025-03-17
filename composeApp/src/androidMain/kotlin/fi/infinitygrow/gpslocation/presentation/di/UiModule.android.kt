@@ -26,7 +26,7 @@ private val viewModelModule = module {
     single<HttpClientEngine> { OkHttp.create() }
     single { dataStore(androidApplication())}
     single { DatabaseFactory(androidApplication()) }
-    single { TextToSpeechHelperImpl(androidApplication()) }
+    factory { TextToSpeechHelperImpl(androidApplication()) }
     //single { WeatherServiceImpl(androidApplication()) }
     single { WeatherServiceImpl() }
     single { WeatherServiceController(androidApplication()) }
