@@ -4,6 +4,7 @@ import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.intPreferencesKey
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.combine
@@ -12,7 +13,9 @@ class SettingsRepository(private val dataStore: DataStore<Preferences>) {
 
     // Define the preference keys.
     private val darkThemeKey = booleanPreferencesKey("dark_theme")
+    private val roadObservationsKey = booleanPreferencesKey("road_observations")
     private val locationKey = booleanPreferencesKey("location")
+    private val radiusKey =  intPreferencesKey("radius")
     private val textToSpeechKey = booleanPreferencesKey("text_to_speech")
     private val ttsNameKey = booleanPreferencesKey("tts_location_name")
     private val ttsDistanceKey = booleanPreferencesKey("tts_distance")
@@ -30,9 +33,15 @@ class SettingsRepository(private val dataStore: DataStore<Preferences>) {
     val darkThemeFlow: Flow<Boolean> = dataStore.data
         .map { preferences -> preferences[darkThemeKey] ?: false }
 
+    val roadObservationsFlow: Flow<Boolean> = dataStore.data
+        .map { preferences -> preferences[roadObservationsKey] ?: false }
+
     // Expose flow to observe location toggle; default is true.
     val locationFlow: Flow<Boolean> = dataStore.data
         .map { preferences -> preferences[locationKey] ?: true }
+
+    val radiusFlow: Flow<Int> = dataStore.data
+        .map { preferences -> preferences[radiusKey] ?: 50 }
 
     val textToSpeechFlow: Flow<Boolean> = dataStore.data
         .map { preferences -> preferences[textToSpeechKey] ?: false }
@@ -41,7 +50,7 @@ class SettingsRepository(private val dataStore: DataStore<Preferences>) {
         .map { preferences -> preferences[ttsNameKey] ?: true }
 
     val ttsDistanceFlow: Flow<Boolean> = dataStore.data
-        .map { preferences -> preferences[ttsDistanceKey] ?: true }
+        .map { preferences -> preferences[ttsDistanceKey] ?: false }
 
     val ttsOneOrAllFlow: Flow<Boolean> = dataStore.data
         .map { preferences -> preferences[ttsOneOrAllKey] ?: true }
@@ -62,13 +71,13 @@ class SettingsRepository(private val dataStore: DataStore<Preferences>) {
         .map { preferences -> preferences[ttsWindDirectionKey] ?: true }
 
     val ttsCloudBaseFlow: Flow<Boolean> = dataStore.data
-        .map { preferences -> preferences[ttsCloudBaseKey] ?: true }
+        .map { preferences -> preferences[ttsCloudBaseKey] ?: false }
 
     val ttsFlightLevel65Flow: Flow<Boolean> = dataStore.data
-        .map { preferences -> preferences[ttsFlightLevel65Key] ?: true }
+        .map { preferences -> preferences[ttsFlightLevel65Key] ?: false }
 
     val ttsFlightLevel95Flow: Flow<Boolean> = dataStore.data
-        .map { preferences -> preferences[ttsFlightLevel95Key] ?: true }
+        .map { preferences -> preferences[ttsFlightLevel95Key] ?: false }
 
     // Combine the individual flows into one flow emitting a TtsSettings object.
     val ttsSettingsFlow: Flow<TtsSettings> = combine(
@@ -107,12 +116,25 @@ class SettingsRepository(private val dataStore: DataStore<Preferences>) {
         }
     }
 
+    suspend fun setRoadObservations(isOn: Boolean) {
+        dataStore.edit { preferences ->
+            preferences[roadObservationsKey] = isOn
+        }
+    }
+
     // Function to update location toggle preference.
     suspend fun setLocationOn(isOn: Boolean) {
         dataStore.edit { preferences ->
             preferences[locationKey] = isOn
         }
     }
+
+    suspend fun setRadius(radius: Int) {
+        dataStore.edit { preferences ->
+            preferences[radiusKey] = radius
+        }
+    }
+
     suspend fun setTtsName(isOn: Boolean) {
         dataStore.edit { preferences ->
             preferences[ttsNameKey] = isOn

@@ -26,6 +26,7 @@ import kotlinx.datetime.toLocalDateTime
 import org.jetbrains.compose.resources.painterResource
 import kotlin.math.*
 
+
 @Composable
 fun CompassArrow2(bearing: Double) {
     Box(
@@ -94,6 +95,70 @@ fun getBearing(lat1: Double, long1: Double, lat2: Double, long2: Double): Double
 
     return bearing
 }
+
+
+/**
+ * A data class representing a bounding box defined by its southwest (lat1, lon1)
+ * and northeast (lat2, lon2) corners.
+ */
+data class BoundingBox(
+    val lat1: Double, // Southwest corner latitude
+    val lon1: Double, // Southwest corner longitude
+    val lat2: Double, // Northeast corner latitude
+    val lon2: Double  // Northeast corner longitude
+)
+
+
+/**
+ * Extension function to convert an angle in radians to degrees.
+ */
+fun Double.toDegrees(): Double = this * 180.0 / PI
+
+/**
+ * Extension function to convert an angle in degrees to radians.
+ */
+fun Double.toRadians(): Double = this * PI / 180.0
+
+/**
+ * Calculates a bounding box (defined by two corners) around a center coordinate
+ * given a radius (in kilometers). This is useful for finding stations within a given
+ * distance from a position.
+ *
+ * We assume a spherical Earth with an average radius of 6371 km.
+ *
+ * @param centerLat the center latitude in degrees.
+ * @param centerLon the center longitude in degrees.
+ * @param radiusKm the search radius in kilometers.
+ * @return a [BoundingBox] defined by:
+ *  - lat1, lon1: the coordinates of the southwest corner.
+ *  - lat2, lon2: the coordinates of the northeast corner.
+ */
+fun getBoundingBox(centerLat: Double, centerLon: Double, radiusKm: Double): BoundingBox {
+    val earthRadius = 6371.0 // Earth's radius in kilometers
+
+    // Calculate degree difference for latitude: 1 degree is approximately 111 km
+    val latDelta = (radiusKm / earthRadius).toDegrees()
+
+    // Calculate degree difference for longitude at the given latitude.
+    // Cosine adjustment is needed because the length of a degree of longitude varies
+    // depending on the latitude.
+    val lonDelta = (radiusKm / (earthRadius * cos(centerLat.toRadians()))).toDegrees()
+
+
+    // Compute the southwest and northeast corners of the bounding box.
+    val southWestLat = centerLat - latDelta
+    val southWestLon = centerLon - lonDelta
+    val northEastLat = centerLat + latDelta
+    val northEastLon = centerLon + lonDelta
+
+    return BoundingBox(
+        lat1 = southWestLat,
+        lon1 = southWestLon,
+        lat2 = northEastLat,
+        lon2 = northEastLon
+    )
+}
+
 
 // Errpr version
 //fun getBearing(lat1: Double, long1: Double, lat2: Double, long2: Double): Double {
