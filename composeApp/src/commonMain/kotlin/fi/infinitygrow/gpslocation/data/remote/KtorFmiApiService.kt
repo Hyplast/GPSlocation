@@ -65,8 +65,8 @@ class KtorFmiApiService(
                 endTime = time.first
             )
 
-            println("GETTING this url: $url")
-            println("with radius: $radiusKm")
+//            println("GETTING this url: $url")
+//            println("with radius: $radiusKm")
 
             val response = client.get(url)
             val xmlString = response.bodyAsText()
@@ -131,8 +131,8 @@ class KtorFmiApiService(
                 observationList = observationList
             )
 
-            println("GETTING this url: $url")
-            println("with radius: $radiusKm")
+//            println("GETTING this url: $url")
+//            println("with radius: $radiusKm")
 
             val response = client.get(url)
             val xmlString = response.bodyAsText()
@@ -146,28 +146,26 @@ class KtorFmiApiService(
     }
 
     override suspend fun sunRadiation(
-        longitude: Double, latitude: Double
+        longitude: Double?, latitude: Double?
     ): List<RadiationData> {
         return try {
-            var newLongitude = longitude
-            var newlatitude = latitude
-            if (longitude == null && latitude == null) {
-                //bbox = null.toString()
-                newLongitude = 999.9
-                newlatitude = 999.9
-            } else {
-
+            val safeLongitude = longitude ?: run {
+                println("Longitude is null!")
+                999.9
             }
-//            val requestBuilder = FMIRequestBuilder()
+            val safeLatitude = latitude ?: run {
+                println("Latitude is null!")
+                999.9
+            }
 //            val time = requestBuilder.getCurrentTimeInUTCWithOffset(1)
            // val url = "https://opendata.fmi.fi/wfs?service=WFS&version=2.0.0&request=getFeature&storedquery_id=fmi::observations::radiation::multipointcoverage&starttime=${time.second}&endtime=${time.first}&timestep=5&"
-            val queryId = "fmi::observations::radiation::multipointcoverage"
+            val queryId = "fmi::observations::radiation::multipointcoverage&timestep=5&"
 
             val url = buildFMIUrl(queryId)
 
             val response = client.get(url)
             val xmlString = response.bodyAsText()
-            val fetchedFromLocation = Location(newlatitude!!, newLongitude!!)
+            val fetchedFromLocation = Location(safeLatitude, safeLongitude)
             deserializeRadiation(xmlString, fetchedFromLocation)
 
         } catch (e: Exception) {
@@ -182,12 +180,26 @@ class KtorFmiApiService(
         TODO("Not yet implemented")
     }
 
-    override suspend fun getSounding(): List<SoundingData> {
-        val url = "https://opendata.fmi.fi/wfs?service=WFS&version=2.0.0&request=getFeature&storedquery_id=fmi::observations::weather::sounding::multipointcoverage"
-        val response = client.get(url)
-        val xmlString = response.bodyAsText()
-        //val fetchedFromLocation = Location(newlatitude!!, newLongitude!!)
-        return parseSounding(xmlString)
+    override suspend fun getSounding(longitude: Double?, latitude: Double?): List<SoundingData> {
+        return try {
+            val safeLongitude = longitude ?: run {
+                println("Longitude is null!")
+                999.9
+            }
+            val safeLatitude = latitude ?: run {
+                println("Latitude is null!")
+                999.9
+            }
+            val url = "https://opendata.fmi.fi/wfs?service=WFS&version=2.0.0&request=getFeature&storedquery_id=fmi::observations::weather::sounding::multipointcoverage"
+            val response = client.get(url)
+            val xmlString = response.bodyAsText()
+            //val fetchedFromLocation = Location(newlatitude!!, newLongitude!!)
+            val fetchedFromLocation = Location(safeLatitude, safeLongitude)
+            parseSounding(xmlString, fetchedFromLocation)
+        } catch (e: Exception) {
+            e.printStackTrace()
+            emptyList()
+        }
     }
 }
 
@@ -197,6 +209,7 @@ fun buildFMIUrl(
     endTime: String? = null,
     maxLocations: String? = null,
     bbox: String? = null,
+    timeStep: String? = null,
     observationList: List<ObservationLocation>? = null
 ):String {
     val baseUrl = "https://opendata.fmi.fi/wfs"
@@ -215,6 +228,7 @@ fun buildFMIUrl(
     startTime?.let { defaultParams["starttime"] = it }
     endTime?.let { defaultParams["endtime"] = it }
     maxLocations?.let { defaultParams["maxlocations"] = it }
+    timeStep?.let { defaultParams["timestep"] = it }
 
     val stringBuilder = StringBuilder(baseUrl).apply {
         append("?")

@@ -39,7 +39,7 @@ class WeatherRepositoryImpl(
         return fmiApiService.roadObservation(latitude, longitude, location, radius, observationList)//.toDomain()
     }
 
-    override suspend fun getSunRadiation(latitude: Double, longitude: Double): List<RadiationData> {
+    override suspend fun getSunRadiation(latitude: Double?, longitude: Double?): List<RadiationData> {
         return fmiApiService.sunRadiation(latitude, longitude)
     }
 
@@ -47,8 +47,8 @@ class WeatherRepositoryImpl(
         TODO("Not yet implemented")
     }
 
-    override suspend fun getSounding(): List<SoundingData> {
-        return fmiApiService.getSounding()
+    override suspend fun getSounding(latitude: Double?, longitude: Double?): List<SoundingData> {
+        return fmiApiService.getSounding(latitude, longitude)
     }
 
     override suspend fun getSoilTemperature(

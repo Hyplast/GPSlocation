@@ -24,8 +24,8 @@ interface FmiApiService {
     ): List<RoadObservationData>
 
     suspend fun sunRadiation(
-        longitude: Double,
-        latitude: Double
+        longitude: Double?,
+        latitude: Double?
     ): List<RadiationData>
 
     suspend fun lightningStrikes(
@@ -33,6 +33,9 @@ interface FmiApiService {
         latitude: Double
     )
 
-    suspend fun getSounding(): List<SoundingData>
+    suspend fun getSounding(
+        longitude: Double?,
+        latitude: Double?
+    ): List<SoundingData>
 
 }

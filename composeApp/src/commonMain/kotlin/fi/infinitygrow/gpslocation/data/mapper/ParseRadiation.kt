@@ -38,7 +38,7 @@ fun deserializeRadiation(xmlString: String, fetchedFromLocation: Location): List
         val measurements = cleanString(observation.data.gridSeriesObservation.result.multiPointCoverage.rangeSet.dataBlock.tupleList)
             .trim()
             .split(" ")
-            .chunked(13)
+            .chunked(9)
             .map { chunk ->
                 listOf(
                     chunk[0].toDouble(),
@@ -65,75 +65,46 @@ fun deserializeRadiation(xmlString: String, fetchedFromLocation: Location): List
 
         // If 1 measurement every minute 1, keep only 1 out of 10,
         // if 1 out of 10, keep them
-        for ((i, location) in locations.withIndex()) {
-            val (lon, lat) = locationMeasurements[measurementIndex].first to locationMeasurements[measurementIndex].second
-            val count = locationCounts[lon to lat] ?: 1  // Default to 1 if missing
+        for (i in names.indices) {
+            // Assuming names and locations are aligned, get the (lon, lat) from
+            // the second source (land-based positions) if needed.
+            val locParts = locations[i].split(" ")
+            if (locParts.size < 2) continue
+            val nameLon = locParts[0].toDoubleOrNull() ?: continue
+            val nameLat = locParts[1].toDoubleOrNull() ?: continue
 
-//            val isHighFrequency = count > 10  // More than 10 means every minute
-//            val filteredMeasurements = if (isHighFrequency) {
-//                locationMeasurements
-//                    .filter { it.first == lon && it.second == lat }
-//                    .filterIndexed { index, _ -> index % 10 == 0 }  // Keep only 1 out of 10
-//            } else {
-//                locationMeasurements.filter { it.first == lon && it.second == lat }
-//            }
+            val count = locationCounts[nameLon to nameLat] ?: 1
 
-            locationMeasurements.forEachIndexed { j, measurement ->
-                val index = measurementIndex + j
-                if (index < measurements.size) {
+            // For each occurrence, add the observation data.
+            repeat(count) { j ->
+                val currentIndex = measurementIndex + j
+                if (currentIndex < locationMeasurements.size &&
+                    currentIndex < measurements.size
+                ) {
+                    val (lon, lat, unixTime) = locationMeasurements[currentIndex]
                     observationDataList.add(
                         RadiationData(
                             name = names[i],
                             coordinates = fetchedFromLocation,
-                            longitude = measurement.first,
-                            latitude = measurement.second,
-                            unixTime = measurement.third,
-                            longWaveIn = measurements[index][0],
-                            longWaveOut = measurements[index][1],
-                            globalRadiation = measurements[index][2],
-                            directRadiation = measurements[index][3],
-                            reflectedRadiation = measurements[index][4],
-                            sunshineDuration = measurements[index][5],
-                            diffuseRadiation = measurements[index][6],
-                            radiationBalance = measurements[index][7],
-                            uvRadiation = measurements[index][8]
+                            longitude = lon,
+                            latitude = lat,
+                            unixTime = unixTime,
+                            longWaveIn = measurements[currentIndex][0],
+                            longWaveOut = measurements[currentIndex][1],
+                            globalRadiation = measurements[currentIndex][2],
+                            directRadiation = measurements[currentIndex][3],
+                            reflectedRadiation = measurements[currentIndex][4],
+                            sunshineDuration = measurements[currentIndex][5],
+                            diffuseRadiation = measurements[currentIndex][6],
+                            radiationBalance = measurements[currentIndex][7],
+                            uvRadiation = measurements[currentIndex][8]
                         )
                     )
                 }
             }
             measurementIndex += count  // Move index forward
+            if (measurementIndex >= locationMeasurements.size) break
         }
-
-        // Keep all measurements, 10 out of 10 for
-//        for ((i, location) in locations.withIndex()) {
-//            val parts = location.split(" ")  // Assuming it's stored as "60.46415 23.64976"
-//            if (parts.size >= 2) {
-//                val lon = parts[0].toDoubleOrNull() ?: continue
-//                val lat = parts[1].toDoubleOrNull() ?: continue
-//
-//                val count = locationCounts[lon to lat] ?: 1  // Default to 1 if missing
-//                repeat(count) { j ->
-//                    val index = measurementIndex + j
-//                    if (index < locationMeasurements.size && index < measurements.size) {
-//                        observationDataList.add(
-//                            ObservationData(
-//                                name = names[i],
-//                                coordinates = location,
-//                                longitude = locationMeasurements[index].first,
-//                                latitude = locationMeasurements[index].second,
-//                                unixTime = locationMeasurements[index].third,
-//                                temperature = measurements[index][0],
-//                                windSpeed = measurements[index][1],
-//                                windMax = measurements[index][2],
-//                                windDirection = measurements[index][3],
-//                                pressure = measurements[index][4]
-//                            )
-//                        )
-//                    }
-//                }
-//                measurementIndex += count
-//            }
-//        }
 
         observationDataList
     } catch (e: Exception) {

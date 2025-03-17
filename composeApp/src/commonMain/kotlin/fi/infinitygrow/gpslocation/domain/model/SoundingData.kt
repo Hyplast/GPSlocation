@@ -4,14 +4,15 @@ import fi.infinitygrow.gpslocation.presentation.permission.Location
 
 data class SoundingData(
     val name: String,
+    val timeOfSounding: String,
     val coordinates: Location,
     val longitude: Double,
     val latitude: Double,
     val altitude: Double,
     val unixTime: Long,
-    val temperature: Double,
+    val pressure: Double,
     val windSpeed: Double,
     val windDirection: Double,
-    val humidity: Double,
+    val temperature: Double,
     val dewPoint: Double,
 )
