@@ -25,6 +25,7 @@
     <string name="one_or_all_neareast">Closest</string>
     <string name="one_or_all_all">All</string>
     <string name="station_name">Name</string>">
+    <string name="road_observations">RoadObs</string>">
     <string name="distance">Distance</string>
     <string name="temperature">Temperature</string>
     <string name="humidity">Humidity</string>

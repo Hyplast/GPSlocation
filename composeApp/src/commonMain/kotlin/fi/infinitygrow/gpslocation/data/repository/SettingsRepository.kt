@@ -13,13 +13,14 @@ class SettingsRepository(private val dataStore: DataStore<Preferences>) {
 
     // Define the preference keys.
     private val darkThemeKey = booleanPreferencesKey("dark_theme")
-    private val roadObservationsKey = booleanPreferencesKey("road_observations")
+
     private val locationKey = booleanPreferencesKey("location")
     private val radiusKey =  intPreferencesKey("radius")
     private val textToSpeechKey = booleanPreferencesKey("text_to_speech")
     private val ttsNameKey = booleanPreferencesKey("tts_location_name")
     private val ttsDistanceKey = booleanPreferencesKey("tts_distance")
     private val ttsOneOrAllKey = booleanPreferencesKey("tts_amount_of_locations")
+    private val ttsRoadObservationsKey = booleanPreferencesKey("tts_road_observations")
     private val ttsTemperatureKey = booleanPreferencesKey("tts_temperature")
     private val ttsHumidityKey = booleanPreferencesKey("tts_humidity")
     private val ttsWindSpeedKey = booleanPreferencesKey("tts_wind_speed")
@@ -33,8 +34,8 @@ class SettingsRepository(private val dataStore: DataStore<Preferences>) {
     val darkThemeFlow: Flow<Boolean> = dataStore.data
         .map { preferences -> preferences[darkThemeKey] ?: false }
 
-    val roadObservationsFlow: Flow<Boolean> = dataStore.data
-        .map { preferences -> preferences[roadObservationsKey] ?: false }
+    val ttsRoadObservationsFlow: Flow<Boolean> = dataStore.data
+        .map { preferences -> preferences[ttsRoadObservationsKey] ?: false }
 
     // Expose flow to observe location toggle; default is true.
     val locationFlow: Flow<Boolean> = dataStore.data
@@ -116,9 +117,9 @@ class SettingsRepository(private val dataStore: DataStore<Preferences>) {
         }
     }
 
-    suspend fun setRoadObservations(isOn: Boolean) {
+    suspend fun setTtsRoadObservations(isOn: Boolean) {
         dataStore.edit { preferences ->
-            preferences[roadObservationsKey] = isOn
+            preferences[ttsRoadObservationsKey] = isOn
         }
     }
 

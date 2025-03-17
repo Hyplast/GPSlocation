@@ -53,6 +53,9 @@ class SettingsViewModel(
     val ttsOneOrAll: StateFlow<Boolean> = repository.ttsOneOrAllFlow
         .stateIn(viewModelScope, SharingStarted.Eagerly, true)
 
+    val ttsRoadObservations: StateFlow<Boolean> = repository.ttsRoadObservationsFlow
+        .stateIn(viewModelScope, SharingStarted.Eagerly, false)
+
     val ttsTemperature: StateFlow<Boolean> = repository.ttsTemperatureFlow
         .stateIn(viewModelScope, SharingStarted.Eagerly, false)
 
@@ -106,6 +109,11 @@ class SettingsViewModel(
     fun toggleTtsOneOrAll() {
         viewModelScope.launch {
             repository.setTtsOneOrAll(!ttsOneOrAll.value)
+        }
+    }
+    fun toggleTtsRoadObservations() {
+        viewModelScope.launch {
+            repository.setTtsRoadObservations(!ttsRoadObservations.value)
         }
     }
     fun toggleTtsTemperature() {

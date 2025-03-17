@@ -22,4 +22,8 @@ actual class TextToSpeechHelperImpl : TextToSpeechHelper {
         synthesizer.stopSpeakingAtBoundary(AVSpeechBoundary.AVSpeechBoundaryImmediate)
     }
 
+    actual override fun destroy() {
+        TODO("Not yet implemented")
+    }
+
 }

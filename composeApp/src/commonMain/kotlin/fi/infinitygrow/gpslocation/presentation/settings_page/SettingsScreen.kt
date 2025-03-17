@@ -84,6 +84,7 @@ fun SettingsScreen(
     val ttsName by settingsViewModel.ttsName.collectAsState()
     val ttsDistance by settingsViewModel.ttsDistance.collectAsState()
     val ttsOneOrAll by settingsViewModel.ttsOneOrAll.collectAsState()
+    val ttsRoadObservations by settingsViewModel.ttsRoadObservations.collectAsState()
     val ttsTemperature by settingsViewModel.ttsTemperature.collectAsState()
     val ttsHumidity by settingsViewModel.ttsHumidity.collectAsState()
     val ttsWindSpeed by settingsViewModel.ttsWindSpeed.collectAsState()
@@ -117,6 +118,7 @@ fun SettingsScreen(
     val chipLabels =
         listOf(
             stringResource(Res.string.one_or_all_all),
+            stringResource(Res.string.road_observations),
             stringResource(Res.string.station_name),
             stringResource(Res.string.distance),
             stringResource(Res.string.temperature),
@@ -131,6 +133,7 @@ fun SettingsScreen(
 
     val chipSelections = listOf(
         ttsOneOrAll,
+        ttsRoadObservations,
         ttsName,
         ttsDistance,
         ttsTemperature,
@@ -300,16 +303,17 @@ fun SettingsScreen(
                                     // Toggle corresponding TTS variable via the view model.
                                     when (index) {
                                         0 -> settingsViewModel.toggleTtsOneOrAll()
-                                        1 -> settingsViewModel.toggleTtsName()
-                                        2 -> settingsViewModel.toggleTtsDistance()
-                                        3 -> settingsViewModel.toggleTtsTemperature()
-                                        4 -> settingsViewModel.toggleTtsHumidity()
-                                        5 -> settingsViewModel.toggleTtsWindSpeed()
-                                        6 -> settingsViewModel.toggleTtsWindGust()
-                                        7 -> settingsViewModel.toggleTtsWindDirection()
-                                        8 -> settingsViewModel.toggleTtsCloudBase()
-                                        9 -> settingsViewModel.toggleTtsFlightLevel65()
-                                        10 -> settingsViewModel.toggleTtsFlightLevel95()
+                                        1 -> settingsViewModel.toggleTtsRoadObservations()
+                                        2 -> settingsViewModel.toggleTtsName()
+                                        3 -> settingsViewModel.toggleTtsDistance()
+                                        4 -> settingsViewModel.toggleTtsTemperature()
+                                        5 -> settingsViewModel.toggleTtsHumidity()
+                                        6 -> settingsViewModel.toggleTtsWindSpeed()
+                                        7 -> settingsViewModel.toggleTtsWindGust()
+                                        8 -> settingsViewModel.toggleTtsWindDirection()
+                                        9 -> settingsViewModel.toggleTtsCloudBase()
+                                        10 -> settingsViewModel.toggleTtsFlightLevel65()
+                                        11 -> settingsViewModel.toggleTtsFlightLevel95()
                                     }
                                 },
                                 label = { Text(label) },

@@ -26,6 +26,7 @@
     <string name="one_or_all_neareast">Lähin</string>
     <string name="one_or_all_all">Kaikki</string>
     <string name="station_name">Nimi</string>">
+    <string name="road_observations">Tiehavainnot</string>">
     <string name="distance">Etäisyys</string>
     <string name="temperature">Lämpötila</string>
     <string name="humidity">Kosteus</string>

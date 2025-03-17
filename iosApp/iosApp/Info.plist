@@ -50,5 +50,9 @@
 	<string></string>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>So that location can be fecthed form GPS device.</string>
+	<key>UIBackgroundModes</key>
+    <array>
+        <string>location</string>
+    </array>
 </dict>
 </plist>
