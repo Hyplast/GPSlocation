@@ -55,10 +55,14 @@ class KtorFmiApiService(
                 ""
             }
 
+            val time = getCurrentTimeInUTCWithOffset(1)
+
             val url = buildFMIUrl(
                 queryId = "fmi::observations::weather::multipointcoverage",
                 bbox = bbox,
-                observationList = observationList
+                observationList = observationList,
+                startTime = time.second,
+                endTime = time.first
             )
 
             println("GETTING this url: $url")

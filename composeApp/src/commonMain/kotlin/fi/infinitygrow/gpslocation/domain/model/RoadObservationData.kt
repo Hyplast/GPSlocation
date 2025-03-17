@@ -33,3 +33,9 @@ data class RoadObservationData(
         val snowLayer: Double,
         val iceLayer: Double,
     )
+
+/*
+
+Tie 110 Lohja, Oinola tänään klo 17.39, tuuli 5, ilma -0.2 C tie -0.9 - Tienpinta on märkä ja suolattu - precipitationCodes=17.0 precipitationIntensity=0.1 precipitationCodes2=11.0
+
+ */

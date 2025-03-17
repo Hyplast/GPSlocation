@@ -47,6 +47,8 @@ fun ObservationsList(
             val isLongPressed = favorites.any { it.name.equals(observation.name, ignoreCase = true) }
             val backgroundColor = if (isLongPressed) LeafGreenColor else Color.White
 
+            println("ObservationData on card")
+            println(observation)
             Column {
                 ObservationCard(
                     observation = observation,
@@ -93,6 +95,9 @@ fun ObservationsRoadList(
             //val isLongPressed2 = viewModel.longPressedItems.contains(observation)
             val isLongPressed = favorites.any { it.name.equals(observation.name, ignoreCase = true) }
             val backgroundColor = if (isLongPressed) LeafGreenColor else Color.White
+
+            println("RoadObservationData on card")
+            println(observation)
 
             Column {
                 RoadObservationCard(

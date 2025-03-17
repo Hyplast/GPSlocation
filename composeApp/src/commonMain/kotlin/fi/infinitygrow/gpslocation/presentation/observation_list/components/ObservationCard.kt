@@ -426,7 +426,7 @@ fun RoadObservationCard(
                     ) {
                         Text(
                             text = observation.name.split(" ", "-", "_", "/")
-                                .take(2)
+                                .take(3)
                                 .joinToString(" "),
                             fontSize = 20.sp
                         )
