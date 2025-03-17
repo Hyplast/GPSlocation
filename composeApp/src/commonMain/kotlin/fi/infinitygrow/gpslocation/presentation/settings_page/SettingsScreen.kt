@@ -32,6 +32,9 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.VerticalDivider
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -75,6 +78,7 @@ fun SettingsScreen(
     // Collect settings state from the view model.
     val darkTheme by settingsViewModel.darkTheme.collectAsState()
     val isLocationOn by settingsViewModel.isLocationOn.collectAsState()
+    val currentRadius by settingsViewModel.radius.collectAsState() // defaults to 50
     val isServiceRunning by settingsViewModel.isServiceRunning.collectAsState()
     val textToSpeech by settingsViewModel.textToSpeech.collectAsState()
     val ttsName by settingsViewModel.ttsName.collectAsState()
@@ -90,6 +94,8 @@ fun SettingsScreen(
     val ttsFlightLevel65 by settingsViewModel.ttsFlightLevel65.collectAsState()
     val ttsFlightLevel95 by settingsViewModel.ttsFlightLevel95.collectAsState()
 
+    val radiusOptions = listOf(15, 30, 50)
+    var dropdownExpanded by remember { mutableStateOf(false) }
 
     //var talkService by remember { mutableStateOf(false) }
     val talkServiceSwitch by settingsViewModel.talkServiceSwitch.collectAsState()
@@ -216,6 +222,36 @@ fun SettingsScreen(
                     }
                 )
 
+            }
+            if (isLocationOnSwitch) {
+                Spacer(modifier = Modifier.height(16.dp))
+                // A Box is used to anchor the DropdownMenu.
+                Box(modifier = Modifier.fillMaxWidth()) {
+                    // Button showing the current selection; clicking it expands the dropdown.
+                    OutlinedButton(
+                        onClick = { dropdownExpanded = true },
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text(text = "$currentRadius km")
+                    }
+                    DropdownMenu(
+                        expanded = dropdownExpanded,
+                        onDismissRequest = { dropdownExpanded = false },
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        radiusOptions.forEach { option ->
+                            DropdownMenuItem(
+                                text = { Text(text = "$option km") },
+                                onClick = {
+                                    scope.launch {
+                                        settingsViewModel.setRadius(option)
+                                    }
+                                    dropdownExpanded = false
+                                }
+                            )
+                        }
+                    }
+                }
             }
             Spacer(modifier = Modifier.height(16.dp))
             Row(

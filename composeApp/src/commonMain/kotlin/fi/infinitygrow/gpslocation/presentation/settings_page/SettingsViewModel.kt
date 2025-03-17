@@ -41,6 +41,9 @@ class SettingsViewModel(
     val isLocationOn: StateFlow<Boolean> = repository.locationFlow
         .stateIn(viewModelScope, SharingStarted.Eagerly, true)
 
+    val radius: StateFlow<Int> = repository.radiusFlow
+        .stateIn(viewModelScope, SharingStarted.Eagerly, 50)
+
     val ttsName: StateFlow<Boolean> = repository.ttsNameFlow
         .stateIn(viewModelScope, SharingStarted.Eagerly, true)
 
@@ -168,6 +171,10 @@ class SettingsViewModel(
         // Permission granted, toggle the setting
         repository.setLocationOn(!isLocationOn.value)
         return true // Success
+    }
+
+    suspend fun setRadius(radius: Int) {
+        repository.setRadius(radius)
     }
 
     // Toggle service state

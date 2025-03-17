@@ -9,6 +9,7 @@ import fi.infinitygrow.gpslocation.domain.model.RadiationData
 import fi.infinitygrow.gpslocation.domain.model.RoadObservationData
 import fi.infinitygrow.gpslocation.domain.model.SoundingData
 import fi.infinitygrow.gpslocation.presentation.permission.Location
+import fi.infinitygrow.gpslocation.presentation.utils.BoundingBox
 import fi.infinitygrow.gpslocation.presentation.utils.getBoundingBox
 import io.ktor.client.HttpClient
 import io.ktor.client.request.get
@@ -43,7 +44,13 @@ class KtorFmiApiService(
             } else {
                 if (longitude != null) {
                     if (latitude != null) {
-                        val boundingBox = getBoundingBox(latitude, longitude, 50.0)
+                        val boundingBox: BoundingBox
+                        if (radiusKm != null) {
+                            boundingBox = getBoundingBox(latitude, longitude, radiusKm.toDouble())
+                        } else {
+                            boundingBox = getBoundingBox(latitude, longitude, 50.0)
+                        }
+
 
                         bbox = "${
                             ((boundingBox.lat1 * 100).toInt() / 100.0)
@@ -74,6 +81,8 @@ class KtorFmiApiService(
             )
             println("GETTINg this url: ")
             println(url)
+            println("with radius: ")
+            println(radiusKm)
             val response = client.get(url)
             val xmlString = response.bodyAsText()
             val fetchedFromLocation = Location(newlatitude!!, newLongitude!!)
