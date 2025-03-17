@@ -48,6 +48,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.remember
+import fi.infinitygrow.gpslocation.presentation.observation_list.components.ObservationsRoadList
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -140,16 +141,17 @@ fun WeatherScreen(
                             }
                         }
                         1 -> {
+                            weatherViewModel.refreshRoadWeather(selectedLocations = weatherViewModel.selectedLocations)
                             PullToRefreshBox(
                                 isRefreshing = uiState.isRefreshing,
                                 onRefresh = {
-                                    weatherViewModel.refreshWeather(
+                                    weatherViewModel.refreshRoadWeather(
                                         weatherViewModel.selectedLocations
                                     )
                                 }
                             ) {
-                                uiState.observationInfo?.let { observations ->
-                                    ObservationsList(
+                                uiState.roadObservationInfo?.let { observations ->
+                                    ObservationsRoadList(
                                         observations = observations,
                                         viewModel = weatherViewModel,
                                         isDarkTheme = weatherViewModel.isDarkTheme.value

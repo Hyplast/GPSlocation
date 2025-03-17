@@ -24,6 +24,10 @@ fun getObservationLocation(observation: ObservationData): ObservationLocation? {
     return locations.find { it.name.equals(observation.name, ignoreCase = true) }
 }
 
+fun getRoadObservationLocation(observation: RoadObservationData): ObservationLocation? {
+    return locations.find { it.name.equals(observation.name, ignoreCase = true) }
+}
+
 fun getObservationLocationByName(name: String): ObservationLocation? {
     return locations.find { it.name.equals(name, ignoreCase = true) }
 }

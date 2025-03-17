@@ -20,6 +20,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import fi.infinitygrow.gpslocation.core.presentation.LeafGreenColor
 import fi.infinitygrow.gpslocation.domain.model.ObservationData
+import fi.infinitygrow.gpslocation.domain.model.RoadObservationData
 import fi.infinitygrow.gpslocation.presentation.observation_list.WeatherViewModel
 //import fi.infinitygrow.gpslocation.presentation.utils.constructLanguageString
 
@@ -57,6 +58,54 @@ fun ObservationsList(
                         // update long pressed location if needed
                     }
                 )
+
+            }
+        }
+    }
+}
+
+
+//                constructLanguageString(observation, location = observation.coordinates)?.let { langString ->
+//                    Text(
+//                        text = langString,
+//                        modifier = Modifier.padding(start = 12.dp, bottom = 8.dp)
+//                    )
+//                }
+
+@Composable
+fun ObservationsRoadList(
+    observations: List<RoadObservationData>,
+    viewModel: WeatherViewModel,
+    isDarkTheme: Boolean
+) {
+    val favorites by viewModel.favorites.collectAsState()
+
+    LazyVerticalGrid(
+        columns = GridCells.Adaptive(324.dp), // You can adjust the number of columns
+        modifier = Modifier
+            .background(if (isDarkTheme) Color.Black else Color.White)
+            .fillMaxSize(),
+        contentPadding = PaddingValues(8.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        items(viewModel.getNewestRoadObservations(observations)) { observation ->
+            //val isLongPressed2 = viewModel.longPressedItems.contains(observation)
+            val isLongPressed = favorites.any { it.name.equals(observation.name, ignoreCase = true) }
+            val backgroundColor = if (isLongPressed) LeafGreenColor else Color.White
+
+            Column {
+                RoadObservationCard(
+                    observation = observation,
+                    observationsList = observations,
+                    isLongPressed = isLongPressed,
+                    onShortPress = { /* update short pressed location */ },
+                    onLongPress = {
+                        viewModel.toggleLongRoadPress(observation)
+                        // update long pressed location if needed
+                    },
+                    backgroundColor = backgroundColor
+                )
 //                constructLanguageString(observation, location = observation.coordinates)?.let { langString ->
 //                    Text(
 //                        text = langString,
@@ -67,6 +116,7 @@ fun ObservationsList(
         }
     }
 }
+
 
 
 /*

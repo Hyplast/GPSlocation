@@ -42,6 +42,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import fi.infinitygrow.gpslocation.core.presentation.LeafGreenColor
 import fi.infinitygrow.gpslocation.domain.model.ObservationData
+import fi.infinitygrow.gpslocation.domain.model.RoadObservationData
 import fi.infinitygrow.gpslocation.presentation.utils.convertUnixTimeToHHMM
 import fi.infinitygrow.gpslocation.presentation.utils.formatValue
 import fi.infinitygrow.gpslocation.presentation.utils.getWeatherDescriptionString
@@ -362,6 +363,222 @@ fun ObservationCard(
     }
 }
 
+
+@OptIn(ExperimentalFoundationApi::class)
+@Composable
+fun RoadObservationCard(
+    observation: RoadObservationData,
+    observationsList: List<RoadObservationData>,
+    isLongPressed: Boolean,
+    onShortPress: () -> Unit,
+    onLongPress: () -> Unit,
+    backgroundColor: Color
+) {
+    // Toggle state for showing/hiding chart
+    var showChart by remember { mutableStateOf(false) }
+    // Index selection for chart type
+    var selectedChartIndex by remember { mutableStateOf(0) }
+    // Define chart options (feel free to adjust titles and charts)
+    val chartOptions = listOf("Air & Road Temp", "Humidity", "Wind & Gust")
+
+    // Filter road observations by station name to display charts for related data
+    val currentStationName = observation.name
+    val chartObservations = remember(observationsList, currentStationName) {
+        observationsList.filter { it.name == currentStationName }
+    }
+
+    Box(modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp)) {
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .combinedClickable(
+                    onClick = {
+                        showChart = !showChart
+                        onShortPress()
+                    },
+                    onLongClick = onLongPress
+                ),
+            colors = CardDefaults.cardColors(containerColor = backgroundColor),
+            shape = RoundedCornerShape(12.dp),
+            elevation = CardDefaults.cardElevation(defaultElevation = 6.dp)
+        ) {
+            Column(modifier = Modifier.padding(16.dp)) {
+                // Top row with basic summary info
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Center
+                ) {
+                    // Unix time display in HH:MM converted format
+                    Box(
+                        modifier = Modifier.weight(1f),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = observation.unixTime.convertUnixTimeToHHMM(),
+                            fontSize = 16.sp
+                        )
+                    }
+                    // Location name (only first two words/delimiters)
+                    Box(
+                        modifier = Modifier.weight(1f),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = observation.name.split(" ", "-", "_", "/")
+                                .take(2)
+                                .joinToString(" "),
+                            fontSize = 20.sp
+                        )
+                    }
+                    // Display air temperature (or road surface temperature as preferred)
+                    Box(
+                        modifier = Modifier.weight(1f),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = observation.airTemperature.takeIf { it.isFinite() }
+                                ?.let { "${formatValue(it.toFloat())} °C" } ?: ""
+                        )
+                    }
+                }
+                Spacer(modifier = Modifier.height(8.dp))
+
+                // Second row with additional observation details.
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Center
+                ) {
+                    // Weather icon placeholder using precipitation codes field
+                    Box(
+                        modifier = Modifier.weight(1f),
+                        contentAlignment = Alignment.Center
+                    ) {
+
+                    }
+                    // Display wind data if available
+                    Box(
+                        modifier = Modifier.weight(1f),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        if (
+                            !observation.windDirection.isNaN() &&
+                            !observation.windSpeed.isNaN() &&
+                            !observation.windGust.isNaN()
+                        ) {
+                            // For this example, we use the current wind data.
+                            CompassArrow(
+                                bearing = observation.windDirection,
+                                speed = observation.windSpeed,
+                                gust = observation.windGust
+                            )
+                        }
+                    }
+                    // Additional details: multiple road temperatures and humidity related fields
+                    Box(
+                        modifier = Modifier.weight(1f),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            observation.roadSurfaceTemperature.takeIf {
+                                it.isFinite() && it != 0.0
+                            }?.let {
+                                Text(text = "Surface: ${formatValue(it.toFloat())} °C")
+                            }
+                            observation.roadGroundTemperature.takeIf {
+                                it.isFinite() && it != 0.0
+                            }?.let {
+                                Text(text = "Ground: ${formatValue(it.toFloat())} °C")
+                            }
+                            observation.humidity.takeIf { it.isFinite() && it != 0.0 }?.let {
+                                Text(text = "RH: ${formatValue(it.toFloat())} %")
+                            }
+                        }
+                    }
+                }
+
+                // Optionally show charts for selected data sets
+                AnimatedVisibility(visible = showChart) {
+                    Column {
+                        HorizontalDivider(
+                            modifier = Modifier
+                                .padding(vertical = 8.dp)
+                                .fillMaxWidth(),
+                            color = Color.Gray.copy(alpha = 0.3f)
+                        )
+                        // Chart type selection buttons
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceEvenly
+                        ) {
+                            chartOptions.forEachIndexed { index, title ->
+                                Text(
+                                    text = title,
+                                    color = if (index == selectedChartIndex)
+                                        MaterialTheme.colorScheme.primary
+                                    else MaterialTheme.colorScheme.onBackground,
+                                    modifier = Modifier
+                                        .clickable { selectedChartIndex = index }
+                                        .padding(8.dp)
+                                )
+                            }
+                        }
+
+                        // Toggle which chart to display based on chart selection.
+                        when (selectedChartIndex) {
+                            0 -> {
+                                // Chart combining air temperature with road surface temperature
+//                                RoadWeatherChart2(
+//                                    observations1 = chartObservations,
+//                                    observations2 = chartObservations,
+//                                    modifier = Modifier
+//                                        .fillMaxWidth()
+//                                        .height(200.dp),
+//                                    dataType1 = RoadWeatherDataType.AIR_TEMPERATURE,
+//                                    dataType2 = RoadWeatherDataType.ROAD_SURFACE_TEMPERATURE
+//                                )
+                            }
+                            1 -> {
+                                // Humidity chart
+//                                RoadWeatherChart(
+//                                    observations = chartObservations,
+//                                    modifier = Modifier
+//                                        .fillMaxWidth()
+//                                        .height(200.dp),
+//                                    dataType = RoadWeatherDataType.HUMIDITY
+//                                )
+                            }
+                            2 -> {
+                                // Wind chart example: wind speed vs. wind gust.
+//                                RoadWeatherChart2(
+//                                    observations1 = chartObservations,
+//                                    observations2 = chartObservations,
+//                                    modifier = Modifier
+//                                        .fillMaxWidth()
+//                                        .height(200.dp),
+//                                    dataType1 = RoadWeatherDataType.WIND_SPEED,
+//                                    dataType2 = RoadWeatherDataType.WIND_GUST
+//                                )
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        // Overlay a lock icon at the top-end corner of the card.
+        Icon(
+            modifier = Modifier
+                .align(Alignment.TopEnd)
+                .size(36.dp)
+                .padding(8.dp),
+            painter = if (isLongPressed)
+                painterResource(Res.drawable.twotone_lock_24)
+            else painterResource(Res.drawable.baseline_lock_open_24),
+            contentDescription = if (isLongPressed) "Locked" else "Unlocked"
+        )
+    }
+}
 
 /*
 @OptIn(ExperimentalFoundationApi::class)

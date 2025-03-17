@@ -2,6 +2,7 @@ package fi.infinitygrow.gpslocation.data.remote
 
 import fi.infinitygrow.gpslocation.data.mapper.deserializeObservation
 import fi.infinitygrow.gpslocation.data.mapper.deserializeRadiation
+import fi.infinitygrow.gpslocation.data.mapper.deserializeRoadObservation
 import fi.infinitygrow.gpslocation.data.mapper.parseSounding
 import fi.infinitygrow.gpslocation.domain.model.ObservationData
 import fi.infinitygrow.gpslocation.domain.model.ObservationLocation
@@ -30,62 +31,42 @@ class KtorFmiApiService(
 ): FmiApiService {
 
     override suspend fun observation(
-        longitude: Double?, latitude: Double?, radiusKm: Int?, observationList: List<ObservationLocation>
+        longitude: Double?,
+        latitude: Double?,
+        location: Boolean,
+        radiusKm: Int?,
+        observationList: List<ObservationLocation>
     ): List<ObservationData> {
         return try {
-            var bbox = null.toString()
-            var newLongitude = longitude
-            var newlatitude = latitude
-            if (longitude == null && latitude == null) {
-                //bbox = null.toString()
-                println("Longitude and latitude are null!")
-                newLongitude = 999.9
-                newlatitude = 999.9
-            } else {
-                if (longitude != null) {
-                    if (latitude != null) {
-                        val boundingBox: BoundingBox
-                        if (radiusKm != null) {
-                            boundingBox = getBoundingBox(latitude, longitude, radiusKm.toDouble())
-                        } else {
-                            boundingBox = getBoundingBox(latitude, longitude, 50.0)
-                        }
-
-
-                        bbox = "${
-                            ((boundingBox.lat1 * 100).toInt() / 100.0)
-                        },${
-                            ((boundingBox.lon1 * 100).toInt() / 100.0)
-                        },${
-                            ((boundingBox.lat2 * 100).toInt() / 100.0)
-                        },${
-                            ((boundingBox.lon2 * 100).toInt() / 100.0)
-                        }"
-
-//                        bbox2 = "${
-//                            (((latitude - 0.7) * 100).toInt() / 100.0)
-//                        },${
-//                            (((longitude - 0.35) * 100).toInt() / 100.0)
-//                        },${
-//                            (((latitude + 0.6) * 100).toInt() / 100.0)
-//                        },${
-//                            (((longitude + 0.35) * 100).toInt() / 100.0)
-//                        }"
-                    }
-                }
+            val safeLongitude = longitude ?: run {
+                println("Longitude is null!")
+                999.9
             }
-            val requestBuilder = FMIRequestBuilder()
-            val url = requestBuilder.buildUrl(
-                bbox,
+            val safeLatitude = latitude ?: run {
+                println("Latitude is null!")
+                999.9
+            }
+
+            // If both coordinates are provided and radiusKm is provided,
+            // create bbox; otherwise, leave bbox empty.
+            val bbox = if (longitude != null && latitude != null && radiusKm != null) {
+                createBboxString(latitude, longitude, radiusKm.toDouble())
+            } else {
+                ""
+            }
+
+            val url = buildFMIUrl(
+                queryId = "fmi::observations::weather::multipointcoverage",
+                bbox = bbox,
                 observationList = observationList
             )
-            println("GETTINg this url: ")
-            println(url)
-            println("with radius: ")
-            println(radiusKm)
+
+            println("GETTING this url: $url")
+            println("with radius: $radiusKm")
+
             val response = client.get(url)
             val xmlString = response.bodyAsText()
-            val fetchedFromLocation = Location(newlatitude!!, newLongitude!!)
+            val fetchedFromLocation = Location(safeLatitude, safeLongitude)
             deserializeObservation(xmlString, fetchedFromLocation)
         } catch (e: Exception) {
             e.printStackTrace()
@@ -93,13 +74,71 @@ class KtorFmiApiService(
         }
     }
 
+    private fun createBboxString(
+        latitude: Double?,
+        longitude: Double?,
+        radiusKm: Double?
+    ): String {
+        // Check for null latitude, longitude, or invalid radius
+        if (latitude == null || longitude == null || radiusKm == null || radiusKm == -1.0) {
+            return ""
+        }
+
+        // Compute the bounding box using the provided valid radius
+        val boundingBox = getBoundingBox(latitude, longitude, radiusKm)
+
+        // Format the bounding box values with two-decimal precision.
+        return "${(boundingBox.lat1 * 100).toInt() / 100.0}," +
+                "${(boundingBox.lon1 * 100).toInt() / 100.0}," +
+                "${(boundingBox.lat2 * 100).toInt() / 100.0}," +
+                "${(boundingBox.lon2 * 100).toInt() / 100.0}"
+    }
+
+
+    // livi::observations::road::default::multipointcoverage
     override suspend fun roadObservation(
         longitude: Double?,
         latitude: Double?,
+        location: Boolean,
         radiusKm: Int?,
         observationList: List<ObservationLocation>
     ): List<RoadObservationData> {
-        TODO("Not yet implemented")
+        return try {
+            val safeLongitude = longitude ?: run {
+                println("Longitude is null!")
+                999.9
+            }
+            val safeLatitude = latitude ?: run {
+                println("Latitude is null!")
+                999.9
+            }
+
+            // If both coordinates are provided and radiusKm is provided,
+            // create bbox; otherwise, leave bbox empty.
+            val bbox = if (longitude != null && latitude != null && radiusKm != null) {
+                createBboxString(latitude, longitude, radiusKm.toDouble())
+            } else {
+                ""
+            }
+
+            val url = buildFMIUrl(
+                queryId = "livi::observations::road::default::multipointcoverage",
+                bbox = bbox,
+                observationList = observationList
+            )
+
+            println("GETTING this url: $url")
+            println("with radius: $radiusKm")
+
+            val response = client.get(url)
+            val xmlString = response.bodyAsText()
+            val fetchedFromLocation = Location(safeLatitude, safeLongitude)
+            deserializeRoadObservation(xmlString, fetchedFromLocation)
+        }
+        catch (e: Exception) {
+            e.printStackTrace()
+            emptyList()
+        }
     }
 
     override suspend fun sunRadiation(
@@ -115,10 +154,12 @@ class KtorFmiApiService(
             } else {
 
             }
-            val requestBuilder = FMIRequestBuilder()
-            val time = requestBuilder.getCurrentTimeInUTCWithOffset(1)
+//            val requestBuilder = FMIRequestBuilder()
+//            val time = requestBuilder.getCurrentTimeInUTCWithOffset(1)
+           // val url = "https://opendata.fmi.fi/wfs?service=WFS&version=2.0.0&request=getFeature&storedquery_id=fmi::observations::radiation::multipointcoverage&starttime=${time.second}&endtime=${time.first}&timestep=5&"
+            val queryId = "fmi::observations::radiation::multipointcoverage"
 
-            val url = "https://opendata.fmi.fi/wfs?service=WFS&version=2.0.0&request=getFeature&storedquery_id=fmi::observations::radiation::multipointcoverage&starttime=${time.second}&endtime=${time.first}&timestep=5&"
+            val url = buildFMIUrl(queryId)
 
             val response = client.get(url)
             val xmlString = response.bodyAsText()
@@ -146,50 +187,62 @@ class KtorFmiApiService(
     }
 }
 
-class FMIRequestBuilder {
-    private val baseUrl = "https://opendata.fmi.fi/wfs"
+fun buildFMIUrl(
+    queryId: String,
+    startTime: String? = null,
+    endTime: String? = null,
+    maxLocations: String? = null,
+    bbox: String? = null,
+    observationList: List<ObservationLocation>? = null
+):String {
+    val baseUrl = "https://opendata.fmi.fi/wfs"
+    val time = getCurrentTimeInUTCWithOffset(1)
 
-    private val time = getCurrentTimeInUTCWithOffset(1)
-
-    private val defaultParams = mapOf(
+    // Build your default params map. If the optional values are provided,
+    // they override the default values from `time` or a hardcoded value.
+    val defaultParams = mutableMapOf(
         "service" to "WFS",
         "version" to "2.0.0",
         "request" to "getFeature",
-        "storedquery_id" to "fmi::observations::weather::multipointcoverage",
-        //"parameters" to "t2m,ws_10min,wg_10min,wd_10min,p_sea",
-        "starttime" to time.second,
-        "endtime" to time.first,
-        "maxlocations" to "1"
+        "storedquery_id" to queryId,
     )
 
-    fun buildUrl(bbox: String, observationList: List<ObservationLocation>): String {
-        val stringBuilder = StringBuilder(baseUrl)
-        stringBuilder.append("?")
+    // Add time and maxlocations only if they're provided.
+    startTime?.let { defaultParams["starttime"] = it }
+    endTime?.let { defaultParams["endtime"] = it }
+    maxLocations?.let { defaultParams["maxlocations"] = it }
 
+    val stringBuilder = StringBuilder(baseUrl).apply {
+        append("?")
+        // Append the default parameters.
         defaultParams.forEach { (key, value) ->
-            stringBuilder.append("$key=$value&")
+            append("$key=$value&")
         }
-
-        if (bbox != "null") stringBuilder.append("bbox=$bbox&")
-        observationList.forEach { observationLocation ->
-            stringBuilder.append("fmisid=${observationLocation.fmiId}&")
-
+        // Append bbox if it's provided and not blank.
+        bbox?.takeIf { it.isNotBlank() }?.let {
+            append("bbox=$it&")
         }
-        return stringBuilder.toString()
+        // Append each fmisid from observationList if provided.
+        observationList?.forEach { observationLocation ->
+            append("fmisid=${observationLocation.fmiId}&")
+        }
     }
 
-    fun getCurrentTimeInUTCWithOffset(hoursOffset: Int): Pair<String, String> {
-        val nowLocal = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()) // Get local time
-        val nowUTC = nowLocal.toInstant(TimeZone.currentSystemDefault()) // Convert to UTC
+    // Remove the last "&" if needed.
+    return stringBuilder.toString().removeSuffix("&")
+}
 
-        val utcDateTime = nowUTC.toLocalDateTime(TimeZone.UTC) // Convert to UTC DateTime
-        val offsetDateTime = nowUTC.minus(hoursOffset * 60 * 60, DateTimeUnit.SECOND)
-            .toLocalDateTime(TimeZone.UTC) // Subtract offset and convert
+fun getCurrentTimeInUTCWithOffset(hoursOffset: Int): Pair<String, String> {
+    val nowLocal = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()) // Get local time
+    val nowUTC = nowLocal.toInstant(TimeZone.currentSystemDefault()) // Convert to UTC
 
-        fun LocalDateTime.toIsoFormat(): String =
-            "${year}-${monthNumber.toString().padStart(2, '0')}-${dayOfMonth.toString().padStart(2, '0')}T" +
-                    "${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}:${second.toString().padStart(2, '0')}Z"
+    val utcDateTime = nowUTC.toLocalDateTime(TimeZone.UTC) // Convert to UTC DateTime
+    val offsetDateTime = nowUTC.minus(hoursOffset * 60 * 60, DateTimeUnit.SECOND)
+        .toLocalDateTime(TimeZone.UTC) // Subtract offset and convert
 
-        return utcDateTime.toIsoFormat() to offsetDateTime.toIsoFormat()
-    }
+    fun LocalDateTime.toIsoFormat(): String =
+        "${year}-${monthNumber.toString().padStart(2, '0')}-${dayOfMonth.toString().padStart(2, '0')}T" +
+                "${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}:${second.toString().padStart(2, '0')}Z"
+
+    return utcDateTime.toIsoFormat() to offsetDateTime.toIsoFormat()
 }

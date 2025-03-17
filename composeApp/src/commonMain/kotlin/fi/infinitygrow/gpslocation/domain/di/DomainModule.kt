@@ -5,6 +5,7 @@ import fi.infinitygrow.gpslocation.presentation.permissions_page.PermissionsView
 import fi.infinitygrow.gpslocation.domain.use_case.GetCurrentWeatherInfoUseCase
 import fi.infinitygrow.gpslocation.domain.use_case.GetForecastInfoUseCase
 import fi.infinitygrow.gpslocation.domain.use_case.GetObservationUseCase
+import fi.infinitygrow.gpslocation.domain.use_case.GetRoadObservationUseCase
 import fi.infinitygrow.gpslocation.presentation.settings_page.SettingsViewModel
 import fi.infinitygrow.gpslocation.presentation.observation_list.WeatherViewModel
 import org.koin.core.module.dsl.viewModelOf
@@ -14,6 +15,7 @@ val domainModule = module {
     factory { GetCurrentWeatherInfoUseCase(get()) }
     factory {GetForecastInfoUseCase(get())}
     factory { GetObservationUseCase(get()) }
+    factory { GetRoadObservationUseCase(get()) }
     //viewModelOf(::WeatherViewModel)
     viewModelOf(::PermissionsViewModel)
     viewModelOf(::SettingsViewModel)

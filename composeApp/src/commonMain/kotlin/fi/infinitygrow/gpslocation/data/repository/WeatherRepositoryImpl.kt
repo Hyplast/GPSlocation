@@ -29,12 +29,14 @@ class WeatherRepositoryImpl(
 
     override suspend fun getObservation(latitude: Double?, longitude: Double?, observationList: List<ObservationLocation>): List<ObservationData> {
         val radius = settingsRepository.radiusFlow.first()
-        return fmiApiService.observation(latitude, longitude, radius, observationList)//.toDomain()
+        val location = settingsRepository.locationFlow.first()
+        return fmiApiService.observation(latitude, longitude, location, radius, observationList)//.toDomain()
     }
 
     override suspend fun getRoadObservation(latitude: Double?, longitude: Double?, observationList: List<ObservationLocation>): List<RoadObservationData> {
         val radius = settingsRepository.radiusFlow.first()
-        return fmiApiService.roadObservation(latitude, longitude, radius, observationList)//.toDomain()
+        val location = settingsRepository.locationFlow.first()
+        return fmiApiService.roadObservation(latitude, longitude, location, radius, observationList)//.toDomain()
     }
 
     override suspend fun getSunRadiation(latitude: Double, longitude: Double): List<RadiationData> {

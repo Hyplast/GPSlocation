@@ -10,6 +10,7 @@ interface FmiApiService {
     suspend fun observation(
         longitude: Double?,
         latitude: Double?,
+        location: Boolean,
         radiusKm: Int?,
         observationList: List<ObservationLocation>
     ): List<ObservationData>
@@ -17,6 +18,7 @@ interface FmiApiService {
     suspend fun roadObservation(
         longitude: Double?,
         latitude: Double?,
+        location: Boolean,
         radiusKm: Int?,
         observationList: List<ObservationLocation>
     ): List<RoadObservationData>
