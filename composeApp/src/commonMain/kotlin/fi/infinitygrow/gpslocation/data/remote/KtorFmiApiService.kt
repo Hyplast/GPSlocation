@@ -2,10 +2,14 @@ package fi.infinitygrow.gpslocation.data.remote
 
 import fi.infinitygrow.gpslocation.data.mapper.deserializeObservation
 import fi.infinitygrow.gpslocation.data.mapper.deserializeRadiation
+import fi.infinitygrow.gpslocation.data.mapper.parseSounding
 import fi.infinitygrow.gpslocation.domain.model.ObservationData
 import fi.infinitygrow.gpslocation.domain.model.ObservationLocation
 import fi.infinitygrow.gpslocation.domain.model.RadiationData
+import fi.infinitygrow.gpslocation.domain.model.RoadObservationData
+import fi.infinitygrow.gpslocation.domain.model.SoundingData
 import fi.infinitygrow.gpslocation.presentation.permission.Location
+import fi.infinitygrow.gpslocation.presentation.utils.getBoundingBox
 import io.ktor.client.HttpClient
 import io.ktor.client.request.get
 import io.ktor.client.statement.bodyAsText
@@ -25,7 +29,7 @@ class KtorFmiApiService(
 ): FmiApiService {
 
     override suspend fun observation(
-        longitude: Double?, latitude: Double?, observationList: List<ObservationLocation>
+        longitude: Double?, latitude: Double?, radiusKm: Int?, observationList: List<ObservationLocation>
     ): List<ObservationData> {
         return try {
             var bbox = null.toString()
@@ -39,15 +43,27 @@ class KtorFmiApiService(
             } else {
                 if (longitude != null) {
                     if (latitude != null) {
+                        val boundingBox = getBoundingBox(latitude, longitude, 50.0)
+
                         bbox = "${
-                            (((latitude - 0.7) * 100).toInt() / 100.0)
+                            ((boundingBox.lat1 * 100).toInt() / 100.0)
                         },${
-                            (((longitude - 0.35) * 100).toInt() / 100.0)
+                            ((boundingBox.lon1 * 100).toInt() / 100.0)
                         },${
-                            (((latitude + 0.6) * 100).toInt() / 100.0)
+                            ((boundingBox.lat2 * 100).toInt() / 100.0)
                         },${
-                            (((longitude + 0.35) * 100).toInt() / 100.0)
+                            ((boundingBox.lon2 * 100).toInt() / 100.0)
                         }"
+
+//                        bbox2 = "${
+//                            (((latitude - 0.7) * 100).toInt() / 100.0)
+//                        },${
+//                            (((longitude - 0.35) * 100).toInt() / 100.0)
+//                        },${
+//                            (((latitude + 0.6) * 100).toInt() / 100.0)
+//                        },${
+//                            (((longitude + 0.35) * 100).toInt() / 100.0)
+//                        }"
                     }
                 }
             }
@@ -66,6 +82,15 @@ class KtorFmiApiService(
             e.printStackTrace()
             emptyList()
         }
+    }
+
+    override suspend fun roadObservation(
+        longitude: Double?,
+        latitude: Double?,
+        radiusKm: Int?,
+        observationList: List<ObservationLocation>
+    ): List<RoadObservationData> {
+        TODO("Not yet implemented")
     }
 
     override suspend fun sunRadiation(
@@ -101,6 +126,14 @@ class KtorFmiApiService(
         longitude: Double, latitude: Double
     ) {
         TODO("Not yet implemented")
+    }
+
+    override suspend fun getSounding(): List<SoundingData> {
+        val url = "https://opendata.fmi.fi/wfs?service=WFS&version=2.0.0&request=getFeature&storedquery_id=fmi::observations::weather::sounding::multipointcoverage"
+        val response = client.get(url)
+        val xmlString = response.bodyAsText()
+        //val fetchedFromLocation = Location(newlatitude!!, newLongitude!!)
+        return parseSounding(xmlString)
     }
 }
 

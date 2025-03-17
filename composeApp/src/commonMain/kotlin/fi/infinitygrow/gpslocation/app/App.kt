@@ -16,12 +16,13 @@ import org.koin.compose.viewmodel.koinViewModel
 
 /*
 TODO LIST ()
-!1. ForegroundService implementation
+**!1. ForegroundService implementation
     a) Timer update
-!2. TTS service implementation
+    b) iOs implementation
+**!2. TTS service implementation
     a) Chips implement
 3. Lightning warning
-!4. Favorites implementation -> Save any station as favorite
+**!4. Favorites implementation -> Save any station as favorite
 5. Sun Radiation -> implement on same card (with sealed classes ?)
 6. Better graph library implementation
 !7. Test that the app works without location

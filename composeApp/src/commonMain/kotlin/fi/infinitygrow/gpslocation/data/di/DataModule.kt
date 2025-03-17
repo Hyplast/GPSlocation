@@ -43,7 +43,7 @@ val dataModule = module {
     singleOf(::FavoritesRepositoryImpl).bind<FavoritesRepository>()
     factory { KtorClient.client }
     factory <ApiService>{ ApiService(get()) }
-    factory<WeatherRepository> { WeatherRepositoryImpl(get(), get()) }
+    factory<WeatherRepository> { WeatherRepositoryImpl(get(), get(), get()) }
     single { SettingsRepository(get()) }
 
     //factory<WeatherService>  { WeatherServiceImpl() }

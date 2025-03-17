@@ -1,11 +1,8 @@
 package fi.infinitygrow.gpslocation.presentation.observation_list
 
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateListOf
-import androidx.compose.runtime.remember
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import fi.infinitygrow.gpslocation.data.repository.FavoritesRepositoryImpl
 import fi.infinitygrow.gpslocation.data.repository.SettingsRepository
 import fi.infinitygrow.gpslocation.domain.model.ForeCast
 import fi.infinitygrow.gpslocation.domain.model.ObservationData
