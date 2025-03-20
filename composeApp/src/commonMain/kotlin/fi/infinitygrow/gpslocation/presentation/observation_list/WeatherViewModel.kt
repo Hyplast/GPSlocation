@@ -7,15 +7,20 @@ import fi.infinitygrow.gpslocation.data.repository.SettingsRepository
 import fi.infinitygrow.gpslocation.domain.model.ForeCast
 import fi.infinitygrow.gpslocation.domain.model.ObservationData
 import fi.infinitygrow.gpslocation.domain.model.ObservationLocation
+import fi.infinitygrow.gpslocation.domain.model.RadiationData
 import fi.infinitygrow.gpslocation.domain.model.RoadObservationData
+import fi.infinitygrow.gpslocation.domain.model.SoundingData
 import fi.infinitygrow.gpslocation.domain.model.Weather
 import fi.infinitygrow.gpslocation.domain.model.getObservationLocation
+import fi.infinitygrow.gpslocation.domain.model.getRadiationObservationLocation
 import fi.infinitygrow.gpslocation.domain.model.getRoadObservationLocation
 import fi.infinitygrow.gpslocation.domain.repository.FavoritesRepository
 import fi.infinitygrow.gpslocation.domain.use_case.GetCurrentWeatherInfoUseCase
 import fi.infinitygrow.gpslocation.domain.use_case.GetForecastInfoUseCase
 import fi.infinitygrow.gpslocation.domain.use_case.GetObservationUseCase
+import fi.infinitygrow.gpslocation.domain.use_case.GetRadiationUseCase
 import fi.infinitygrow.gpslocation.domain.use_case.GetRoadObservationUseCase
+import fi.infinitygrow.gpslocation.domain.use_case.GetSoundingUseCase
 import fi.infinitygrow.gpslocation.presentation.permission.LocationService
 import fi.infinitygrow.gpslocation.presentation.utils.common
 import kotlinx.coroutines.Dispatchers
@@ -33,6 +38,8 @@ class WeatherViewModel(
     private val getForecastInfoUseCase: GetForecastInfoUseCase,
     private val getObservationUseCase: GetObservationUseCase,
     private val getRoadObservationUseCase: GetRoadObservationUseCase,
+    private val getRadiationUseCase: GetRadiationUseCase,
+    private val getSoundingUseCase: GetSoundingUseCase,
     private val locationService: LocationService,
     private val favoritesRepository: FavoritesRepository,
     settingsRepository: SettingsRepository
@@ -42,7 +49,8 @@ class WeatherViewModel(
     val uiState = _uiState.asStateFlow().common()
 
     val longPressedItems =  mutableStateListOf<ObservationData>()
-    val longPressedRoadItems =  mutableStateListOf<RoadObservationData>()
+    private val longPressedRoadItems =  mutableStateListOf<RoadObservationData>()
+    private val longPressedRadiationItems =  mutableStateListOf<RadiationData>()
     //val longPressedItems2 = getObservationLocation(favorites)
     val selectedLocations = mutableStateListOf<ObservationLocation>()
 
@@ -77,13 +85,13 @@ class WeatherViewModel(
         }
     }
 
-    fun addFavorite(favorite: ObservationLocation) {
+    private fun addFavorite(favorite: ObservationLocation) {
         viewModelScope.launch {
             favoritesRepository.addFavorite(favorite)
         }
     }
 
-    fun removeFavorite(name: String) {
+    private fun removeFavorite(name: String) {
         viewModelScope.launch {
             favoritesRepository.removeFavorite(name)
         }
@@ -105,9 +113,31 @@ class WeatherViewModel(
         }
     }
 
+    fun refreshRadiation() {
+        viewModelScope.launch(Dispatchers.IO) {
+            locationService.getLocation()?.let { location ->
+                getRadiation(
+                    if (useLocation.value) location.latitude else null,
+                    if (useLocation.value) location.longitude else null,
+                )
+            }
+        }
+    }
+
+    fun refreshSounding() {
+        viewModelScope.launch(Dispatchers.IO) {
+            locationService.getLocation()?.let { location ->
+                getSounding(
+                    if (useLocation.value) location.latitude else null,
+                    if (useLocation.value) location.longitude else null,
+                )
+            }
+        }
+    }
+
 
     fun refreshWeather(selectedLocations: List<ObservationLocation>) {
-        println("Selected Locations are being fecthed from API")
+        println("Selected Locations are being fetched from API")
         println(selectedLocations)
         viewModelScope.launch(Dispatchers.IO) {
             if (locationService.isPermissionGranted()) {
@@ -138,7 +168,7 @@ class WeatherViewModel(
                         }
                     } else {
                         viewModelScope.launch(Dispatchers.IO) {
-                            println("fething weather, location permission denied!")
+                            println("fetching weather, location permission denied!")
                             getObservation(null, null, selectedLocations)
                         }
                     }
@@ -176,7 +206,21 @@ class WeatherViewModel(
         }
     }
 
-    fun getCurrentWeatherInfo(lat: Double, long: Double) = viewModelScope.launch {
+    fun toggleLongRadiationPress(item: RadiationData) {
+        if (longPressedRadiationItems.contains(item)) {
+            longPressedRadiationItems.remove(item) // Remove if already long-pressed
+            getRadiationObservationLocation(item)?.let {
+                removeFavorite(item.name)
+            }
+        } else {
+            longPressedRadiationItems.add(item) // Add if not already long-pressed
+            getRadiationObservationLocation(item)?.let {
+                addFavorite(favorite = it)
+            }
+        }
+    }
+
+    private fun getCurrentWeatherInfo(lat: Double, long: Double) = viewModelScope.launch {
         println("Fetching current weather for lat: $lat, lon: $long")
         val response = getCurrentWeatherInfoUseCase.invoke(lat, long)
         if (response.isSuccess) {
@@ -188,7 +232,7 @@ class WeatherViewModel(
         }
     }
 
-    fun getForecastInfo(lat: Double,long:Double) = viewModelScope.launch {
+    private fun getForecastInfo(lat: Double, long:Double) = viewModelScope.launch {
         val response = getForecastInfoUseCase.invoke(lat, long)
         if(response.isSuccess){
             _uiState.update { it.copy(forecastInfo = response.getOrNull()) }
@@ -197,7 +241,7 @@ class WeatherViewModel(
         }
     }
 
-    fun getObservation(lat: Double?, long: Double?, observationList: List<ObservationLocation>) = viewModelScope.launch {
+    private fun getObservation(lat: Double?, long: Double?, observationList: List<ObservationLocation>) = viewModelScope.launch {
         val response = getObservationUseCase.invoke(lat, long, observationList)
         if(response.isSuccess){
             println("Observation fetched successfully")//: $response")
@@ -208,14 +252,35 @@ class WeatherViewModel(
         }
     }
 
-    fun getRoadObservation(lat: Double?, long: Double?, observationList: List<ObservationLocation>) = viewModelScope.launch {
+    private fun getRoadObservation(lat: Double?, long: Double?, observationList: List<ObservationLocation>) = viewModelScope.launch {
         val response = getRoadObservationUseCase.invoke(lat, long, observationList)
         if(response.isSuccess){
-            println("Road Observation fetched successfully")//: $response")
+            //println("Road Observation fetched successfully")//: $response")
             _uiState.update { it.copy(roadObservationInfo = response.getOrNull()) }
         }else{
             println("Error fetching road observation:")// $response")
             _uiState.update { it.copy(error = response.exceptionOrNull().toString()) }
+        }
+    }
+
+    private fun getRadiation(lat: Double?, long: Double?) = viewModelScope.launch {
+        val response = getRadiationUseCase.invoke(lat, long)
+        if(response.isSuccess) {
+            //println("Radiation fetched successfully $response")
+            _uiState.update { it.copy(radiationInfo = response.getOrNull()) }
+        }else{
+            println("Error fetching radiation:")// $response")
+        }
+    }
+
+    private fun getSounding(lat: Double?, long: Double?) = viewModelScope.launch {
+        val response = getSoundingUseCase.invoke(lat, long)
+        if(response.isSuccess) {
+            //println("Sounding fetched successfully $response")
+            _uiState.update { it.copy(soundingInfo = response.getOrNull()) }
+        }
+        else{
+            println("Error fetching sounding:")// $response")
         }
     }
 
@@ -239,6 +304,16 @@ class WeatherViewModel(
         }.filterNotNull() // Remove any nulls in case there were empty groups
     }
 
+    fun getNewestRadiationObservations(observations: List<RadiationData>): List<RadiationData> {
+        // Group observations by name
+        val groupedObservations = observations.groupBy { it.name }
+
+        // Select the newest observation for each location
+        return groupedObservations.map { (_, obsList) ->
+            obsList.maxByOrNull { it.unixTime } // Get the observation with the latest unixTime
+        }.filterNotNull() // Remove any nulls in case there were empty groups
+    }
+
 }
 
 data class UiState(
@@ -248,4 +323,6 @@ data class UiState(
     val forecastInfo: List<ForeCast>? = null,
     val observationInfo: List<ObservationData>? = null,
     val roadObservationInfo: List<RoadObservationData>? = null,
+    val radiationInfo: List<RadiationData>? = null,
+    val soundingInfo: List<SoundingData>? = null,
 )

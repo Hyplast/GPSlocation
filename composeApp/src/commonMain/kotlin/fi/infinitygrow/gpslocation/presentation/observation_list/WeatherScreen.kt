@@ -1,6 +1,7 @@
 package fi.infinitygrow.gpslocation.presentation.observation_list
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -50,6 +51,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.remember
 import fi.infinitygrow.gpslocation.presentation.observation_list.components.ObservationsRoadList
+import fi.infinitygrow.gpslocation.presentation.observation_list.components.RadiationList
+import fi.infinitygrow.gpslocation.presentation.observation_list.components.SoundingDataListScreen
 import gpslocation.composeapp.generated.resources.Res
 import gpslocation.composeapp.generated.resources.WeatherIcons
 import gpslocation.composeapp.generated.resources.circlearrow_green
@@ -58,6 +61,7 @@ import gpslocation.composeapp.generated.resources.ic_cloudy
 import gpslocation.composeapp.generated.resources.icon_balloon
 import gpslocation.composeapp.generated.resources.icon_road_celsius
 import gpslocation.composeapp.generated.resources.icon_thermometer
+import kotlinx.coroutines.delay
 import org.jetbrains.compose.resources.imageResource
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
@@ -74,10 +78,17 @@ fun WeatherScreen(
     val snackbarHostState = remember { SnackbarHostState() }
     var state by remember { mutableStateOf(0) }
     val icons = listOf(Icons.Filled.Face, Icons.Filled.AccountBox, Icons.Filled.Warning)
-    val icons2 = listOf(painterResource(Res.drawable.icon_thermometer), painterResource(Res.drawable.icon_road_celsius), painterResource(Res.drawable.icon_balloon))
+    val icons2 = listOf(painterResource(Res.drawable.icon_thermometer), painterResource(Res.drawable.icon_road_celsius), painterResource(Res.drawable.icon_balloon), painterResource(Res.drawable.circlearrow_green))
+    val modifier = Modifier.fillMaxSize()
 
     LaunchedEffect(Unit) {
         weatherViewModel.refreshWeather(weatherViewModel.selectedLocations)
+        delay(1000)
+        weatherViewModel.refreshRoadWeather(selectedLocations = weatherViewModel.selectedLocations)
+        delay(1000)
+        weatherViewModel.refreshRadiation()
+        delay(1000)
+        weatherViewModel.refreshSounding()
     }
 
     Scaffold(snackbarHost = { SnackbarHost(hostState = snackbarHostState) }) { padding ->
@@ -135,7 +146,7 @@ fun WeatherScreen(
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
-                        .weight(1f)
+                        //.weight(1f)
                 ) {
                     when (state) {
                         0 -> {
@@ -158,7 +169,7 @@ fun WeatherScreen(
                             }
                         }
                         1 -> {
-                            weatherViewModel.refreshRoadWeather(selectedLocations = weatherViewModel.selectedLocations)
+
                             PullToRefreshBox(
                                 isRefreshing = uiState.isRefreshing,
                                 onRefresh = {
@@ -171,6 +182,38 @@ fun WeatherScreen(
                                     ObservationsRoadList(
                                         observations = observations,
                                         viewModel = weatherViewModel,
+                                        isDarkTheme = weatherViewModel.isDarkTheme.value
+                                    )
+                                }
+                            }
+                        }
+                        2 -> {
+                            PullToRefreshBox(
+                                isRefreshing = uiState.isRefreshing,
+                                onRefresh = {
+                                    weatherViewModel.refreshRadiation()
+                                }
+                            ) {
+                                uiState.radiationInfo?.let { observations ->
+                                    RadiationList(
+                                        observations = observations,
+                                        viewModel = weatherViewModel,
+                                        isDarkTheme = weatherViewModel.isDarkTheme.value
+                                    )
+                                }
+                            }
+                        }
+                        3 -> {
+                            PullToRefreshBox(
+                                isRefreshing = uiState.isRefreshing,
+                                onRefresh = {
+                                    weatherViewModel.refreshSounding()
+                                }
+                            ) {
+                                uiState.soundingInfo?.let { observations ->
+                                    SoundingDataListScreen(
+                                        modifier = modifier,
+                                        soundingDataList = observations,
                                         isDarkTheme = weatherViewModel.isDarkTheme.value
                                     )
                                 }
@@ -201,7 +244,7 @@ fun WeatherScreen(
                 Icon(
                     imageVector = Icons.Default.Settings,
                     contentDescription = "Navigate to Settings",
-                    tint = Color.White
+                    tint = if (weatherViewModel.isDarkTheme.value) Color.Black else Color.White
                 )
             }
         }
