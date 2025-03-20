@@ -46,6 +46,7 @@
     <string name="stop_service">Stop Service</string>
     <string name="service_running">Service running</string>
     <string name="service_stopped">Service stopped</string>
+    <string name="weather_station_added">weather station added</string>
 
 
     <string name="weather_code_0">No significant weather observed</string>

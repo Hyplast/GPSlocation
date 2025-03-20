@@ -60,6 +60,7 @@ import gpslocation.composeapp.generated.resources.humidity
 import gpslocation.composeapp.generated.resources.location
 import gpslocation.composeapp.generated.resources.location_denied
 import gpslocation.composeapp.generated.resources.one_or_all_all
+import gpslocation.composeapp.generated.resources.road_observations
 import gpslocation.composeapp.generated.resources.settings
 import gpslocation.composeapp.generated.resources.start
 import gpslocation.composeapp.generated.resources.station_name
@@ -235,7 +236,7 @@ fun SettingsScreen(
                         onClick = { dropdownExpanded = true },
                         modifier = Modifier.fillMaxWidth()
                     ) {
-                        Text(text = "$currentRadius km")
+                        Text(text = "Havaintoasemien hakuetäisyys $currentRadius km")
                     }
                     DropdownMenu(
                         expanded = dropdownExpanded,

@@ -35,6 +35,19 @@
     <string name="direction_plain">Suunta</string>
     <string name="clouds_height">Pilvikorkeus</string>
     <string name="flight_levels">Lentopinnat</string>
+<!--    <string name="instruction">Ohjeet: Sääasemahavainnot kerää Ilmatieteen laitoksen rajapinnoista reaaliaikaista avointa mittausdataa. Sääasemahavainnot voi hyödyntää käyttäjän paikannusta jos käyttäjä myöntää sijaintiluvan mutta se toimii myös ilman käyttäjän paikannusta.
+Sääasemahavainnot ei kerää mitään tietoja eikä lähetä niitä eteenpäin, se vaatii vain internetyhteyden toimiaksen ja hakeakseen mittausdataa. Tutustu Ilmatieteen laitoksen avoimeen dataan jos haluat ymmärtää paremmin sieltä peräisin olevan datan ominaisuudet.
+Lähtökohtaisesti kaikki saatavilla oleva data näytetään kyseisen sääaseman kohdalla joka on saatavilla.
+Asemakohtaiset päivitykset vaihtelevat 1 t, 10 min, 5 min ja 1 min välillä, kaikista viimeisin havainto pyritään näyttämään jos se on saatavilla. Huomioi että vaikka data tulisi 10 minuutin välein, saattaa kestää 2 min ennen kuin se on palvelimella saatavilla.
+Tällä hetkellä eri välilehdet näyttävät sääasemakohtaiset havainnot, väyläviraston tiesääasema havainnot, säteilyhavainnot kaikilta saatavilta olevilta asemilta sekä Jokioisten ja Sodankylän luotaushavainnot.
+Jos tuulidataa on saatavilla 10 min keskituuli ilmoitetaan nuolisymbolin sisälle. Nuolen väri kertoo puuskan kovuuden.
+Puuskat 0...3 sininen nuoli, 4...6 vihreä, 7...9 keltainen, 10...12 oranssi, 13...15 punainen, yli 16 purppura.
+Jos sääasema ilmoittaa automaattisen sääkoodin niin painamalla sääsymbolia, näytetään kyseisen koodin selite.
+Painamalla tuulisymbolia, animoidaan viimeisin tunnin havainnot.
+Painamalla mistä tahansa muualta näytetään viimeisen tunnin aikana kerättyjä havaintoja graafisesti
+Painamalla mista tahansa muualta pitkään niin asema tallennetaan suosikiksi. Painamalla uudestaan pitkään asema poistetaan suosikeista.
+Puhu säähavainnot -palvelu ilmoittaa 10 minuutin välein valitut asetukset käyttäen puhelimen TekstistäPuheeksi -ominaisuutta.</string>
+-->
 
 
 
@@ -49,6 +62,7 @@
     <string name="stop_service">Pysäytä palvelu</string>
     <string name="service_running">Palvelu käynnissä</string>
     <string name="service_stopped">Palvelu pysäytetty</string>
+    <string name="weather_station_added">sääasema lisätty</string>
 
     <string name="weather_code_0">Ei merkittäviä sääilmiöitä</string>
     <string name="weather_code_1">Pilvet yleisesti hajoavat tai vähenevät</string>

@@ -87,6 +87,12 @@ kotlin {
             implementation(libs.xmlutil)
 
             implementation(libs.kotlinx.datetime)
+
+            implementation(libs.vico.compose)
+            implementation(libs.vico.compose.m3)
+            implementation(libs.vico.multiplatform)
+            implementation(libs.vico.multiplatform.m3)
+
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)
