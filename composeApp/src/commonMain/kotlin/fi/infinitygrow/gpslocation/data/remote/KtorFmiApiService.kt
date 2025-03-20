@@ -65,8 +65,8 @@ class KtorFmiApiService(
                 endTime = time.first
             )
 
-//            println("GETTING this url: $url")
-//            println("with radius: $radiusKm")
+            println("GETTING this url: $url")
+            println("with radius: $radiusKm")
 
             val response = client.get(url)
             val xmlString = response.bodyAsText()
@@ -164,9 +164,12 @@ class KtorFmiApiService(
             val url = buildFMIUrl(queryId)
 
             val response = client.get(url)
+            println("Getting this url $url")
             val xmlString = response.bodyAsText()
             val fetchedFromLocation = Location(safeLatitude, safeLongitude)
             deserializeRadiation(xmlString, fetchedFromLocation)
+
+
 
         } catch (e: Exception) {
             e.printStackTrace()
@@ -195,7 +198,11 @@ class KtorFmiApiService(
             val xmlString = response.bodyAsText()
             //val fetchedFromLocation = Location(newlatitude!!, newLongitude!!)
             val fetchedFromLocation = Location(safeLatitude, safeLongitude)
-            parseSounding(xmlString, fetchedFromLocation)
+            val parsed = parseSounding(xmlString, fetchedFromLocation)
+//            println("printing parsed")
+//            println(parsed.size)
+//            println(parsed.lastIndex)
+            parsed
         } catch (e: Exception) {
             e.printStackTrace()
             emptyList()

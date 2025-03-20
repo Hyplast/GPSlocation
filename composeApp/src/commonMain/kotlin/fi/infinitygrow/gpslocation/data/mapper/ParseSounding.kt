@@ -12,6 +12,8 @@ data class Quadruple(
     val time: Long,
 )
 
+
+
 fun parseSounding(xmlString: String, fetchedFromLocation: Location): List<SoundingData> {
     return try {
         val xml = XML {
@@ -29,80 +31,124 @@ fun parseSounding(xmlString: String, fetchedFromLocation: Location): List<Soundi
             string = cleanedXmlString
         )
 
-        val size = observation.data.size
         val observationDataList = mutableListOf<SoundingData>()
 
+        for (i in observation.data.indices) { // Iterate over observations
 
-
-        for (i in 0 until size) {
-
-            val placeOfSounding = observation.data[i].trajectoryObservation.featureOfInterest.sam.shape.multiPoint.pointMembers[0].point.locationName
+            //println("I number equals to: $i")
+//            val placeOfSounding = observation.data[i].trajectoryObservation.featureOfInterest.sam.shape.multiPoint.pointMembers[0].point.locationName
+//            val placeOfSounding = observation.data[i].trajectoryObservation.featureOfInterest.sam.shape.multiPoint.pointMembers[0].point.locationName
             val timeOfSounding = observation.data[i].trajectoryObservation.resultTime.timeInstant.timePosition
+            val placeOfSounding = observation.data[i].trajectoryObservation.featureOfInterest.sam.relatedSamplingFeature.samplingFeatureComplex.relatedSamplingFeature.sFSpatialSamplingFeature.sampledFeature.location.names[0]
 
-            val locationMeasurements =
-                cleanString(observation.data[i].trajectoryObservation.result.multiPointCoverage.domainSet.simpleMultiPoint.positions)
-                    .trim()
-                    .split(" ")
-                    .chunked(4) { (lon, lat, alt, time) ->
-                        Quadruple(
-                            lon.toDouble(),
-                            lat.toDouble(),
-                            alt.toDouble(),
-                            time.toLong()
-                        )
-                    }
+            val locationMeasurements = cleanString(observation.data[i].trajectoryObservation.result.multiPointCoverage.domainSet.simpleMultiPoint.positions)
+                .trim()
+                .split(" ")
+                .chunked(4) { (lon, lat, alt, time) -> Quadruple(lon.toDouble(), lat.toDouble(), alt.toDouble(), time.toLong()) }
 
-            val measurements =
-                cleanString(observation.data[i].trajectoryObservation.result.multiPointCoverage.rangeSet.dataBlock.tupleList)
-                    .trim()
-                    .split(" ")
-                    .chunked(5)
-                    .map { chunk ->
-                        listOf(
-                            chunk[0].toDouble(),
-                            chunk[1].toDouble(),
-                            chunk[2].toDouble(),
-                            chunk[3].toDouble(),
-                            chunk[4].toDouble()
-                        )
-                    }
+            //println("locationMeasurements size: ${locationMeasurements.size}")
 
-            val measurementIndex = 0
-            val numberOfElements = locationMeasurements.size
-            for (j in 0 until numberOfElements) {
+            val trimmedMeasurements = cleanString(observation.data[i].trajectoryObservation.result.multiPointCoverage.rangeSet.dataBlock.tupleList).trim()
+            // Split the trimmed measurements into tokens.
+            val splittedMeasurements = trimmedMeasurements.split(" ").filter { it.isNotBlank() }
 
-                repeat(numberOfElements) { k ->
-                    val currentIndex = measurementIndex + k
-                    if (currentIndex < locationMeasurements.size &&
-                        currentIndex < measurements.size
-                    ) {
-                        val (lon, lat, alt, unixTime) = locationMeasurements[currentIndex]
-                        observationDataList.add(
-                            SoundingData(
-                                name = placeOfSounding,
-                                timeOfSounding = timeOfSounding,
-                                coordinates = fetchedFromLocation,
-                                longitude = lon,
-                                latitude = lat,
-                                altitude = alt,
-                                unixTime = unixTime,
-                                pressure = measurements[currentIndex][0],
-                                windSpeed = measurements[currentIndex][1],
-                                windDirection = measurements[currentIndex][2],
-                                temperature = measurements[currentIndex][3],
-                                dewPoint = measurements[currentIndex][4]
-                            )
-                        )
-                    }
+            // Calculate the remainder when the number of tokens is divided by 5.
+            val remainder = splittedMeasurements.size % 5
+
+            // Drop the last `remainder` elements if there are any extra elements.
+            val validMeasurements = if (remainder == 0) {
+                splittedMeasurements
+            } else {
+                splittedMeasurements.dropLast(remainder)
+            }
+
+                // Now that validMeasurements has a number of elements divisible by 5, we can chunk them.
+            val measurements = validMeasurements
+                .chunked(5)
+                .map { chunk ->
+                    listOf(
+                        chunk[0].toDouble(),
+                        chunk[1].toDouble(),
+                        chunk[2].toDouble(),
+                        chunk[3].toDouble(),
+                        chunk[4].toDouble()
+                    )
                 }
+
+
+//            val splittedMeasurements = trimmedMeasurements.split(" ")
+//            println("splittedMeasurements size: ${splittedMeasurements.size}")
+//            val measurements = splittedMeasurements
+//                .chunked(5)
+//                .map { chunk ->
+//                    listOf(
+//                        chunk[0].toDouble(),
+//                        chunk[1].toDouble(),
+//                        chunk[2].toDouble(),
+//                        chunk[3].toDouble(),
+//                        chunk[4].toDouble(),
+//                    )
+//                }
+            //println("chunkedMeasurements size: ${chunkedMeasurements.size}")
+//            val measurements = chunkedMeasurements.map { chunk ->
+//                listOf(
+//                    chunk[0].toDouble(),
+//                    chunk[1].toDouble(),
+//                    chunk[2].toDouble(),
+//                    chunk[3].toDouble(),
+//                    chunk[4].toDouble(),
+//                )
+//            }
+            //println("measuremtns size: ${measurements.size}")
+
+//            val measurements = cleanString(observation.data[i].trajectoryObservation.result.multiPointCoverage.rangeSet.dataBlock.tupleList)
+//                .trim()
+//                .split(" ")
+//                .chunked(5)
+//                .map { chunk ->
+//                    listOf(
+//                        chunk[0].toDouble(),
+//                        chunk[1].toDouble(),
+//                        chunk[2].toDouble(),
+//                        chunk[3].toDouble(),
+//                        chunk[4].toDouble()
+//                    )
+//                }
+
+           // println("Chunked to: $i")
+            // Pair up each location with measurement data.
+            val measurementsByLocation = locationMeasurements.zip(measurements)
+
+            // Iterate over measurements associated with this location
+            for ((location, measurement) in measurementsByLocation) {
+                val (lon, lat, alt, unixTime) = location
+
+                observationDataList.add(
+                    SoundingData(
+                        name = placeOfSounding,
+                        timeOfSounding = timeOfSounding,
+                        coordinates = fetchedFromLocation,
+                        longitude = lon,
+                        latitude = lat,
+                        altitude = alt,
+                        unixTime = unixTime,
+                        pressure = measurement[0],
+                        windSpeed = measurement[1],
+                        windDirection = measurement[2],
+                        temperature = measurement[3],
+                        dewPoint = measurement[4]
+                    )
+                )
             }
         }
+        //println("observationDataList size: ${observationDataList.size}")
 
         observationDataList
 
-    }
-    catch (e: Exception) {
+    } catch (e: Exception) {
         e.printStackTrace()
+        println("ERROR")
+        println(e)
         emptyList()
     }
 }

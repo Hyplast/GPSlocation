@@ -119,32 +119,66 @@ data class SoundingDTO(
     @Serializable
     @XmlSerialName("SF_SpatialSamplingFeature","http://www.opengis.net/samplingSpatial/2.0","sams")
     data class Sam(
-        @XmlSerialName("sampledFeature", "http://www.opengis.net/sampling/2.0", "sam")
-        val sampledFeature: SampledFeature,
-        @XmlSerialName("shape", "http://www.opengis.net/samplingSpatial/2.0", "sams")
-        val shape: Shape
+//        @XmlElement(false) // Attribute instead of element
+//        @XmlSerialName("sampledFeature", "http://www.opengis.net/sampling/2.0", "sam")
+//        val sampledFeatureString: String,
+        @XmlSerialName("relatedSamplingFeature","http://www.opengis.net/sampling/2.0", "sam")
+        val relatedSamplingFeature: RelatedSamplingFeature,
+//        @XmlSerialName("shape", "http://www.opengis.net/samplingSpatial/2.0", "sams")
+//        val shape: Shape
     )
+
+    @Serializable
+    @XmlSerialName("relatedSamplingFeature", "http://www.opengis.net/sampling/2.0","sam")
+    data class RelatedSamplingFeature(
+        @XmlSerialName("SamplingFeatureComplex","http://www.opengis.net/sampling/2.0", "sam")
+        val samplingFeatureComplex: SamplingFeatureComplex
+    )
+
+    @Serializable
+    @XmlSerialName("SamplingFeatureComplex","http://www.opengis.net/sampling/2.0","sam")
+    data class SamplingFeatureComplex(
+        @XmlSerialName("relatedSamplingFeature","http://www.opengis.net/sampling/2.0","sam")
+        val relatedSamplingFeature: RelatedSamplingFeature2
+    )
+
+    @Serializable
+    @XmlSerialName("relatedSamplingFeature","http://www.opengis.net/sampling/2.0","sam")
+    data class RelatedSamplingFeature2(
+        @XmlSerialName("SF_SpatialSamplingFeature","http://www.opengis.net/samplingSpatial/2.0","sams")
+        val sFSpatialSamplingFeature: SFSpatialSamplingFeature
+
+    )
+
+    @Serializable
+    @XmlSerialName("SF_SpatialSamplingFeature","http://www.opengis.net/samplingSpatial/2.0","sams")
+    data class SFSpatialSamplingFeature(
+        @XmlSerialName("sampledFeature","http://www.opengis.net/sampling/2.0","sam")
+        val sampledFeature: SampledFeature
+    )
+
+
 
     @Serializable
     @XmlSerialName("sampledFeature", "http://www.opengis.net/sampling/2.0", "sam")
     data class SampledFeature(
-        @XmlSerialName("LocationCollection", "http://xml.fmi.fi/namespace/om/atmosphericfeatures/1.1", "target")
-        val locationCollection: LocationCollection
-    )
-
-    @Serializable
-    @XmlSerialName("LocationCollection", "http://xml.fmi.fi/namespace/om/atmosphericfeatures/1.1", "target")
-    data class LocationCollection(
-        @XmlSerialName("member", "http://xml.fmi.fi/namespace/om/atmosphericfeatures/1.1", "target")
-        val members: List<Member>
-    )
-
-    @Serializable
-    @XmlSerialName("member", "http://xml.fmi.fi/namespace/om/atmosphericfeatures/1.1", "target")
-    data class Member(
         @XmlSerialName("Location", "http://xml.fmi.fi/namespace/om/atmosphericfeatures/1.1", "target")
         val location: Location
     )
+
+//    @Serializable
+//    @XmlSerialName("LocationCollection", "http://xml.fmi.fi/namespace/om/atmosphericfeatures/1.1", "target")
+//    data class LocationCollection(
+//        @XmlSerialName("member", "http://xml.fmi.fi/namespace/om/atmosphericfeatures/1.1", "target")
+//        val members: List<Member>
+//    )
+
+//    @Serializable
+//    @XmlSerialName("member", "http://xml.fmi.fi/namespace/om/atmosphericfeatures/1.1", "target")
+//    data class sampledFeature(
+//        @XmlSerialName("Location", "http://xml.fmi.fi/namespace/om/atmosphericfeatures/1.1", "target")
+//        val location: Location
+//    )
 
     @Serializable
     @XmlSerialName("Location", "http://xml.fmi.fi/namespace/om/atmosphericfeatures/1.1", "target")
