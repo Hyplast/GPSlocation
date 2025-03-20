@@ -1,8 +1,8 @@
 package fi.infinitygrow.gpslocation.presentation.observation_list
 
+//import fi.infinitygrow.gpslocation.presentation.observation_list.components.WeatherDashboard
+//import fi.infinitygrow.gpslocation.presentation.observation_list.components.WeatherObservation
 import androidx.compose.foundation.background
-import androidx.compose.foundation.isSystemInDarkTheme
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -14,26 +14,27 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountBox
 import androidx.compose.material.icons.filled.Face
-import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SecondaryTabRow
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
-import androidx.compose.material3.pulltorefresh.PullToRefreshBox
-import androidx.compose.material3.SecondaryTabRow
 import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
-import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -42,29 +43,18 @@ import fi.infinitygrow.gpslocation.core.presentation.SkyBlueColor
 import fi.infinitygrow.gpslocation.domain.model.locations
 import fi.infinitygrow.gpslocation.presentation.observation_list.components.LocationSearchScreen
 import fi.infinitygrow.gpslocation.presentation.observation_list.components.ObservationsList
-//import fi.infinitygrow.gpslocation.presentation.observation_list.components.WeatherDashboard
-//import fi.infinitygrow.gpslocation.presentation.observation_list.components.WeatherObservation
-import fi.infinitygrow.gpslocation.presentation.observation_list.components.WeatherSummary
-import kotlinx.coroutines.launch
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
-import androidx.compose.runtime.remember
 import fi.infinitygrow.gpslocation.presentation.observation_list.components.ObservationsRoadList
 import fi.infinitygrow.gpslocation.presentation.observation_list.components.RadiationList
 import fi.infinitygrow.gpslocation.presentation.observation_list.components.SoundingDataListScreen
+import fi.infinitygrow.gpslocation.presentation.observation_list.components.WeatherSummary
 import gpslocation.composeapp.generated.resources.Res
-import gpslocation.composeapp.generated.resources.WeatherIcons
 import gpslocation.composeapp.generated.resources.circlearrow_green
-import gpslocation.composeapp.generated.resources.circlearrow_yellow
-import gpslocation.composeapp.generated.resources.ic_cloudy
 import gpslocation.composeapp.generated.resources.icon_balloon
 import gpslocation.composeapp.generated.resources.icon_road_celsius
 import gpslocation.composeapp.generated.resources.icon_thermometer
 import kotlinx.coroutines.delay
-import org.jetbrains.compose.resources.imageResource
+import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.painterResource
-import org.jetbrains.compose.resources.stringResource
 
 
 @OptIn(ExperimentalMaterial3Api::class)

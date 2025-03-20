@@ -20,10 +20,22 @@
     <string name="cloud_base">Pilvenpohjat: %1$s metriä</string>">
     <string name="fl_65">Lentopinta 65 %1$s metriä</string>
     <string name="fl_95">Lentopinta 95 %1$s metriä</string>
+    <string name="thermal_height">Termiikin korkeus: %1$s meters</string>
 
+    <string name="surface">Pinta</string>
+    <string name="Ground">Maa</string>
+    <string name="rh">SK</string>
+    <string name="air_road_temp">Ilman &amp; Tien lämpötila</string>
+    <string name="wind_n_gust">Tuuli &amp; Puuska</string>
 
+    <string name="radiation">Säteily</string>
+    <string name="sunshine">Paiste</string>
+    <string name="direct">Suora</string>
+    <string name="diffuse">Haja</string>
+    <string name="long_wave">Long Wave</string>
+    <string name="global_radiation">Globaali säteily</string>
 
-    <string name="one_or_all_neareast">Lähin</string>
+    <string name="one_or_all_nearest">Lähin</string>
     <string name="one_or_all_all">Kaikki</string>
     <string name="station_name">Nimi</string>">
     <string name="road_observations">Tiehavainnot</string>">
@@ -35,6 +47,7 @@
     <string name="direction_plain">Suunta</string>
     <string name="clouds_height">Pilvikorkeus</string>
     <string name="flight_levels">Lentopinnat</string>
+    <string name="thermal_calculation">Termiikin korkeus</string>
 <!--    <string name="instruction">Ohjeet: Sääasemahavainnot kerää Ilmatieteen laitoksen rajapinnoista reaaliaikaista avointa mittausdataa. Sääasemahavainnot voi hyödyntää käyttäjän paikannusta jos käyttäjä myöntää sijaintiluvan mutta se toimii myös ilman käyttäjän paikannusta.
 Sääasemahavainnot ei kerää mitään tietoja eikä lähetä niitä eteenpäin, se vaatii vain internetyhteyden toimiaksen ja hakeakseen mittausdataa. Tutustu Ilmatieteen laitoksen avoimeen dataan jos haluat ymmärtää paremmin sieltä peräisin olevan datan ominaisuudet.
 Lähtökohtaisesti kaikki saatavilla oleva data näytetään kyseisen sääaseman kohdalla joka on saatavilla.

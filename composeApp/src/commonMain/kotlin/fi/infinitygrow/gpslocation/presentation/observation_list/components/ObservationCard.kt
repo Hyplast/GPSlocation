@@ -38,6 +38,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.PathEffect
@@ -49,7 +50,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.patrykandpatrick.vico.multiplatform.cartesian.AutoScrollCondition
 import com.patrykandpatrick.vico.multiplatform.cartesian.CartesianChartHost
+import com.patrykandpatrick.vico.multiplatform.cartesian.CartesianMeasuringContext
 import com.patrykandpatrick.vico.multiplatform.cartesian.Scroll
+import com.patrykandpatrick.vico.multiplatform.cartesian.Zoom
 import com.patrykandpatrick.vico.multiplatform.cartesian.axis.Axis
 import com.patrykandpatrick.vico.multiplatform.cartesian.axis.HorizontalAxis
 import com.patrykandpatrick.vico.multiplatform.cartesian.axis.VerticalAxis
@@ -57,11 +60,9 @@ import com.patrykandpatrick.vico.multiplatform.cartesian.data.CartesianChartMode
 import com.patrykandpatrick.vico.multiplatform.cartesian.data.CartesianLayerRangeProvider
 import com.patrykandpatrick.vico.multiplatform.cartesian.data.CartesianValueFormatter
 import com.patrykandpatrick.vico.multiplatform.cartesian.data.ColumnCartesianLayerModel
-import com.patrykandpatrick.vico.multiplatform.cartesian.data.columnSeries
 import com.patrykandpatrick.vico.multiplatform.cartesian.data.lineSeries
 import com.patrykandpatrick.vico.multiplatform.cartesian.layer.ColumnCartesianLayer
 import com.patrykandpatrick.vico.multiplatform.cartesian.layer.LineCartesianLayer
-import com.patrykandpatrick.vico.multiplatform.cartesian.layer.rememberColumnCartesianLayer
 import com.patrykandpatrick.vico.multiplatform.cartesian.layer.rememberLine
 import com.patrykandpatrick.vico.multiplatform.cartesian.layer.rememberLineCartesianLayer
 import com.patrykandpatrick.vico.multiplatform.cartesian.marker.DefaultCartesianMarker
@@ -87,11 +88,14 @@ import gpslocation.composeapp.generated.resources.Res
 import gpslocation.composeapp.generated.resources.baseline_lock_open_24
 import gpslocation.composeapp.generated.resources.twotone_lock_24
 import kotlinx.coroutines.delay
+import kotlinx.datetime.Instant
+import kotlinx.datetime.LocalTime
+import kotlinx.datetime.format.Padding
 import org.jetbrains.compose.resources.painterResource
 import kotlin.math.abs
 import kotlin.math.ceil
 import kotlin.math.max
-import kotlin.math.round
+import kotlin.math.min
 
 
 /**
@@ -429,6 +433,12 @@ fun RoadObservationCard(
         observationsList.filter { it.name == currentStationName }
     }
 
+
+    println("SIZE OF ObservationsRoadList")
+    println(chartObservations.size)
+
+    val modifier = Modifier
+
     Box(modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp)) {
         Card(
             modifier = Modifier
@@ -497,7 +507,20 @@ fun RoadObservationCard(
                         modifier = Modifier.weight(1f),
                         contentAlignment = Alignment.Center
                     ) {
-
+                        Column {
+                            observation.alertRoadCondition.takeIf { it.isFinite() }
+                                ?.let { Text(text = "$it RC") }
+                            observation.friction.takeIf { it.isFinite()  }
+                                ?.let { Text(text = "${it} friction") }
+                            observation.airTemperature2.takeIf { it.isFinite() }
+                                ?.let { Text(text = "${it} airtemp2") }
+                            observation.precipitationAmount .takeIf { it.isFinite() && it != 0.0}
+                                ?.let { Text(text = "${it} preciAMoun") }
+                            observation.precipitationIntensity.takeIf { it.isFinite() && it != 0.0}
+                                ?.let { Text(text = "${it} preciInt") }
+                            observation.precipitationCodes.takeIf { it.isFinite()}
+                                ?.let { Text(text = "${it} precicodes") }
+                        }
                     }
                     // Display wind data if available
                     Box(
@@ -570,6 +593,12 @@ fun RoadObservationCard(
                         // Toggle which chart to display based on chart selection.
                         when (selectedChartIndex) {
                             0 -> {
+                                val temp3 = chartObservations
+                                    .mapNotNull { observation ->
+                                        observation.airTemperature?.takeIf { !it.isNaN() }
+                                        observation.roadSurfaceTemperature?.takeIf { !it.isNaN() }
+                                    }
+                                RoadObservationDataGraph(modifier = modifier, roadDataList = chartObservations, temp3)
                                 // Chart combining air temperature with road surface temperature
 //                                RoadWeatherChart2(
 //                                    observations1 = chartObservations,
@@ -582,6 +611,8 @@ fun RoadObservationCard(
 //                                )
                             }
                             1 -> {
+
+
                                 // Humidity chart
 //                                RoadWeatherChart(
 //                                    observations = chartObservations,
@@ -592,6 +623,12 @@ fun RoadObservationCard(
 //                                )
                             }
                             2 -> {
+                                val temp5 = chartObservations
+                                    .mapNotNull { observation ->
+                                        observation.airTemperature?.takeIf { !it.isNaN() }
+                                        observation.roadSurfaceTemperature?.takeIf { !it.isNaN() }
+                                    }
+                                WindGustChart(modifier = modifier, roadDataList = chartObservations, temp5)
                                 // Wind chart example: wind speed vs. wind gust.
 //                                RoadWeatherChart2(
 //                                    observations1 = chartObservations,
@@ -622,18 +659,23 @@ fun RadiationObservationCard(
     onLongPress: () -> Unit,
     backgroundColor: Color
 ) {
-    // Toggle state for showing/hiding chart (for future expansion)
+    // Toggle state for showing/hiding chart
     var showChart by remember { mutableStateOf(false) }
-    // Index selection for chart type (for future expansion)
+    // Index selection for chart type
     var selectedChartIndex by remember { mutableStateOf(0) }
-    // Define chart options (for future expansion)
-    val chartOptions = listOf("Radiation Overview") // Add more if needed
+    // Define chart options
+    val chartOptions = listOf("Radiation Overview", "UV Index", "Sunshine Duration")
 
     // Filter radiation observations by station name (for future expansion)
     val currentStationName = observation.name
     val chartObservations = remember(observationsList, currentStationName) {
         observationsList.filter { it.name == currentStationName }
     }
+
+    val modifier = Modifier
+
+    println("Size of RadiationObs ${chartObservations[0].name} card ${chartObservations.size}")
+    println("Name ${observation.name} unixTime ${observation.unixTime} globalRadiation ${observation.uvRadiation}")
 
     Box(modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp)) {
         Card(
@@ -686,7 +728,7 @@ fun RadiationObservationCard(
                         contentAlignment = Alignment.Center
                     ) {
                         Text(
-                            text =  "${formatValue(observation.globalRadiation.toFloat())} W/m²", // Example: Use global radiation for summary
+                            text =  "Global Radiation:${formatValue(observation.globalRadiation.toFloat())} W/m²", // Example: Use global radiation for summary
                             fontSize = 16.sp
                         )
                     }
@@ -706,10 +748,10 @@ fun RadiationObservationCard(
                     ) {
                         Text(text = "Long Wave")
                         Text(
-                            text = "In: ${formatValue(observation.longWaveIn.toFloat())} W/m²"
+                            text = "In: ${formatValue(observation.longWaveIn.toFloat())}"
                         )
                         Text(
-                            text = "Out: ${formatValue(observation.longWaveOut.toFloat())} W/m²"
+                            text = "Out: ${formatValue(observation.longWaveOut.toFloat())}"
                         )
                     }
 
@@ -720,10 +762,10 @@ fun RadiationObservationCard(
                     ) {
                         Text(text = "Radiation")
                         Text(
-                            text = "Direct: ${formatValue(observation.directRadiation.toFloat())} W/m²"
+                            text = "Direct: ${formatValue(observation.directRadiation.toFloat())}"
                         )
                         Text(
-                            text = "Diffuse: ${formatValue(observation.diffuseRadiation.toFloat())} W/m²"
+                            text = "Diffuse: ${formatValue(observation.diffuseRadiation.toFloat())}"
                         )
                     }
 
@@ -732,12 +774,11 @@ fun RadiationObservationCard(
                         modifier = Modifier.weight(1f),
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
-                        Text(text = "Other")
                         Text(
                             text = "UV: ${formatValue(observation.uvRadiation.toFloat())}"
                         )
                         observation.sunshineDuration.takeIf { it.isFinite() }?.let {
-                            Text(text = "Sunshine: ${formatValue(it.toFloat())} h")
+                            Text(text = "Sunshine: ${formatValue(it.toFloat())}/60 s")
                         }
                     }
                 }
@@ -769,15 +810,61 @@ fun RadiationObservationCard(
                             }
                         }
 
-                        // Chart display area (for future expansion)
                         when (selectedChartIndex) {
                             0 -> {
-                                // Radiation Overview chart placeholder
-
-                                Text(text = "Radiation Overview Chart Placeholder")
+                                // Radiation Overview chart
+                                val yGlob1min = chartObservations
+                                    .mapNotNull { observation ->
+                                        observation.globalRadiation?.takeIf { !it.isNaN() }
+                                    }
+                                if (yGlob1min.isNotEmpty()) {
+                                    RadiationDataGraph(
+                                        modifier = modifier,
+                                        radiationDataList = chartObservations.filter {
+                                            it.globalRadiation != null && !it.globalRadiation.isNaN()
+                                        },
+                                        yGlob1min
+                                    )
+                                } else {
+                                    Text(text = "No valid global radiation data available")
+                                }
                             }
-                            // Add more chart types here as needed
+                            1 -> {
+                                val yUV1min = chartObservations
+                                    .mapNotNull { observation ->
+                                        observation.uvRadiation?.takeIf { !it.isNaN() }
+                                    }
+                                if (yUV1min.isNotEmpty()) {
+                                    RadiationDataGraph(
+                                        modifier = modifier,
+                                        radiationDataList = chartObservations.filter {
+                                            it.uvRadiation != null && !it.uvRadiation.isNaN()
+                                        },
+                                        yUV1min
+                                    )
+                                } else {
+                                    Text(text = "No valid UV radiation data available")
+                                }
+                            }
+                            2 -> {
+                                val yDirect1min = chartObservations
+                                    .mapNotNull { observation ->
+                                        observation.directRadiation?.takeIf { !it.isNaN() }
+                                    }
+                                if (yDirect1min.isNotEmpty()) {
+                                    RadiationDataGraph(
+                                        modifier = modifier,
+                                        radiationDataList = chartObservations.filter {
+                                            it.directRadiation != null && !it.directRadiation.isNaN()
+                                        },
+                                        yDirect1min
+                                    )
+                                } else {
+                                    Text(text = "No valid direct radiation data available")
+                                }
+                            }
                         }
+
                     }
                 }
             }
@@ -832,7 +919,7 @@ fun SkewTChart(
     ) {
         // Title
         Text(
-            text = "Temperature & Dew Point vs Altitude",
+            text = "${truncatedData[0].name} ${truncatedData[0].timeOfSounding}",
             style = TextStyle(
                 fontSize = 18.sp,
                 color = Color.Black
@@ -1110,9 +1197,24 @@ fun SoundingDataGraphCard99(modifier: Modifier = Modifier, soundingDataList: Lis
             -getMinY(minY, maxY, extraStore)
     }
 
-    private val StartAxisValueFormatter = CartesianValueFormatter.decimal(suffix = " °C")
+    private val StartAxisValueFormatter = CartesianValueFormatter.decimal(decimalCount = 1, suffix = " °C")
+    private val StartAxisValueFormatterTemp = CartesianValueFormatter.decimal(decimalCount = 1, suffix = " °C")
+    private val StartAxisValueFormatterRadiation = CartesianValueFormatter.decimal(decimalCount = 1, suffix = "W/m2")
+    private val StartAxisValueFormatterWind = CartesianValueFormatter.decimal(decimalCount = 1, suffix = "m/s")
+    //private val StartAxisValueFormatterSunshine = CartesianValueFormatter. .decimal(suffix = "s")
+    private val StartAxisValueFormatterUV = CartesianValueFormatter.decimal(decimalCount = 1, suffix = "s")
+    private val StartAxisValueFormatterAltitude = CartesianValueFormatter.decimal(decimalCount = 1, suffix = "m")
 
-    private val MarkerValueFormatter = DefaultCartesianMarker.ValueFormatter.default(suffix = " °C")
+
+    private val MarkerValueFormatter = DefaultCartesianMarker.ValueFormatter.default(decimalCount = 1, suffix = " °C")
+    private val MarkerValueFormatterRadiation = DefaultCartesianMarker.ValueFormatter.default(decimalCount = 1, suffix = "W/m2")
+    private val MarkerValueFormatterWind = DefaultCartesianMarker.ValueFormatter.default(decimalCount = 1, suffix = "m/s")
+    private val MarkerValueFormatterTemp = DefaultCartesianMarker.ValueFormatter.default(decimalCount = 1, suffix = " °C")
+    private val MarkerValueFormatterSunshine = DefaultCartesianMarker.ValueFormatter.default(decimalCount = 1, suffix = "s")
+    private val MarkerValueFormatterAltitude = DefaultCartesianMarker.ValueFormatter.default(decimalCount = 1, suffix = "m")
+
+    private val BottomAxisValueFormatter =
+    CartesianValueFormatter { _, value, _ -> value.toLong().convertUnixTimeToHHMM() }
 
     private fun getColumnProvider(positive: LineComponent, negative: LineComponent) =
     object : ColumnCartesianLayer.ColumnProvider {
@@ -1125,18 +1227,22 @@ fun SoundingDataGraphCard99(modifier: Modifier = Modifier, soundingDataList: Lis
         override fun getWidestSeriesColumn(seriesIndex: Int, extraStore: ExtraStore) = positive
     }
 
+
+
+
 @Composable
-fun SoundingDataGraphCard(modifier: Modifier = Modifier, soundingDataList: List<SoundingData>) {
+fun SoundingDataGraph(modifier: Modifier = Modifier, soundingDataList: List<SoundingData>) {
     val modelProducer = remember { CartesianChartModelProducer() }
-    val maxPoints = 150
+    val maxPoints = 300
     val truncatedData = soundingDataList.take(maxPoints)
 
-    val x = truncatedData.map { it.temperature }
-    val y = truncatedData.map { it.pressure }
+    val xTemp = truncatedData.map { it.temperature }
+    val xDew = truncatedData.map { it.dewPoint }
+    val yAlt = truncatedData.map { it.altitude }
 
     // Example altitude (Pa) and temperature (°C) values
-    val pressures = y // hPa
-    val temperatures = x//listOf(15.0, 12.0, 9.0, 5.0, 0.0, -5.0, -10.0, -20.0, -30.0, -40.0) // °C
+//    val pressures = y // hPa
+//    val temperatures = x//listOf(15.0, 12.0, 9.0, 5.0, 0.0, -5.0, -10.0, -20.0, -30.0, -40.0) // °C
 
     // Transform to log scale for the Y-axis
     //val logPressures = pressures.map { kotlin.math.log10(it) }
@@ -1163,12 +1269,15 @@ fun SoundingDataGraphCard(modifier: Modifier = Modifier, soundingDataList: List<
 //    }
 
     // Create scroll and zoom states with scrolling and zooming disabled
-    val scrollState = rememberVicoScrollState(scrollEnabled = false)
-    val zoomState = rememberVicoZoomState(zoomEnabled = false)
+    val scrollState = rememberVicoScrollState(scrollEnabled = true)
+    val zoomState = rememberVicoZoomState(zoomEnabled = true)
 
     LaunchedEffect(soundingDataList) {
         modelProducer.runTransaction {
-            lineSeries { series(x, y) }
+            lineSeries {
+                series(y = yAlt, x = xTemp)
+                series(y = yAlt, x = xDew)
+            }
         }
     }
 
@@ -1180,32 +1289,282 @@ fun SoundingDataGraphCard(modifier: Modifier = Modifier, soundingDataList: List<
         chart = rememberCartesianChart(
             rememberLineCartesianLayer(
                 lineProvider = LineCartesianLayer.LineProvider.series(
-                    LineCartesianLayer.Line(
-                        fill = LineCartesianLayer.LineFill.single(fill(lineColorRed))
-                    )
+                    LineCartesianLayer.Line(LineCartesianLayer.LineFill.single(fill(lineColorRed))),
+                    LineCartesianLayer.Line(LineCartesianLayer.LineFill.single(fill(lineColorBlue))),
                 ),
-                rangeProvider = CartesianLayerRangeProvider.fixed(
-                    minX = x.minOrNull() ?: 0.0,
-                    maxX = x.maxOrNull() ?: 0.0,
-                    minY = y.minOrNull() ?: 0.0,
-                    maxY = y.maxOrNull() ?: 0.0
+                rangeProvider = remember { CartesianLayerRangeProvider.auto() }
+            ),
+            startAxis = VerticalAxis.rememberStart(
+                valueFormatter = StartAxisValueFormatterAltitude
+            ),
+            bottomAxis = HorizontalAxis.rememberBottom(),
+            marker = rememberMarker(MarkerValueFormatterAltitude),
+            //fadingEdges = null,
+        ),
+        modelProducer = modelProducer,
+        scrollState = scrollState,
+        zoomState = zoomState,
+        modifier = modifier.height(534.dp).fillMaxWidth()
+    )
+}
+
+
+private val BottomAxisValueFormatter00 =
+    object : CartesianValueFormatter {
+        private val dateTimeFormat =
+            LocalTime.Format {
+                amPmHour(Padding.SPACE)
+                amPmMarker(" AM", " PM")
+            }
+
+        override fun format(
+            context: CartesianMeasuringContext,
+            value: Double,
+            verticalAxisPosition: Axis.Position.Vertical?,
+        ) = dateTimeFormat.format(LocalTime(value.toInt(), 0))
+    }
+
+
+@Composable
+fun WindGustChart(modifier: Modifier = Modifier, roadDataList: List<RoadObservationData>, yParameterList: List<Double>) {
+    if (roadDataList.isEmpty() || yParameterList.isEmpty()) {
+        Box(
+            modifier = modifier.height(234.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            Text("No data available to display")
+        }
+        return
+    }
+
+    val modelProducer = remember { CartesianChartModelProducer() }
+
+    val xTime = roadDataList.map { it.unixTime }
+    val yWind = roadDataList.map { it.windSpeed }
+    val yGust = roadDataList.map { it.windGust }
+    val yDirection = roadDataList.map { it.windDirection }
+
+    val scrollState = rememberVicoScrollState(
+        scrollEnabled = true,  // Enable scrolling for better user experience
+        initialScroll = Scroll.Absolute.End,
+        autoScrollCondition = AutoScrollCondition.Never
+    )
+
+    val zoomState = rememberVicoZoomState(
+        zoomEnabled = true,  // Enable zooming for better user experience
+    )
+
+    LaunchedEffect(Unit) {
+        modelProducer.runTransaction {
+            // Clear previous data
+            lineSeries {
+                series(
+                    y = yWind,
+                    x = xTime
+                )
+                series(y = yGust, x = xTime)
+                //series(y = yDirection, x = xTime)
+            }
+        }
+    }
+
+    val lineColor = Color.Cyan
+    val lineColor2 = Color.Green
+    val lineColor3 = Color.Magenta
+    val lineColors = listOf(lineColor, lineColor2)//, lineColor3)
+
+    CartesianChartHost(
+        rememberCartesianChart(
+            rememberLineCartesianLayer(
+                LineCartesianLayer.LineProvider.series(
+
+                    LineCartesianLayer.Line(LineCartesianLayer.LineFill.single(fill(lineColor))),
+                    LineCartesianLayer.Line(LineCartesianLayer.LineFill.single(fill(lineColor2))),
+//                            areaFill = LineCartesianLayer.AreaFill.single(
+//                                fill(Brush.verticalGradient(listOf(color.copy(alpha = 0.4f), Color.Transparent)))
+//                            ),
+
+
+
                 ),
-                pointSpacing = 0.dp
+                rangeProvider = remember { CartesianLayerRangeProvider.auto() } //RangeProvider
+            ),
+            startAxis = VerticalAxis.rememberStart(
+                valueFormatter = StartAxisValueFormatterWind
+            ),
+            bottomAxis = HorizontalAxis.rememberBottom(
+                valueFormatter =  BottomAxisValueFormatter
+            ),
+            marker = rememberMarker(MarkerValueFormatterWind),
+        ),
+        modelProducer = modelProducer,
+        scrollState = scrollState,
+        zoomState = zoomState,
+        modifier = modifier.height(234.dp),
+    )
+}
+
+
+@Composable
+fun RoadObservationDataGraph(modifier: Modifier = Modifier, roadDataList: List<RoadObservationData>, yParameterList: List<Double>) {
+    if (roadDataList.isEmpty() || yParameterList.isEmpty()) {
+        Box(
+            modifier = modifier.height(234.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            Text("No data available to display")
+        }
+        return
+    }
+
+    val modelProducer = remember { CartesianChartModelProducer() }
+
+    val validDataPoints = min(roadDataList.size, yParameterList.size)
+    val xTime = roadDataList.map { it.unixTime }
+    val yAirTemp = roadDataList.map { it.airTemperature }
+    val ySurfaceTemp = roadDataList.map { it.roadSurfaceTemperature }
+    val yGroundTemp = roadDataList.map { it.roadGroundTemperature }
+    val yDewPoints = roadDataList.map { it.dewPoint }
+    val yValues = yParameterList.take(validDataPoints)
+
+    val scrollState = rememberVicoScrollState(
+        scrollEnabled = true,  // Enable scrolling for better user experience
+        initialScroll = Scroll.Absolute.End,
+        autoScrollCondition = AutoScrollCondition.OnModelGrowth
+    )
+
+    val zoomState = rememberVicoZoomState(
+        zoomEnabled = true,  // Enable zooming for better user experience
+    )
+
+    LaunchedEffect(Unit) {
+        modelProducer.runTransaction {
+            // Clear previous data
+            lineSeries {
+                series(
+                    y = yAirTemp,
+                    x = xTime
+                )
+                series(y = ySurfaceTemp, x = xTime)
+                series(y = yGroundTemp, x = xTime)
+                series(y = yDewPoints, x = xTime)
+            }
+        }
+    }
+
+    val lineColor = Color.Red
+    val lineColor2 = Color.Black
+    val lineColor3 = Color.Cyan
+    val lineColor4 = Color.Blue
+    val lineColors = listOf(lineColor, lineColor2, lineColor3, lineColor4)
+
+    CartesianChartHost(
+        rememberCartesianChart(
+            rememberLineCartesianLayer(
+                LineCartesianLayer.LineProvider.series(
+                    lines = lineColors.map { color ->
+                        LineCartesianLayer.Line(
+                            LineCartesianLayer.LineFill.single(fill(color)),
+//                            areaFill = LineCartesianLayer.AreaFill.single(
+//                                fill(Brush.verticalGradient(listOf(color.copy(alpha = 0.4f), Color.Transparent)))
+//                            ),
+                        )
+
+                    }
+                ),
+                rangeProvider = remember { CartesianLayerRangeProvider.auto() } //RangeProvider
             ),
             startAxis = VerticalAxis.rememberStart(
                 valueFormatter = StartAxisValueFormatter
             ),
             bottomAxis = HorizontalAxis.rememberBottom(
-
+                valueFormatter =  BottomAxisValueFormatter
             ),
-            fadingEdges = null,
+            marker = rememberMarker(MarkerValueFormatter),
         ),
         modelProducer = modelProducer,
         scrollState = scrollState,
         zoomState = zoomState,
-        modifier = modifier.height(234.dp).fillMaxWidth()
+        modifier = modifier.height(234.dp),
     )
 }
+
+
+@Composable
+fun RadiationDataGraph(modifier: Modifier = Modifier, radiationDataList: List<RadiationData>, yParameterList: List<Double>) {
+    if (radiationDataList.isEmpty() || yParameterList.isEmpty()) {
+        Box(
+            modifier = modifier.height(234.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            Text("No data available to display")
+        }
+        return
+    }
+
+    val modelProducer = remember { CartesianChartModelProducer() }
+
+    val validDataPoints = min(radiationDataList.size, yParameterList.size)
+    val xTime = radiationDataList.map { it.unixTime }
+    val yValues = yParameterList.take(validDataPoints)
+
+    val scrollState = rememberVicoScrollState(
+        scrollEnabled = true,  // Enable scrolling for better user experience
+        initialScroll = Scroll.Absolute.End,
+        autoScrollCondition = AutoScrollCondition.OnModelGrowth
+    )
+
+    val zoomState = rememberVicoZoomState(
+        zoomEnabled = true  // Enable zooming for better user experience
+    )
+
+    LaunchedEffect(Unit) {
+        modelProducer.runTransaction {
+            // Clear previous data
+            lineSeries {
+                series(
+                    y = yValues,
+                    x = xTime
+                )
+            }
+        }
+    }
+
+    val lineColor = Color(0xffa485e0)
+
+    CartesianChartHost(
+        rememberCartesianChart(
+            rememberLineCartesianLayer(
+                LineCartesianLayer.LineProvider.series(
+                    LineCartesianLayer.Line(
+                        LineCartesianLayer.LineFill.single(
+                            fill(Color.Red)
+                        ),
+                        areaFill =
+                            LineCartesianLayer.AreaFill.single(
+                                fill(
+                                    Brush.verticalGradient(listOf(lineColor.copy(alpha = 0.4f), Color.Transparent))
+                                )
+                            ),
+                    )
+                ),
+                rangeProvider = remember { CartesianLayerRangeProvider.auto() } //RangeProvider
+            ),
+            startAxis = VerticalAxis.rememberStart(
+                valueFormatter = StartAxisValueFormatterRadiation
+            ),
+            bottomAxis = HorizontalAxis.rememberBottom(
+                valueFormatter =  BottomAxisValueFormatter
+            ),
+            marker = rememberMarker(MarkerValueFormatterRadiation),
+        ),
+        modelProducer = modelProducer,
+        scrollState = scrollState,
+        zoomState = zoomState,
+        modifier = modifier.height(234.dp),
+    )
+}
+
 
 
 @Composable

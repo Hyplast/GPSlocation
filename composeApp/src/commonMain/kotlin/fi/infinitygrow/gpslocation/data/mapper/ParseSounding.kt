@@ -12,8 +12,6 @@ data class Quadruple(
     val time: Long,
 )
 
-
-
 fun parseSounding(xmlString: String, fetchedFromLocation: Location): List<SoundingData> {
     return try {
         val xml = XML {
@@ -74,46 +72,6 @@ fun parseSounding(xmlString: String, fetchedFromLocation: Location): List<Soundi
                         chunk[4].toDouble()
                     )
                 }
-
-
-//            val splittedMeasurements = trimmedMeasurements.split(" ")
-//            println("splittedMeasurements size: ${splittedMeasurements.size}")
-//            val measurements = splittedMeasurements
-//                .chunked(5)
-//                .map { chunk ->
-//                    listOf(
-//                        chunk[0].toDouble(),
-//                        chunk[1].toDouble(),
-//                        chunk[2].toDouble(),
-//                        chunk[3].toDouble(),
-//                        chunk[4].toDouble(),
-//                    )
-//                }
-            //println("chunkedMeasurements size: ${chunkedMeasurements.size}")
-//            val measurements = chunkedMeasurements.map { chunk ->
-//                listOf(
-//                    chunk[0].toDouble(),
-//                    chunk[1].toDouble(),
-//                    chunk[2].toDouble(),
-//                    chunk[3].toDouble(),
-//                    chunk[4].toDouble(),
-//                )
-//            }
-            //println("measuremtns size: ${measurements.size}")
-
-//            val measurements = cleanString(observation.data[i].trajectoryObservation.result.multiPointCoverage.rangeSet.dataBlock.tupleList)
-//                .trim()
-//                .split(" ")
-//                .chunked(5)
-//                .map { chunk ->
-//                    listOf(
-//                        chunk[0].toDouble(),
-//                        chunk[1].toDouble(),
-//                        chunk[2].toDouble(),
-//                        chunk[3].toDouble(),
-//                        chunk[4].toDouble()
-//                    )
-//                }
 
            // println("Chunked to: $i")
             // Pair up each location with measurement data.

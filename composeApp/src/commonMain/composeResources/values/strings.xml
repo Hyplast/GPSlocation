@@ -20,9 +20,10 @@
     <string name="cloud_base">Cloud base: %1$s meters</string>">
     <string name="fl_65">Flight level 65 %1$s meters</string>
     <string name="fl_95">Flight level 95 %1$s meters</string>
+    <string name="thermal_height">Thermal height: %1$s meters</string>
 
 
-    <string name="one_or_all_neareast">Closest</string>
+    <string name="one_or_all_nearest">Closest</string>
     <string name="one_or_all_all">All</string>
     <string name="station_name">Name</string>">
     <string name="road_observations">RoadObs</string>">
@@ -34,6 +35,26 @@
     <string name="direction_plain">Direction</string>
     <string name="clouds_height">Cloudbase</string>
     <string name="flight_levels">Flight levels</string>
+    <string name="thermal_calculation">Thermal height</string>
+
+
+    <string name="surface">Surface</string>
+    <string name="Ground">Ground</string>
+    <string name="rh">RH</string>
+    <string name="air_road_temp">Air &amp; Road Temp</string>
+    <string name="wind_n_gust">Wind &amp; Gust</string>
+
+
+
+    <string name="radiation">Radiation</string>
+    <string name="sunshine">Sunshine</string>
+    <string name="direct">Direct</string>
+    <string name="diffuse">Diffuse</string>
+    <string name="long_wave">Long Wave</string>
+    <string name="global_radiation">Global Radiation</string>
+    <string name="no_valid_data_available">No valid %1$s data available</string>
+
+
 
     <string name="settings">Settings</string>
     <string name="back">Back</string>

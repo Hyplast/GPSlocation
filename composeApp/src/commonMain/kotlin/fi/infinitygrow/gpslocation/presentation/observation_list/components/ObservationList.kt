@@ -13,7 +13,6 @@ import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -22,9 +21,11 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.patrykandpatrick.vico.multiplatform.cartesian.AutoScrollCondition
 import com.patrykandpatrick.vico.multiplatform.cartesian.CartesianChartHost
 import com.patrykandpatrick.vico.multiplatform.cartesian.axis.HorizontalAxis
@@ -121,7 +122,7 @@ fun ObservationsRoadList(
         items(viewModel.getNewestRoadObservations(observations)) { observation ->
             //val isLongPressed2 = viewModel.longPressedItems.contains(observation)
             val isLongPressed = favorites.any { it.name.equals(observation.name, ignoreCase = true) }
-            val backgroundColor = if (isLongPressed) LeafGreenColor else Color.White
+            val backgroundColor = if (isLongPressed) LeafGreenColor else Color.LightGray
 
 //            println("RoadObservationData on card")
 //            println(observation)
@@ -170,7 +171,7 @@ fun RadiationList(
         items(viewModel.getNewestRadiationObservations(observations)) { observation ->
             //val isLongPressed2 = viewModel.longPressedItems.contains(observation)
             val isLongPressed = favorites.any { it.name.equals(observation.name, ignoreCase = true) }
-            val backgroundColor = if (isLongPressed) LeafGreenColor else Color.White
+            val backgroundColor = if (isLongPressed) LeafGreenColor else Color.LightGray
 
 //            println("Radiation on card")
 //            println(observation)
@@ -215,20 +216,33 @@ fun SoundingDataListScreen(modifier: Modifier, soundingDataList: List<SoundingDa
         LazyColumn(
             modifier = Modifier
                 .fillMaxWidth()
-                .background(if (isDarkTheme) Color.Black else Color.White),
-            //contentPadding = PaddingValues(16.dp),
-            //verticalArrangement = Arrangement.spacedBy(16.dp)
+                .background(if (isDarkTheme) Color.Black else Color.LightGray),
         ) {
-            items(soundingDataList.groupBy { it.name }.toList()) { (name, data) ->
+            items(soundingDataList.groupBy { it.name to it.timeOfSounding }.toList()) { (key, data) ->
+                val (name, time) = key
 
-                SkewTChart(
-                    soundingData = data,
+                Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(600.dp)
-                )
+                        .padding(16.dp)
+                ) {
+//                    Text(
+//                        text = "$name - $time",
+//                        style = TextStyle(fontSize = 16.sp, fontWeight = FontWeight.Bold, color = Color.Gray),
+//                        modifier = Modifier.padding(bottom = 8.dp)
+//                    )
+
+                    SkewTChart(
+                        soundingData = data,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(600.dp)
+                    )
+                    SoundingDataGraph(soundingDataList = data)
+                }
             }
         }
+
     }
 }
 

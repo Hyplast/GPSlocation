@@ -10,7 +10,6 @@ import fi.infinitygrow.gpslocation.domain.model.RadiationData
 import fi.infinitygrow.gpslocation.domain.model.RoadObservationData
 import fi.infinitygrow.gpslocation.domain.model.SoundingData
 import fi.infinitygrow.gpslocation.presentation.permission.Location
-import fi.infinitygrow.gpslocation.presentation.utils.BoundingBox
 import fi.infinitygrow.gpslocation.presentation.utils.getBoundingBox
 import io.ktor.client.HttpClient
 import io.ktor.client.request.get
