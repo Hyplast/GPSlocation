@@ -50,17 +50,25 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.patrykandpatrick.vico.multiplatform.cartesian.AutoScrollCondition
 import com.patrykandpatrick.vico.multiplatform.cartesian.CartesianChartHost
+import com.patrykandpatrick.vico.multiplatform.cartesian.CartesianDrawingContext
 import com.patrykandpatrick.vico.multiplatform.cartesian.CartesianMeasuringContext
 import com.patrykandpatrick.vico.multiplatform.cartesian.Scroll
 import com.patrykandpatrick.vico.multiplatform.cartesian.Zoom
 import com.patrykandpatrick.vico.multiplatform.cartesian.axis.Axis
 import com.patrykandpatrick.vico.multiplatform.cartesian.axis.HorizontalAxis
+import com.patrykandpatrick.vico.multiplatform.cartesian.axis.HorizontalAxis.Companion.rememberBottom
+import com.patrykandpatrick.vico.multiplatform.cartesian.axis.rememberAxisGuidelineComponent
+import com.patrykandpatrick.vico.multiplatform.cartesian.axis.rememberAxisLineComponent
+//import com.patrykandpatrick.vico.multiplatform.cartesian.axis.
 import com.patrykandpatrick.vico.multiplatform.cartesian.axis.VerticalAxis
+import com.patrykandpatrick.vico.multiplatform.cartesian.axis.rememberAxisLabelComponent
 import com.patrykandpatrick.vico.multiplatform.cartesian.data.CartesianChartModelProducer
 import com.patrykandpatrick.vico.multiplatform.cartesian.data.CartesianLayerRangeProvider
 import com.patrykandpatrick.vico.multiplatform.cartesian.data.CartesianValueFormatter
 import com.patrykandpatrick.vico.multiplatform.cartesian.data.ColumnCartesianLayerModel
 import com.patrykandpatrick.vico.multiplatform.cartesian.data.lineSeries
+import com.patrykandpatrick.vico.multiplatform.cartesian.decoration.Decoration
+import com.patrykandpatrick.vico.multiplatform.cartesian.decoration.HorizontalLine
 import com.patrykandpatrick.vico.multiplatform.cartesian.layer.ColumnCartesianLayer
 import com.patrykandpatrick.vico.multiplatform.cartesian.layer.LineCartesianLayer
 import com.patrykandpatrick.vico.multiplatform.cartesian.layer.rememberLine
@@ -69,11 +77,14 @@ import com.patrykandpatrick.vico.multiplatform.cartesian.marker.DefaultCartesian
 import com.patrykandpatrick.vico.multiplatform.cartesian.rememberCartesianChart
 import com.patrykandpatrick.vico.multiplatform.cartesian.rememberVicoScrollState
 import com.patrykandpatrick.vico.multiplatform.cartesian.rememberVicoZoomState
+import com.patrykandpatrick.vico.multiplatform.common.Position
 import com.patrykandpatrick.vico.multiplatform.common.component.LineComponent
+
 import com.patrykandpatrick.vico.multiplatform.common.component.rememberLineComponent
 import com.patrykandpatrick.vico.multiplatform.common.data.ExtraStore
 import com.patrykandpatrick.vico.multiplatform.common.fill
 import com.patrykandpatrick.vico.multiplatform.common.shape.CorneredShape
+import com.patrykandpatrick.vico.multiplatform.common.shape.Shape
 import com.patrykandpatrick.vico.multiplatform.common.vicoTheme
 import fi.infinitygrow.gpslocation.core.presentation.LeafGreenColor
 import fi.infinitygrow.gpslocation.domain.model.ObservationData
@@ -86,16 +97,21 @@ import fi.infinitygrow.gpslocation.presentation.utils.getWeatherDescriptionStrin
 import fi.infinitygrow.gpslocation.presentation.utils.rememberMarker
 import gpslocation.composeapp.generated.resources.Res
 import gpslocation.composeapp.generated.resources.baseline_lock_open_24
+import gpslocation.composeapp.generated.resources.humidity
 import gpslocation.composeapp.generated.resources.twotone_lock_24
+import gpslocation.composeapp.generated.resources.wind_n_gust
 import kotlinx.coroutines.delay
 import kotlinx.datetime.Instant
 import kotlinx.datetime.LocalTime
 import kotlinx.datetime.format.Padding
 import org.jetbrains.compose.resources.painterResource
+import org.jetbrains.compose.resources.stringResource
 import kotlin.math.abs
+import kotlin.math.atan
 import kotlin.math.ceil
 import kotlin.math.max
 import kotlin.math.min
+import kotlin.math.roundToInt
 
 
 /**
@@ -133,7 +149,7 @@ fun ObservationCard(
     // Toggle state for selecting which chart to display
     var selectedChartIndex by remember { mutableStateOf(0) }
     // You can substitute these labels with your own desired chart combinations.
-    val chartOptions = listOf("Temp & Dew", "Humidity", "Wind & Gust")
+    val chartOptions = listOf("Temp & Dew", stringResource(Res.string.humidity), stringResource(Res.string.wind_n_gust))
 
     val cardBackground = if (isLongPressed) LeafGreenColor else Color.LightGray
 
@@ -936,8 +952,6 @@ fun SkewTChart(
         val maxAltitude = truncatedData.maxOfOrNull { it.altitude }?.toFloat() ?: 0f
 
 
-
-
         // Temperature range
         val tempRange = maxTemp - minTemp
         // Altitude range
@@ -1154,37 +1168,6 @@ fun SkewTChart(
 }
 
 
-@Composable
-fun SoundingDataGraphCard99(modifier: Modifier = Modifier, soundingDataList: List<SoundingData>) {
-    val modelProducer = remember { CartesianChartModelProducer() }
-    LaunchedEffect(Unit) {
-        modelProducer.runTransaction {
-            // Learn more: https://patrykandpatrick.com/z5ah6v.
-            lineSeries { series(13, 8, 7, 12, 0, 1, 15, 14, 0, 11, 6, 12, 0, 11, 12, 11,13, 8, 7, 12, 0, 1, 15, 14, 0, 11, 6, 12, 0, 11, 12, 11,13, 8, 7, 12, 0, 1, 15, 14, 0, 11, 6, 12, 0, 11, 12, 11,13, 8, 7, 12, 0, 1, 15, 14, 0, 11, 6, 12, 0, 11, 12, 11) }
-        }
-    }
-    val fixedRangeProvider = CartesianLayerRangeProvider.fixed(
-        minX = 0.0,
-        maxX = 10.0,
-        minY = 0.0,
-        maxY = 20.0
-    )
-
-
-    CartesianChartHost(
-        chart =
-            rememberCartesianChart(
-                rememberLineCartesianLayer(
-                    rangeProvider = fixedRangeProvider // Apply fixed range provider here
-                ),
-                startAxis = VerticalAxis.rememberStart(),
-                bottomAxis = HorizontalAxis.rememberBottom(),
-            ),
-        modelProducer = modelProducer,
-        modifier = modifier,
-    )
-}
-
 
     private const val RANGE_PROVIDER_BASE = 0.1
 
@@ -1228,6 +1211,68 @@ fun SoundingDataGraphCard99(modifier: Modifier = Modifier, soundingDataList: Lis
     }
 
 
+/*
+// Your standard lapse rate (in K/m) that we want to convert into an angle.
+private const val lapseRate = 0.0065f
+
+// Compute the angle in degrees from the lapse rate.
+private val angleInDegrees: Float = toDegrees(atan(lapseRate.toDouble())).toFloat()
+
+// A custom decoration class for drawing an angled guideline.
+class AngledLineDecoration(
+    // The angle (in degrees) at which the guideline should be drawn.
+    private val angleDegrees: Float,
+    // A lambda that returns the y intercept (or any parameter you need)
+    private val yProvider: (ExtraStore) -> Double,
+    // The line component to style the guideline.
+    private val lineComponent: LineComponent
+) : Decoration {
+
+    override fun drawOverLayers(context: CartesianDrawingContext) {
+        // The drawing logic depends on your chart's canvas.
+        // Here we assume you have a DrawScope or similar provided by the context.
+        context.canvas?.let { canvas ->
+            // Save the current canvas state
+            canvas.save()
+
+            // Determine the pivot point for the rotation. For instance, you might use the center
+            // or any other point that makes sense for your chart.
+            val pivotX = context.chartArea.left + context.chartArea.width / 2
+            val pivotY = context.chartArea.top + context.chartArea.height / 2
+
+            // Rotate the canvas at the pivot by the desired angle.
+            canvas.rotate(angleDegrees, pivotX, pivotY)
+
+            // Determine the start and end points for your guideline.
+            // Here, we draw a horizontal line across the chart area in the rotated canvas.
+            val startX = context.chartArea.left.toFloat()
+            val endX = context.chartArea.right.toFloat()
+            val yPos = (yProvider(context.extraStore)).toFloat()
+
+            // Use the lineComponent to draw a stylized line. The actual drawing call may vary.
+            // For example:
+            lineComponent.draw(canvas, Offset(startX, yPos), Offset(endX, yPos))
+
+            // Restore canvas to its original state.
+            canvas.restore()
+        }
+    }
+}
+
+val angledDecoration = AngledLineDecoration(
+    angleDegrees = angleInDegrees,
+    yProvider = { extraStore ->
+        // For example, if you want the line to be at a specific altitude:
+        closestTo797?.altitude ?: truncatedData.first().altitude
+    },
+    lineComponent = rememberAxisGuidelineComponent() // Customize as needed
+)
+
+// Add the decoration to your chart:
+chart.setDecorations(listOf(angledDecoration))
+
+
+ */
 
 
 @Composable
@@ -1239,6 +1284,43 @@ fun SoundingDataGraph(modifier: Modifier = Modifier, soundingDataList: List<Soun
     val xTemp = truncatedData.map { it.temperature }
     val xDew = truncatedData.map { it.dewPoint }
     val yAlt = truncatedData.map { it.altitude }
+
+    // Find the altitude closest to 796.81 hPa
+    val closestTo797 = truncatedData.minByOrNull { abs(it.pressure - 796.81) }
+    val altitudeFor797 = closestTo797?.altitude ?: truncatedData[0].altitude
+
+    val closestTo710 = truncatedData.minByOrNull { abs(it.pressure - 710.44) }
+    val altitudeFor710 = closestTo710?.altitude ?: truncatedData[0].altitude
+
+    val minTemp = truncatedData.minOfOrNull { minOf(it.temperature, it.dewPoint) }?.toFloat()?.minus(5f) ?: 0f
+    val maxTemp = truncatedData.maxOfOrNull { maxOf(it.temperature, it.dewPoint) }?.toFloat()?.plus(5f) ?: 0f
+
+
+
+
+    val horizontalLine = HorizontalLine(
+        y = { altitudeFor797 },
+        line = rememberAxisGuidelineComponent(fill(Color.Cyan)),
+        // Optionally, you can specify a label component:
+        labelComponent = rememberAxisLabelComponent(),
+        // Customize the label text if needed:
+        label = { "Altitude: $altitudeFor797" },
+        horizontalLabelPosition = Position.Horizontal.End,
+        verticalLabelPosition = Position.Vertical.Top,
+        labelRotationDegrees = 0.0f
+    )
+    val horizontalLine2 = HorizontalLine(
+        y = { altitudeFor710 },
+        line = rememberAxisGuidelineComponent(fill(Color.Cyan)),
+        // Optionally, you can specify a label component:
+        labelComponent = rememberAxisLabelComponent(),
+        // Customize the label text if needed:
+        label = { "Altitude: $altitudeFor710" },
+        horizontalLabelPosition = Position.Horizontal.End,
+        verticalLabelPosition = Position.Vertical.Top,
+        labelRotationDegrees = 0.0f
+    )
+
 
     // Example altitude (Pa) and temperature (°C) values
 //    val pressures = y // hPa
@@ -1277,13 +1359,15 @@ fun SoundingDataGraph(modifier: Modifier = Modifier, soundingDataList: List<Soun
             lineSeries {
                 series(y = yAlt, x = xTemp)
                 series(y = yAlt, x = xDew)
+                //series(y = listOf(altitudeFor797, altitudeFor797), x = listOf(minTemp, maxTemp))
             }
         }
     }
 
     val lineColorRed = Color(0xffe32636)
     val lineColorBlue = Color(0xff0048ba)
-    val lineColors = listOf(lineColorRed, lineColorBlue)
+    val lineColorCyan = Color.Cyan
+    val lineColors = listOf(lineColorRed, lineColorBlue, lineColorCyan)
 
     CartesianChartHost(
         chart = rememberCartesianChart(
@@ -1291,13 +1375,20 @@ fun SoundingDataGraph(modifier: Modifier = Modifier, soundingDataList: List<Soun
                 lineProvider = LineCartesianLayer.LineProvider.series(
                     LineCartesianLayer.Line(LineCartesianLayer.LineFill.single(fill(lineColorRed))),
                     LineCartesianLayer.Line(LineCartesianLayer.LineFill.single(fill(lineColorBlue))),
+                    //LineCartesianLayer.Line(LineCartesianLayer.LineFill.single(fill(lineColorCyan))),
                 ),
                 rangeProvider = remember { CartesianLayerRangeProvider.auto() }
             ),
+            decorations = remember { listOf(horizontalLine, horizontalLine2) }, // Add threshold line
             startAxis = VerticalAxis.rememberStart(
                 valueFormatter = StartAxisValueFormatterAltitude
             ),
-            bottomAxis = HorizontalAxis.rememberBottom(),
+            bottomAxis = rememberBottom(
+                valueFormatter = { _, value, _ ->
+                    // Use roundToInt() if you'd like to round, or toInt() to truncate.
+                    value.roundToInt().toString()
+                }
+            ),
             marker = rememberMarker(MarkerValueFormatterAltitude),
             //fadingEdges = null,
         ),
@@ -1352,6 +1443,8 @@ fun WindGustChart(modifier: Modifier = Modifier, roadDataList: List<RoadObservat
 
     val zoomState = rememberVicoZoomState(
         zoomEnabled = true,  // Enable zooming for better user experience
+        minZoom = Zoom.Content,
+        maxZoom = Zoom.Content,
     )
 
     LaunchedEffect(Unit) {
@@ -1387,7 +1480,9 @@ fun WindGustChart(modifier: Modifier = Modifier, roadDataList: List<RoadObservat
 
 
                 ),
-                rangeProvider = remember { CartesianLayerRangeProvider.auto() } //RangeProvider
+                rangeProvider = remember {
+                    CartesianLayerRangeProvider.auto()
+                } //RangeProvider
             ),
             startAxis = VerticalAxis.rememberStart(
                 valueFormatter = StartAxisValueFormatterWind
@@ -1435,6 +1530,8 @@ fun RoadObservationDataGraph(modifier: Modifier = Modifier, roadDataList: List<R
 
     val zoomState = rememberVicoZoomState(
         zoomEnabled = true,  // Enable zooming for better user experience
+        minZoom = Zoom.Content,
+        maxZoom = Zoom.Content,
     )
 
     LaunchedEffect(Unit) {
@@ -1515,7 +1612,9 @@ fun RadiationDataGraph(modifier: Modifier = Modifier, radiationDataList: List<Ra
     )
 
     val zoomState = rememberVicoZoomState(
-        zoomEnabled = true  // Enable zooming for better user experience
+        zoomEnabled = true,  // Enable zooming for better user experience
+        minZoom = Zoom.Content,
+        maxZoom = Zoom.Content,
     )
 
     LaunchedEffect(Unit) {
@@ -1567,72 +1666,6 @@ fun RadiationDataGraph(modifier: Modifier = Modifier, radiationDataList: List<Ra
 
 
 
-@Composable
-fun SoundingDataGraphCard11(modifier: Modifier = Modifier, soundingDataList: List<SoundingData>) {
-    val modelProducer = remember { CartesianChartModelProducer() }
-    val maxPoints = 200
-    val truncatedData = soundingDataList.take(maxPoints)
-
-    val y = truncatedData.map { it.temperature }
-    val x = truncatedData.map { it.altitude }
-
-
-    // Create a scroll state with auto-scrolling disabled
-    val scrollState = rememberVicoScrollState(
-        scrollEnabled = false,
-        autoScrollCondition = AutoScrollCondition.Never
-    )
-
-    // Create a zoom state with zooming disabled
-    val zoomState = rememberVicoZoomState(
-        zoomEnabled = false
-    )
-
-    println(x)
-    println(y)
-
-    LaunchedEffect(Unit) {
-        modelProducer.runTransaction {
-            // Learn more: https://patrykandpatrick.com/3aqy4o.
-            //columnSeries { series(y) }
-            // Learn more: https://patrykandpatrick.com/z5ah6v.
-            lineSeries { series(y,x) }
-        }
-    }
-
-    CartesianChartHost(
-        rememberCartesianChart(
-//            rememberColumnCartesianLayer(
-//                ColumnCartesianLayer.ColumnProvider.series(
-//                    rememberLineComponent(fill = fill(Color(0xffffc002)), thickness = 16.dp)
-//                )
-//            ),
-            rememberLineCartesianLayer(
-                LineCartesianLayer.LineProvider.series(
-                    LineCartesianLayer.Line(
-                        LineCartesianLayer.LineFill.single(
-                            fill(Color(0xffee2b2b)),
-                        )
-                    )
-                ),
-                rangeProvider = remember { CartesianLayerRangeProvider.fixed() }
-            ),
-            // Configure the start axis with your custom formatter
-            startAxis = VerticalAxis.rememberStart(
-                valueFormatter = StartAxisValueFormatter,
-                label = null
-            ),
-            bottomAxis = HorizontalAxis.rememberBottom(
-            ),
-            // Set fadingEdges to null to remove the fading effect at the edges
-            fadingEdges = null
-        ),
-        modelProducer = modelProducer,
-        scrollState = scrollState,
-        zoomState = zoomState,
-        modifier = modifier.height(634.dp),
-    )
-}
 
 @Composable
 fun SoundingDataGraphCard2(modifier: Modifier,
@@ -1703,959 +1736,3 @@ fun SoundingDataGraphCard2(modifier: Modifier,
         scrollState = rememberVicoScrollState(initialScroll = Scroll.Absolute.End),
     )
 }
-    // Create and host the chart.
-//    CartesianChartHost(
-//        chart = rememberCartesianChart(
-//            // Create a line layer. This will plot points connected by lines.
-//            // If you want to only display points, adjust the configuration accordingly.
-//            rememberLineCartesianLayer(
-//                // The default configuration of the line layer can be extended with
-//                // custom line and point visuals.
-//            ),
-//            // Use the vertical axis for altitude.
-//            startAxis = VerticalAxis.rememberStart(
-//                valueFormatter = { value, context,_ -> value.toString() }
-//            ),
-//            // Use the horizontal axis for temperature.
-//            bottomAxis = HorizontalAxis.rememberBottom(
-//                valueFormatter = { value, context,_ -> value.toString() }
-//            )
-//        ),
-//        modelProducer = chartModelProducer,
-//        modifier = Modifier.height(234.dp)
-//    )
-
-    //    LaunchedEffect(soundingDataList) {
-//        // Prepare pressure data
-//        pressureModelProducer.runTransaction {
-//            lineSeries {
-//                series(
-//                    soundingDataList.take(20).mapIndexed { index, data ->
-//                        data.pressure.toFloat()
-//                    }
-//                )
-//            }
-//        }
-//
-//        // Temperature
-//        temperatureModelProducer.runTransaction {
-//            lineSeries {
-//                series(
-//                    xValues = xValues,
-//                    yValues = truncatedData.map { it.temperature.toFloat() }
-//                )
-//            }
-//        }
-//
-//        // Prepare wind speed data
-//        windSpeedModelProducer.runTransaction {
-//            lineSeries {
-//                series(
-//                    soundingDataList.take(20).mapIndexed { index, data ->
-//                        data.windSpeed.toFloat()
-//                    }
-//                )
-//            }
-//        }
-//    }
-//
-//    Column(
-//        modifier = Modifier
-//            .fillMaxWidth()
-//            .background(MaterialTheme.colorScheme.surfaceVariant)
-//            .padding(16.dp)
-//    ) {
-//        Row(
-//            modifier = Modifier.fillMaxWidth(),
-//            horizontalArrangement = Arrangement.SpaceBetween,
-//            verticalAlignment = Alignment.CenterVertically
-//        ) {
-//            Text(
-//                text = name.split(" ", "-", "_", "/").take(3).joinToString(" "),
-//                fontSize = 20.sp,
-//                fontWeight = FontWeight.Bold
-//            )
-//        }
-//
-//        Spacer(modifier = Modifier.height(8.dp))
-//
-//        // Pressure Chart
-//        Text(
-//            text = "Pressure",
-//            fontSize = 16.sp,
-//            fontWeight = FontWeight.Bold,
-//            modifier = Modifier.padding(bottom = 4.dp)
-//        )
-//
-//        val pressureLine = LineCartesianLayer.LineSpec(
-//            LineCartesianLayer.LineStyle(
-//                thicknessDp = 2f,
-//                color = MaterialTheme.colorScheme.primary,
-//            ),
-//            pointSizeDp = 6f,
-//            pointColor = MaterialTheme.colorScheme.primary
-//        )
-//        val pressurePointComponent = rememberShapeComponent(
-//            shape = Shape.Rectangle,// pillShape,
-//            fill = Fill.Black,
-//            strokeThickness = 8.dp
-//        )
-//
-//        CartesianChartHost(
-//            chart = rememberCartesianChart(
-//                rememberLineCartesianLayer(
-//                    lines = listOf(
-//                        LineCartesianLayer.LineSpec(
-//                            line = pressureLine,
-//                            pointComponent = pressurePointComponent
-//                        )
-//                    )
-//                ),
-//                startAxis = VerticalAxis.rememberStart(),
-//                bottomAxis = HorizontalAxis.rememberBottom(
-//                    itemCount = 4,
-//                    valueFormatter = { value, _ -> value.toInt().toString() }
-//                )
-//            ),
-//            modelProducer = pressureModelProducer,
-//            modifier = Modifier
-//                .fillMaxWidth()
-//                .height(150.dp)
-//        )
-//
-//        Spacer(modifier = Modifier.height(8.dp))
-//
-//        // Temperature Chart
-//        androidx.compose.material3.Text(
-//            text = "Temperature",
-//            fontSize = 16.sp,
-//            fontWeight = FontWeight.Bold,
-//            modifier = Modifier.padding(bottom = 4.dp)
-//        )
-//
-//        val temperatureLine = rememberLineComponent(
-//            fill = Fill.Black,
-//            thickness = 2.dp
-//        )
-//        val temperaturePointComponent = rememberShapeComponent(
-//            shape = Shape.Rectangle,
-//            fill = Fill.Black,
-//            strokeThickness = 8.dp
-//        )
-//
-//        CartesianChartHost(
-//            chart = rememberCartesianChart(
-//                rememberLineCartesianLayer(
-//                    lines = listOf(
-//                        LineCartesianLayer.LineSpec(
-//                            line = temperatureLine,
-//                            pointComponent = temperaturePointComponent
-//                        )
-//                    )
-//                ),
-//                startAxis = VerticalAxis.rememberStart(),
-//                bottomAxis = HorizontalAxis.rememberBottom(
-//                    itemCount = 4,
-//                    valueFormatter = { value, _ -> value.toInt().toString() }
-//                )
-//            ),
-//            modelProducer = temperatureModelProducer,
-//            modifier = Modifier
-//                .fillMaxWidth()
-//                .height(150.dp)
-//        )
-//
-//        Spacer(modifier = Modifier.height(8.dp))
-//
-//        // Wind Speed Chart
-//        androidx.compose.material3.Text(
-//            text = "Wind Speed",
-//            fontSize = 16.sp,
-//            fontWeight = FontWeight.Bold,
-//            modifier = Modifier.padding(bottom = 4.dp)
-//        )
-//
-//        val windSpeedLine = rememberLineComponent(
-//            color = Color.Green,
-//            thickness = 2.dp
-//        )
-//        val windSpeedPointComponent = rememberShapeComponent(
-//            shape = Shapes.pillShape,
-//            color = Color.Green,
-//            size = 8.dp
-//        )
-//
-//        CartesianChartHost(
-//            chart = rememberCartesianChart(
-//                rememberLineCartesianLayer(
-//                    lines = listOf(
-//                        LineCartesianLayer.LineSpec(
-//                            line = windSpeedLine,
-//                            pointComponent = windSpeedPointComponent
-//                        )
-//                    )
-//                ),
-//                startAxis = VerticalAxis.rememberStart(),
-//                bottomAxis = HorizontalAxis.rememberBottom(
-//                    itemCount = 4,
-//                    valueFormatter = { value, _ -> value.toInt().toString() }
-//                )
-//            ),
-//            modelProducer = windSpeedModelProducer,
-//            modifier = Modifier
-//                .fillMaxWidth()
-//                .height(150.dp)
-//        )
-//    }
-//}
-
-
-/*
-@Composable
-fun SoundingDataGraphCard(soundingDataList: List<SoundingData>, name: String) {
-    val pressureEntries = remember(soundingDataList) {
-        ChartEntryModelProducer(soundingDataList.take(20).mapIndexed { index, data ->
-            FloatEntry(index.toFloat(), data.pressure.toFloat())
-        })
-    }
-    val temperatureEntries = remember(soundingDataList) {
-        ChartEntryModelProducer(soundingDataList.take(20).mapIndexed { index, data ->
-            FloatEntry(index.toFloat(), data.temperature.toFloat())
-        })
-    }
-    val windSpeedEntries = remember(soundingDataList) {
-        ChartEntryModelProducer(soundingDataList.take(20).mapIndexed { index, data ->
-            FloatEntry(index.toFloat(), data.windSpeed.toFloat())
-        })
-    }
-
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .background(MaterialTheme.colorScheme.surfaceVariant)
-            .padding(16.dp)
-    ) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Text(
-                text = name.split(" ", "-", "_", "/").take(3).joinToString(" "),
-                fontSize = 20.sp,
-                fontWeight = FontWeight.Bold
-            )
-
-        }
-        Spacer(modifier = Modifier.height(8.dp))
-        // Pressure Chart
-        Text(
-            text = "Pressure",
-            fontSize = 16.sp,
-            fontWeight = FontWeight.Bold,
-            modifier = Modifier.padding(bottom = 4.dp)
-        )
-        Chart(
-            chart = lineChart(
-                lines = listOf(lineSpec(lineColor = MaterialTheme.colorScheme.primary))
-            ),
-            chartModelProducer = pressureEntries,
-            startAxis = rememberStartAxis(),
-            bottomAxis = rememberBottomAxis(itemPlacer = AxisItemPlacer.Vertical.count(count = 4)),
-
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(150.dp)
-        )
-        Spacer(modifier = Modifier.height(8.dp))
-        // Temperature Chart
-        Text(
-            text = "Temperature",
-            fontSize = 16.sp,
-            fontWeight = FontWeight.Bold,
-            modifier = Modifier.padding(bottom = 4.dp)
-        )
-        Chart(
-            chart = lineChart(
-                lines = listOf(lineSpec(lineColor = MaterialTheme.colorScheme.secondary))
-            ),
-            chartModelProducer = temperatureEntries,
-            startAxis = rememberStartAxis(),
-            bottomAxis = rememberBottomAxis(itemPlacer = AxisItemPlacer.Vertical.count(count = 4)),
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(150.dp)
-        )
-        Spacer(modifier = Modifier.height(8.dp))
-        // WindSpeed Chart
-        Text(
-            text = "Wind Speed",
-            fontSize = 16.sp,
-            fontWeight = FontWeight.Bold,
-            modifier = Modifier.padding(bottom = 4.dp)
-        )
-        Chart(
-            chart = lineChart(
-                lines = listOf(lineSpec(lineColor = Color.Green))
-            ),
-            chartModelProducer = windSpeedEntries,
-            startAxis = rememberStartAxis(),
-            bottomAxis = rememberBottomAxis(itemPlacer = AxisItemPlacer.Vertical.count(count = 4)),
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(150.dp)
-        )
-    }
-}
-
- */
-
-/*
-@OptIn(ExperimentalFoundationApi::class)
-@Composable
-fun ObservationCard3(
-    observation: ObservationData,
-    observationsList: List<ObservationData>,
-    isLongPressed: Boolean,
-    onShortPress: () -> Unit,
-    onLongPress: () -> Unit
-) {
-    var showChart by remember { mutableStateOf(false) }
-
-    val cardBackground = if (isLongPressed) LeafGreenColor else Color.LightGray
-    // First, get the current observation name
-    val currentStationName = observation.name
-
-    // Get all matching wind data
-    val matchingWindData = remember(observationsList, currentStationName) {
-        getMatchingWindData(observationsList, currentStationName)
-    }
-
-    // Prepare data for chart (convert ObservationData to your chart-compatible format)
-    val chartObservations = remember(observationsList, currentStationName) {
-        observationsList
-            .filter { it.name == currentStationName }
-            .mapNotNull { observationData ->
-                // Convert ObservationData to WeatherObservation
-                // You'll need to adjust this based on your exact ObservationData structure
-                WeatherObservation(
-                    timestamp = observationData.unixTime,
-                    temperature = observationData.temperature.toFloat(),
-                    dewPoint = observationData.dewPoint.toFloat(),
-                    humidity = observationData.humidity.toFloat(),
-                    pressure = observationData.pressure.toFloat(),
-                    windSpeed = observationData.windSpeed.toFloat(),
-                    windGust = observationData.windGust.toFloat(),
-                    rainIntensity = observationData.precipitationIntensity.toFloat(),
-                )
-            }
-    }
-
-    Box(modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp)) {
-        Card(
-            modifier = Modifier
-                .fillMaxWidth()
-                .combinedClickable(
-                    onClick = {
-                        showChart = !showChart
-                        onShortPress()
-                    },
-                    onLongClick = onLongPress
-                ),
-            colors = CardDefaults.cardColors(containerColor = cardBackground),
-            shape = RoundedCornerShape(12.dp),
-            elevation = CardDefaults.cardElevation(defaultElevation = 6.dp)
-        ) {
-            Column(
-                modifier = Modifier
-                    .padding(16.dp)
-            ) {
-
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.Center
-                    ) {
-                        Box(
-                            modifier = Modifier.weight(1f)
-                            /*.border(1.dp, Color.Gray)*/,
-                            contentAlignment = Alignment.Center,
-                        ) {
-                            Text(
-                                text = observation.unixTime.convertUnixTimeToHHMM(),
-                                fontSize = 16.sp
-                            )
-                        }
-                        Box(
-                            modifier = Modifier.weight(1f)
-                            /*.border(1.dp, Color.Gray)*/,
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically // Add this line
-                            )  {
-                                Text(
-                                    text = observation.name.split(" ", "-", "_", "/")
-                                        .take(2)
-                                        .joinToString(" "),
-                                    fontSize = 20.sp
-                                )
-                            }
-                        }
-                        Box(
-                            modifier = Modifier.weight(1f)
-                            /*.border(1.dp, Color.Gray)*/,
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Text(
-                                text = observation.temperature.takeIf { it.isFinite() }?.let { "${formatValue(it.toFloat())} °C" } ?: ""
-                            )
-                        }
-                    }
-                    Spacer(modifier = Modifier.height(8.dp))
-
-                    Row(
-                        modifier = Modifier.fillMaxWidth()
-                        /*.border(1.dp, Color.Blue)*/,
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.Center
-                    )  {
-                        Box(
-                            modifier = Modifier.weight(1f)
-                            /*.border(1.dp, Color.Gray)*/,
-                            contentAlignment = Alignment.Center
-                        ) {
-                            observation.presentWeather.takeIf { it.isFinite() }?.let { weatherVal ->
-                                val (description, iconRes) = getWeatherDescription(weatherVal.toInt())
-
-                                if (iconRes != null) {
-                                    // If we have an icon, show it with click functionality to reveal text
-                                    var showDescription by remember { mutableStateOf(false) }
-
-                                    Column(
-                                        horizontalAlignment = Alignment.CenterHorizontally
-                                    ) {
-                                        Image(
-                                            painter = painterResource(iconRes),
-                                            contentDescription = description,
-                                            modifier = Modifier
-                                                .size(48.dp)
-                                                .clickable { showDescription = !showDescription }
-                                        )
-
-                                        // Show description text only when the image is clicked
-                                        AnimatedVisibility(
-                                            visible = showDescription,
-                                            enter = fadeIn() + expandVertically(),
-                                            exit = fadeOut() + shrinkVertically()
-                                        ) {
-                                            Text(
-                                                text = description,
-                                                style = MaterialTheme.typography.bodyMedium,
-                                                textAlign = TextAlign.Center,
-                                                modifier = Modifier.padding(top = 4.dp)
-                                            )
-                                        }
-                                    }
-                                } else {
-                                    // If no icon is available, just show the description text
-                                    Text(
-                                        text = description,
-                                        style = MaterialTheme.typography.bodyMedium
-                                    )
-                                }
-                            }
-                        }
-                        Box(
-                            modifier = Modifier.weight(1f)
-                            /*.border(1.dp, Color.Gray)*/,
-                            contentAlignment = Alignment.Center
-                        ) {
-                            if (
-                                !observation.windDirection.isNaN() &&
-                                !observation.windSpeed.isNaN() &&
-                                !observation.windGust.isNaN()
-                            ) {
-                                // Remember animation state
-                                var isAnimating by remember { mutableStateOf(false) }
-
-                                // Remember current data set index
-                                var currentDataIndex by remember { mutableStateOf(0) }
-
-                                // Get current parameters - either from animation or default
-                                val (bearing, speed, gust) = if (isAnimating && matchingWindData.size > currentDataIndex) {
-                                    matchingWindData[currentDataIndex]
-                                } else {
-                                    Triple(observation.windDirection, observation.windSpeed, observation.windGust)
-                                }
-                                //println("doing som")
-                                //println(matchingWindData)
-                                // Create effect to handle animation
-                                LaunchedEffect(isAnimating) {
-                                    //println("IsANimatin")
-                                    if (isAnimating && matchingWindData.size > 1) {
-                                        // Cycle through all matching data over 3 seconds
-                                        val delayPerSet = 3000L / matchingWindData.size.coerceAtMost(6)
-
-                                        for (i in matchingWindData.indices.take(6)) {
-                                            currentDataIndex = i
-                                            delay(delayPerSet)
-                                        }
-
-                                        // Reset after animation completes
-                                        isAnimating = false
-                                        currentDataIndex = 0
-                                    }
-                                }
-
-                                Box(
-                                    modifier = Modifier
-                                        .clickable {
-                                            if (matchingWindData.size > 1) {
-                                                isAnimating = true
-                                            } else {
-
-                                            }
-                                        }
-                                ) {
-
-                                    // Render the compass with current parameters and click handler
-                                    CompassArrow(
-                                        bearing = bearing,
-                                        speed = speed,
-                                        gust = gust
-                                    )
-                                }
-
-
-//                            // The CompassArrow composable can be customized as needed.
-//                            CompassArrow(
-//                                bearing = observation.windDirection,
-//                                speed = observation.windSpeed,
-//                                gust = observation.windGust
-//                            )
-                            }
-                        }
-                        Box(
-                            modifier = Modifier.weight(1f),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Column {
-                                observation.pressure.takeIf { it.isFinite() && it != 0.0 }?.let {
-                                    Text(text = "$it hPa")
-                                }
-                                observation.cloudAmount.takeIf { it.isFinite() && it != 0.0 }?.let {
-                                    Text(text = "${it.toInt()}/8 pilvisyys")
-                                }
-                                observation.precipitationIntensity.takeIf { it.isFinite() && it != 0.0 }?.let {
-                                    Text(text = "$it mm/10min")
-                                }
-                                observation.snowDepth.takeIf { it.isFinite() && it != 0.0 }?.let {
-                                    Text(text = "${it.toInt()} cm lunta")
-                                }
-
-                            }
-                        }
-                    }
-
-                // Conditionally show chart when showChart is true
-                AnimatedVisibility(visible = showChart) {
-                    Column {
-                        HorizontalDivider(
-                            modifier = Modifier
-                                .padding(vertical = 8.dp)
-                                .fillMaxWidth(),
-                            color = Color.Gray.copy(alpha = 0.3f)
-                        )
-
-                        // Temperature Chart
-                        WeatherChart2(
-                            observations1 = chartObservations,
-                            observations2 = chartObservations,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(200.dp),
-                            dataType1 = WeatherDataType.TEMPERATURE,
-                            dataType2 = WeatherDataType.DEW_POINT
-                        )
-
-                        // Humidity Chart
-//                        WeatherChart(
-//                            observations = chartObservations,
-//                            modifier = Modifier
-//                                .fillMaxWidth()
-//                                .height(200.dp),
-//                            dataType = WeatherDataType.HUMIDITY
-//                        )
-                    }
-                }
-            }
-        }
-    }
-}
-
- */
-
-/*
-@OptIn(ExperimentalFoundationApi::class)
-@Composable
-fun ObservationCard(
-    observation: ObservationData,
-    observationsList: List<ObservationData>,
-    isLongPressed: Boolean,
-    onShortPress: () -> Unit,
-    onLongPress: () -> Unit
-) {
-    val cardBackground = if (isLongPressed) LeafGreenColor else Color.LightGray
-    // First, get the current observation name
-    val currentStationName = observation.name
-
-    // Get all matching wind data
-    val matchingWindData = remember(observationsList, currentStationName) {
-        getMatchingWindData(observationsList, currentStationName)
-    }
-
-    Box(modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp)) {
-        Card(
-            modifier = Modifier
-                .fillMaxWidth()
-                .combinedClickable(
-                    onClick = onShortPress,
-                    onLongClick = onLongPress
-                ),
-            colors = CardDefaults.cardColors(containerColor = cardBackground),
-            shape = RoundedCornerShape(12.dp),
-            elevation = CardDefaults.cardElevation(defaultElevation = 6.dp)
-        ) {
-            Column(
-                modifier = Modifier
-                    .padding(16.dp)
-            ) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.Center
-                ) {
-                    Box(
-                        modifier = Modifier.weight(1f)
-                            /*.border(1.dp, Color.Gray)*/,
-                        contentAlignment = Alignment.Center,
-                    ) {
-                        Text(
-                            text = observation.unixTime.convertUnixTimeToHHMM(),
-                            fontSize = 16.sp
-                        )
-                    }
-                    Box(
-                        modifier = Modifier.weight(1f)
-                            /*.border(1.dp, Color.Gray)*/,
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically // Add this line
-                        )  {
-                            Text(
-                                text = observation.name.split(" ", "-", "_", "/")
-                                    .take(2)
-                                    .joinToString(" "),
-                                fontSize = 20.sp
-                            )
-                        }
-                    }
-                    Box(
-                        modifier = Modifier.weight(1f)
-                            /*.border(1.dp, Color.Gray)*/,
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text(
-                            text = observation.temperature.takeIf { it.isFinite() }?.let { "${formatValue(it.toFloat())} °C" } ?: ""
-                        )
-                    }
-                }
-                Spacer(modifier = Modifier.height(8.dp))
-
-                Row(
-                    modifier = Modifier.fillMaxWidth()
-                        /*.border(1.dp, Color.Blue)*/,
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.Center
-                )  {
-                    Box(
-                        modifier = Modifier.weight(1f)
-                            /*.border(1.dp, Color.Gray)*/,
-                        contentAlignment = Alignment.Center
-                    ) {
-                            observation.presentWeather.takeIf { it.isFinite() }?.let { weatherVal ->
-                                val (description, iconRes) = getWeatherDescription(weatherVal.toInt())
-
-                                if (iconRes != null) {
-                                    // If we have an icon, show it with click functionality to reveal text
-                                    var showDescription by remember { mutableStateOf(false) }
-
-                                    Column(
-                                        horizontalAlignment = Alignment.CenterHorizontally
-                                    ) {
-                                        Image(
-                                            painter = painterResource(iconRes),
-                                            contentDescription = description,
-                                            modifier = Modifier
-                                                .size(48.dp)
-                                                .clickable { showDescription = !showDescription }
-                                        )
-
-                                        // Show description text only when the image is clicked
-                                        AnimatedVisibility(
-                                            visible = showDescription,
-                                            enter = fadeIn() + expandVertically(),
-                                            exit = fadeOut() + shrinkVertically()
-                                        ) {
-                                            Text(
-                                                text = description,
-                                                style = MaterialTheme.typography.bodyMedium,
-                                                textAlign = TextAlign.Center,
-                                                modifier = Modifier.padding(top = 4.dp)
-                                            )
-                                        }
-                                    }
-                                } else {
-                                    // If no icon is available, just show the description text
-                                    Text(
-                                        text = description,
-                                        style = MaterialTheme.typography.bodyMedium
-                                    )
-                                }
-                            }
-                    }
-                    Box(
-                        modifier = Modifier.weight(1f)
-                            /*.border(1.dp, Color.Gray)*/,
-                        contentAlignment = Alignment.Center
-                    ) {
-                        if (
-                            !observation.windDirection.isNaN() &&
-                            !observation.windSpeed.isNaN() &&
-                            !observation.windGust.isNaN()
-                        ) {
-                            // Remember animation state
-                            var isAnimating by remember { mutableStateOf(false) }
-
-                            // Remember current data set index
-                            var currentDataIndex by remember { mutableStateOf(0) }
-
-                            // Get current parameters - either from animation or default
-                            val (bearing, speed, gust) = if (isAnimating && matchingWindData.size > currentDataIndex) {
-                                matchingWindData[currentDataIndex]
-                            } else {
-                                Triple(observation.windDirection, observation.windSpeed, observation.windGust)
-                            }
-                            //println("doing som")
-                            //println(matchingWindData)
-                            // Create effect to handle animation
-                            LaunchedEffect(isAnimating) {
-                                //println("IsANimatin")
-                                if (isAnimating && matchingWindData.size > 1) {
-                                    // Cycle through all matching data over 3 seconds
-                                    val delayPerSet = 3000L / matchingWindData.size.coerceAtMost(6)
-
-                                    for (i in matchingWindData.indices.take(6)) {
-                                        currentDataIndex = i
-                                        delay(delayPerSet)
-                                    }
-
-                                    // Reset after animation completes
-                                    isAnimating = false
-                                    currentDataIndex = 0
-                                }
-                            }
-
-                            Box(
-                                modifier = Modifier
-                                    .clickable {
-                                        if (matchingWindData.size > 1) {
-                                            isAnimating = true
-                                        } else {
-
-                                        }
-                                    }
-                            ) {
-
-                                // Render the compass with current parameters and click handler
-                                CompassArrow(
-                                    bearing = bearing,
-                                    speed = speed,
-                                    gust = gust
-                                )
-                            }
-
-
-//                            // The CompassArrow composable can be customized as needed.
-//                            CompassArrow(
-//                                bearing = observation.windDirection,
-//                                speed = observation.windSpeed,
-//                                gust = observation.windGust
-//                            )
-                        }
-                    }
-                    Box(
-                        modifier = Modifier.weight(1f),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Column {
-                            observation.pressure.takeIf { it.isFinite() && it != 0.0 }?.let {
-                                Text(text = "$it hPa")
-                            }
-                            observation.cloudAmount.takeIf { it.isFinite() && it != 0.0 }?.let {
-                                Text(text = "${it.toInt()}/8 pilvisyys")
-                            }
-                            observation.precipitationIntensity.takeIf { it.isFinite() && it != 0.0 }?.let {
-                                Text(text = "$it mm/10min")
-                            }
-                            observation.snowDepth.takeIf { it.isFinite() && it != 0.0 }?.let {
-                                Text(text = "${it.toInt()} cm lunta")
-                            }
-
-                        }
-                    }
-                }
-            }
-        }
-        // Overlay a lock icon at the top-end corner of the card.
-        Icon(
-            modifier = Modifier
-                .align(Alignment.TopEnd)
-                .size(36.dp)
-                .padding(8.dp),
-            painter = if (isLongPressed)
-                painterResource(Res.drawable.twotone_lock_24)
-            else
-                painterResource(Res.drawable.baseline_lock_open_24),
-            contentDescription = if (isLongPressed) "Locked" else "Unlocked"
-        )
-}}
-
- */
-
-/*
-
-
-@OptIn(ExperimentalFoundationApi::class)
-@Composable
-fun ObservationCard2(
-    observation: ObservationData,
-    isLongPressed: Boolean,
-    onShortPress: () -> Unit,
-    onLongPress: () -> Unit
-) {
-    // Calculate the background color based on the long press state.
-    val backgroundColor = if (isLongPressed) LeafGreenColor else Color.White
-
-    // Build the valid rows of data. Each row is a list of texts.
-    val validRows = listOf(
-        listOfNotNull(
-            observation.name.takeIf { it.isNotBlank() },
-            observation.temperature.takeIf { it.isFinite() }
-                ?.let { formatValue(it.toFloat()) + " °C" },
-            observation.unixTime.convertUnixTimeToHHMM()
-        ),
-        listOfNotNull(
-            observation.windSpeed.takeIf { it.isFinite() }?.let { "$it m/s" },
-            observation.windGust.takeIf { it.isFinite() }?.let { "$it m/s" },
-            observation.windDirection.takeIf { it.isFinite() }
-                ?.let { "${it.toInt()} °" }
-        ),
-        listOfNotNull(
-            observation.precipitationAmount.takeIf { it.isFinite() }?.let { "$it mm/1h" },
-            observation.precipitationIntensity.takeIf { it.isFinite() }?.let { "$it mm/10min" },
-            observation.snowDepth.takeIf { it.isFinite() }?.let { "${it.toInt()} cm" }
-        ),
-        listOfNotNull(
-            observation.pressure.takeIf { it.isFinite() }?.let { "$it hPa" },
-            observation.cloudAmount.takeIf { it.isFinite() }?.let { "${it.toInt()}/8" },
-            observation.presentWeather.takeIf { it.isFinite() }?.let {
-                val revice = getWeatherDescription(it.toInt())
-                revice.first
-            }
-        )
-    ).filter { it.isNotEmpty() }
-
-    // Only create a Card if we have data to show.
-    if (validRows.isNotEmpty()) {
-
-        Box {
-
-
-        Card(
-            modifier = Modifier
-                .padding(horizontal = 12.dp, vertical = 8.dp)
-                .fillMaxWidth()
-                .background(backgroundColor, shape = RoundedCornerShape(8.dp))
-                .combinedClickable(
-                    onClick = onShortPress,
-                    onLongClick = onLongPress
-                ),
-            elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
-        ) {
-            Column(
-                modifier = Modifier.padding(16.dp),
-                horizontalAlignment = Alignment.Start
-            ) {
-                validRows.forEach { row ->
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween
-                    ) {
-                        row.forEach { text ->
-                            Text(
-                                text = text,
-                                fontSize = 16.sp,
-                                modifier = Modifier.weight(1f)
-                            )
-                        }
-                    }
-                }
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    // Only display the CompassArrow if none of the required values is NaN.
-                    if (
-                        !observation.windDirection.isNaN() &&
-                        !observation.windSpeed.isNaN() &&
-                        !observation.windGust.isNaN()
-                    ) {
-                        CompassArrow(
-                            bearing = observation.windDirection,
-                            speed = observation.windSpeed,
-                            gust = observation.windGust
-                        )
-                    }
-
-                    // Optionally, display an image with weather description if present.
-                    observation.presentWeather.takeIf { it.isFinite() }?.let {
-                        val revice = getWeatherDescription(it.toInt())
-                        revice.second?.let { iconRes ->
-                            Image(
-                                painter = painterResource(iconRes),
-                                contentDescription = revice.first
-                            )
-                        }
-                    }
-                }
-            }
-        }
-        Icon(
-            modifier = Modifier
-                .align(Alignment.TopEnd)
-                .padding(16.dp),  // adjust padding as needed
-            painter = if (isLongPressed) {
-                painterResource(Res.drawable.twotone_lock_24)
-            } else {
-                painterResource(Res.drawable.baseline_lock_open_24)
-            },
-            contentDescription = if (isLongPressed) "Locked" else "Unlocked",
-        )
-        }
-    }
-}
-}
-*/

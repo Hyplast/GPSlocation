@@ -37,14 +37,15 @@
     <string name="flight_levels">Flight levels</string>
     <string name="thermal_calculation">Thermal height</string>
 
+    <string name="cloudiness">cloudiness</string>
+    <string name="snow">snow</string>
 
     <string name="surface">Surface</string>
     <string name="Ground">Ground</string>
     <string name="rh">RH</string>
     <string name="air_road_temp">Air &amp; Road Temp</string>
     <string name="wind_n_gust">Wind &amp; Gust</string>
-
-
+    <string name="temp_n_dew">Temp &amp; Dew</string>
 
     <string name="radiation">Radiation</string>
     <string name="sunshine">Sunshine</string>

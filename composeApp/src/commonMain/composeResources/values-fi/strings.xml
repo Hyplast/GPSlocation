@@ -23,10 +23,14 @@
     <string name="thermal_height">Termiikin korkeus: %1$s meters</string>
 
     <string name="surface">Pinta</string>
+    <string name="cloudiness">pilvisyys</string>
     <string name="Ground">Maa</string>
     <string name="rh">SK</string>
+    <string name="temp_n_dew">Lämpötila &amp; Kastepiste</string>
     <string name="air_road_temp">Ilman &amp; Tien lämpötila</string>
     <string name="wind_n_gust">Tuuli &amp; Puuska</string>
+
+    <string name="snow">lunta</string>
 
     <string name="radiation">Säteily</string>
     <string name="sunshine">Paiste</string>
