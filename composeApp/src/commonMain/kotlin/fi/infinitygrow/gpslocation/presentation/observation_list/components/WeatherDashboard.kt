@@ -57,18 +57,18 @@ fun WeatherChart2(
             .padding(16.dp)
     ) {
         // Title based on data type
-        Text(
-            text = "${dataType1.name.lowercase()
-                    .replaceFirstChar { if (it.isLowerCase()) it.titlecase() else it.toString() }} ${dataType2.name.lowercase()
-                .replaceFirstChar { if (it.isLowerCase()) it.titlecase() else it.toString() }} Chart",
-            style = TextStyle(
-                fontSize = 18.sp,
-                color = Color.Black
-            ),
-            modifier = Modifier
-                .align(Alignment.TopCenter)
-                .padding(bottom = 16.dp)
-        )
+//        Text(
+//            text = "${dataType1.name.lowercase()
+//                    .replaceFirstChar { if (it.isLowerCase()) it.titlecase() else it.toString() }} ${dataType2.name.lowercase()
+//                .replaceFirstChar { if (it.isLowerCase()) it.titlecase() else it.toString() }} Chart",
+//            style = TextStyle(
+//                fontSize = 18.sp,
+//                color = Color.Black
+//            ),
+//            modifier = Modifier
+//                .align(Alignment.TopCenter)
+//                .padding(bottom = 16.dp)
+//        )
 
         // The left Y-axis labels we draw are a bit tricky when we have two different data ranges.
         // One approach is to use the union of the two datasets' ranges.
@@ -235,17 +235,17 @@ fun WeatherChart(
             //.padding(16.dp)
     ) {
         // Title based on data type
-        Text(
-            text = "Weather ${dataType.name.lowercase()
-                .replaceFirstChar { if (it.isLowerCase()) it.titlecase() else it.toString() }} Chart",
-            style = TextStyle(
-                fontSize = 18.sp,
-                color = Color.Black
-            ),
-            modifier = Modifier
-                .align(Alignment.TopCenter)
-                .padding(bottom = 16.dp)
-        )
+//        Text(
+//            text = "Weather ${dataType.name.lowercase()
+//                .replaceFirstChar { if (it.isLowerCase()) it.titlecase() else it.toString() }} Chart",
+//            style = TextStyle(
+//                fontSize = 18.sp,
+//                color = Color.Black
+//            ),
+//            modifier = Modifier
+//                .align(Alignment.TopCenter)
+//                .padding(bottom = 16.dp)
+//        )
 
         // Y-axis labels
         Column(

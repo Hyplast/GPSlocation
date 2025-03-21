@@ -15,6 +15,10 @@ import org.koin.core.module.Module
 import org.koin.dsl.module
 import fi.infinitygrow.gpslocation.data.datastore.dataStore
 import fi.infinitygrow.gpslocation.data.database.DatabaseFactory
+import fi.infinitygrow.gpslocation.data.repository.SettingsRepository
+import fi.infinitygrow.gpslocation.data.repository.TextToSpeechHelperImpl
+import fi.infinitygrow.gpslocation.data.repository.WeatherServiceController
+import fi.infinitygrow.gpslocation.data.repository.WeatherServiceImpl
 import platform.Foundation.NSDocumentDirectory
 import platform.Foundation.NSFileManager
 import platform.Foundation.NSUserDomainMask
@@ -42,6 +46,10 @@ private val viewModelModule = module {
     //single { WeatherViewModel(get(),get(),get(), get(), get()) }
     single { LocationService() }
     single { DatabaseFactory() }
+    single { SettingsRepository(get()) }
+    factory { TextToSpeechHelperImpl() }
+    single { WeatherServiceImpl() }
+    single { WeatherServiceController() }
 }
 
 //fun <T> single(definition: T) {

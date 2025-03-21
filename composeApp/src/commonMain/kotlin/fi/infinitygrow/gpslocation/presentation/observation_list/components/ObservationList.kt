@@ -86,7 +86,8 @@ fun ObservationsList(
                     onLongPress = {
                         viewModel.toggleLongPress(observation)
                         // update long pressed location if needed
-                    }
+                    },
+                    viewModel = viewModel
                 )
 
             }

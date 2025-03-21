@@ -13,7 +13,11 @@ actual class TextToSpeechHelperImpl : TextToSpeechHelper {
     actual override fun speak(text: String) {
         val utterance = AVSpeechUtterance.speechUtteranceWithString(text)
         utterance.rate = 0.5f // Normal speaking rate
-        utterance.voice = AVSpeechSynthesisVoice.voiceWithLanguage("en-US")
+        utterance.voice = AVSpeechSynthesisVoice.voiceWithLanguage("fi-FI")
+
+//        AVSpeechSynthesisVoice.speechVoices().forEach {
+//            println("Voice available: ${it})")
+//        }
 
         synthesizer.speakUtterance(utterance)
     }

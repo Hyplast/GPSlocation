@@ -1,5 +1,11 @@
 package fi.infinitygrow.gpslocation.presentation.utils
 
+import fi.infinitygrow.gpslocation.domain.model.SoundingData
+import io.ktor.http.ContentDisposition.Companion.File
+import kotlinx.io.files.Path
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 import kotlin.math.exp
 import kotlin.math.log
 import kotlin.math.pow
@@ -242,3 +248,239 @@ fun calculateAltitude(
     val altitudeAtPressure = altitudeFromPressure(pressureAtAltitude, temperature, pressureAtSeaLevel) // Convert Pa to kPa and calculate air pressure at sea level using calculated air pressure at given altitude and temperature
     return altitudeAtPressure // Convert kPa to Pa and calculate final altitude using calculated air pressure at sea level and given temperature
 }
+
+
+//@Serializable
+data class SoundingPoint(
+    val altitude: Double,    // Altitude in meters
+    val temperature: Double, // Temperature in °C (environment)
+    val dewPoint: Double     // Dew point in °C
+)
+
+//
+//fun saveSoundingDataToFile(soundingData: List<SoundingPoint>, filePath: String) {
+//    val json = Json.encodeToString(soundingData) // Serialize the list to JSON
+//    Path(filePath).writeText(json) // Write the JSON string to the file
+//}
+
+/**
+ * Estimates the LCL altitude using a simple approximation.
+ * This uses the formula:
+ *    LCL (in meters) ≈ 38.1 * (T - T_d)
+ *
+ * @param temperature Temperature at the ground level in °C.
+ * @param dewPoint Dew point at the ground level in °C.
+ * @return Estimated LCL altitude in meters.
+ */
+fun estimateLCL(temperature: Double, dewPoint: Double): Double =
+    (temperature - dewPoint) / 8.0 * 1000.0
+
+
+//fun estimateLCL(
+//    temperature: Double,
+//    dewPoint: Double
+//): Double = 38.1 * (temperature - dewPoint)
+
+
+fun isSortedByAltitude(soundingData: List<SoundingData>): Boolean {
+    return soundingData.zipWithNext { a, b -> a.altitude <= b.altitude }.all { it }
+}
+
+
+//    println("Before sorting")
+//    for (i in 0 .. 10) {
+//        println(soundingData[i].altitude)
+//    }
+//
+//    println("After sorting")
+//    for (i in 0 .. 10) {
+//        println(sortedSoundingData[i].altitude)
+//    }
+
+/**
+ * Estimates the maximum altitude a parcel (and thus a sailplane) could reach
+ * by following the dry and moist adiabatic ascent from the Lifting Condensation Level (LCL)
+ * up to the equilibrium level (EL).
+ *
+ * The function accounts for:
+ * - A **dry adiabatic lapse rate** (9.8°C/km) below the LCL.
+ * - A **moist adiabatic lapse rate** (6°C/km) above the LCL.
+ *
+ * It uses sounding data to determine the environmental temperature
+ * and assumes the data is sorted by increasing altitude.
+ *
+ * @param lclAltitude The estimated LCL altitude in meters.
+ * @param lclTemperature The temperature at the LCL in °C.
+ * @param soundingData The environmental sounding data (must be sorted by altitude).
+ * @param dryLapseRate The dry adiabatic lapse rate in °C/m. Default is 0.0098 (9.8°C/km).
+ * @param moistLapseRate The moist adiabatic lapse rate in °C/m. Default is 0.006 (6°C/km).
+ * @return The estimated maximum altitude (EL) in meters, or null if it cannot be determined.
+ */
+fun estimateMaxAltitude(
+    lclAltitude: Double,
+    lclTemperature: Double,
+    soundingData: List<SoundingData>,
+    dryLapseRate: Double = 0.0098,  // 9.8°C/km
+    moistLapseRate: Double = 0.006  // 6°C/km
+): Double? {
+    val sortedSoundingData = if (isSortedByAltitude(soundingData)) {
+        soundingData
+    } else {
+        soundingData.sortedBy { it.altitude }
+    }
+
+    for (i in sortedSoundingData.indices) {
+        val point = sortedSoundingData[i]
+        if (point.altitude <= lclAltitude) continue
+
+        // Use dry lapse rate before LCL, then switch to moist lapse rate
+        val parcelTemperature = if (point.altitude <= lclAltitude) {
+            lclTemperature - dryLapseRate * (point.altitude - lclAltitude)
+        } else {
+            lclTemperature - moistLapseRate * (point.altitude - lclAltitude)
+        }
+
+        // Check for equilibrium
+        if (parcelTemperature <= point.temperature) {
+            if (i > 0) {
+                val previousPoint = sortedSoundingData[i - 1]
+                val deltaAltitude = point.altitude - previousPoint.altitude
+                val deltaTemperature = point.temperature - previousPoint.temperature
+                val fraction = (parcelTemperature - previousPoint.temperature) / deltaTemperature
+                return previousPoint.altitude + fraction * deltaAltitude
+            }
+            return point.altitude
+        }
+    }
+    return null
+}
+
+/**
+ * Estimates the maximum altitude a parcel (and thus a sailplane) could reach
+ * by following the dry and moist adiabatic ascent from the ground up to the equilibrium level (EL).
+ *
+ * The function accounts for:
+ * - A **dry adiabatic lapse rate** (9.8°C/km) below the Lifting Condensation Level (LCL).
+ * - A **moist adiabatic lapse rate** (6°C/km) above the LCL, if the parcel reaches saturation.
+ *
+ * It calculates the **starting temperature and dew point at ground level** instead of using a predefined LCL.
+ *
+ * @param soundingData The environmental sounding data (must be sorted by altitude).
+ * @param groundTemperature The observed temperature at ground level (°C).
+ * @param groundDewPoint The observed dew point at ground level (°C).
+ * @param groundAltitude The starting altitude (meters).
+ * @param dryLapseRate The dry adiabatic lapse rate in °C/m. Default is 0.0098 (9.8°C/km).
+ * @param moistLapseRate The moist adiabatic lapse rate in °C/m. Default is 0.006 (6°C/km).
+ * @return The estimated maximum altitude (EL) in meters, or null if it cannot be determined.
+ */
+fun estimateMaxAltitudeFromGround(
+    soundingData: List<SoundingData>,
+    groundTemperature: Double,
+    groundDewPoint: Double,
+    groundAltitude: Double,
+    dryLapseRate: Double = 0.0098,  // 9.8°C/km
+    moistLapseRate: Double = 0.006  // 6°C/km
+): Double? {
+    val sortedSoundingData = if (isSortedByAltitude(soundingData)) {
+        soundingData
+    } else {
+        soundingData.sortedBy { it.altitude }
+    }
+
+    // Calculate LCL altitude (cloud base)
+    val lclAltitude = groundAltitude + 38.1 * (groundTemperature - groundDewPoint)
+
+    // Calculate temperature at LCL
+    val lclTemperature = groundTemperature - dryLapseRate * (lclAltitude - groundAltitude)
+
+    for (i in sortedSoundingData.indices) {
+        val point = sortedSoundingData[i]
+
+        // Calculate parcel temperature
+        val parcelTemperature = if (point.altitude <= lclAltitude) {
+            groundTemperature - dryLapseRate * (point.altitude - groundAltitude)
+        } else {
+            lclTemperature - moistLapseRate * (point.altitude - lclAltitude)
+        }
+
+        // Check for equilibrium (where parcel stops rising)
+        if (parcelTemperature <= point.temperature) {
+            if (i > 0) {
+                val previousPoint = sortedSoundingData[i - 1]
+                val deltaAltitude = point.altitude - previousPoint.altitude
+                val deltaTemperature = point.temperature - previousPoint.temperature
+                val fraction = (parcelTemperature - previousPoint.temperature) / deltaTemperature
+                return previousPoint.altitude + fraction * deltaAltitude
+            }
+            return point.altitude
+        }
+    }
+    return null
+}
+
+
+
+fun estimateMaxAltitudeNoLCL(
+    soundingData: List<SoundingData>,
+    startingTemperature: Double, // Temperature at the starting altitude
+    startAltitude: Double,
+    dryLapseRate: Double = 0.0098  // 9.8°C/km
+): Double? {
+    val sortedSoundingData = if (isSortedByAltitude(soundingData)) {
+        soundingData
+    } else {
+        soundingData.sortedBy { it.altitude }
+    }
+
+    for (i in sortedSoundingData.indices) {
+        val point = sortedSoundingData[i]
+        // Calculate parcel temperature using dry lapse rate only
+        val parcelTemperature = startingTemperature - dryLapseRate * (point.altitude - startAltitude)
+
+        // Check for equilibrium
+        if (parcelTemperature <= point.temperature) {
+            if (i > 0) {
+                val previousPoint = sortedSoundingData[i - 1]
+                val deltaAltitude = point.altitude - previousPoint.altitude
+                val deltaTemperature = point.temperature - previousPoint.temperature
+                val fraction = (parcelTemperature - previousPoint.temperature) / deltaTemperature
+                return previousPoint.altitude + fraction * deltaAltitude
+            }
+            return point.altitude
+        }
+    }
+    return null
+}
+
+
+//// Example usage:
+//fun example() {
+//    // Ground measurements (in °C)
+//    val groundTemp = 20.0
+//    val groundDewPoint = 12.0
+//
+//    // Estimate LCL altitude (cloud base)
+//    val lclAltitude = estimateLCL(groundTemp, groundDewPoint)
+//    println("Estimated LCL altitude: $lclAltitude m")
+//
+//    // Assume temperature at LCL follows a simple rule (or interpolate from sounding data)
+//    val lclTemp = groundTemp - 9.8 * (lclAltitude / 1000.0)
+//    println("Estimated LCL temperature: $lclTemp °C")
+//
+//    // Example sounding data: list of points in the environment
+//    val sounding = listOf(
+//        S(altitude = 0.0, temperature = 20.0, dewPoint = 12.0),
+//        SoundingPoint(altitude = 500.0, temperature = 16.0, dewPoint = 12.5),
+//        SoundingPoint(altitude = 1000.0, temperature = 12.0, dewPoint = 12.0),
+//        SoundingPoint(altitude = 1500.0, temperature = 8.0, dewPoint = 10.0),
+//        SoundingPoint(altitude = 2000.0, temperature = 4.0, dewPoint = 8.0)
+//    )
+//
+//    // Estimate maximum altitude using the moist adiabatic ascent from the LCL
+//    val maxAltitude = estimateMaxAltitude(lclAltitude, lclTemp, sounding)
+//    if (maxAltitude != null) {
+//        println("Estimated maximum altitude (EL): $maxAltitude m")
+//    } else {
+//        println("Could not determine an equilibrium level from the provided sounding.")
+//    }
+//}

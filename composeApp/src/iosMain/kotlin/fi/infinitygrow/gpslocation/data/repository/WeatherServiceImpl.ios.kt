@@ -816,13 +816,15 @@ class WeatherServiceImpl: NSObject, WeatherService {
 
  */
 
+
 @Suppress("EXPECT_ACTUAL_CLASSIFIERS_ARE_IN_BETA_WARNING")
 actual class WeatherServiceImpl : WeatherService {
     override fun startWeatherUpdates() {
-
+        return
     }
 
     override fun stopWeatherUpdates() {
+        return
     }
 
 }
@@ -830,15 +832,22 @@ actual class WeatherServiceImpl : WeatherService {
 // Expect declaration that will be implemented differently on each platform
 actual class WeatherServiceController {
     actual fun isServiceRunning(): Boolean {
-        TODO("Not yet implemented")
+       return false
     }
 
     actual fun startWeatherService() {
+        return
     }
 
     actual fun stopWeatherService() {
+        return
     }
 
     actual fun toggleWeatherService() {
+        if (isServiceRunning()) {
+            stopWeatherService()
+        } else {
+            startWeatherService()
+        }
     }
 }

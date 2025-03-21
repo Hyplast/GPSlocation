@@ -91,13 +91,23 @@ import fi.infinitygrow.gpslocation.domain.model.ObservationData
 import fi.infinitygrow.gpslocation.domain.model.RadiationData
 import fi.infinitygrow.gpslocation.domain.model.RoadObservationData
 import fi.infinitygrow.gpslocation.domain.model.SoundingData
+import fi.infinitygrow.gpslocation.domain.model.getObservationLocation
+import fi.infinitygrow.gpslocation.presentation.observation_list.WeatherViewModel
+import fi.infinitygrow.gpslocation.presentation.utils.SoundingPoint
+import fi.infinitygrow.gpslocation.presentation.utils.calculateCloudBaseHeight
 import fi.infinitygrow.gpslocation.presentation.utils.convertUnixTimeToHHMM
+import fi.infinitygrow.gpslocation.presentation.utils.estimateLCL
+import fi.infinitygrow.gpslocation.presentation.utils.estimateMaxAltitude
+import fi.infinitygrow.gpslocation.presentation.utils.estimateMaxAltitudeFromGround
+import fi.infinitygrow.gpslocation.presentation.utils.estimateMaxAltitudeNoLCL
 import fi.infinitygrow.gpslocation.presentation.utils.formatValue
 import fi.infinitygrow.gpslocation.presentation.utils.getWeatherDescriptionString
 import fi.infinitygrow.gpslocation.presentation.utils.rememberMarker
+import fi.infinitygrow.gpslocation.presentation.utils.selectClosestLatestSoundingProfile
 import gpslocation.composeapp.generated.resources.Res
 import gpslocation.composeapp.generated.resources.baseline_lock_open_24
 import gpslocation.composeapp.generated.resources.humidity
+import gpslocation.composeapp.generated.resources.temp_n_dew
 import gpslocation.composeapp.generated.resources.twotone_lock_24
 import gpslocation.composeapp.generated.resources.wind_n_gust
 import kotlinx.coroutines.delay
@@ -142,14 +152,15 @@ fun ObservationCard(
     observationsList: List<ObservationData>,
     isLongPressed: Boolean,
     onShortPress: () -> Unit,
-    onLongPress: () -> Unit
+    onLongPress: () -> Unit,
+    viewModel: WeatherViewModel,
 ) {
     // Toggle state for showing/hiding the chart
     var showChart by remember { mutableStateOf(false) }
     // Toggle state for selecting which chart to display
     var selectedChartIndex by remember { mutableStateOf(0) }
     // You can substitute these labels with your own desired chart combinations.
-    val chartOptions = listOf("Temp & Dew", stringResource(Res.string.humidity), stringResource(Res.string.wind_n_gust))
+    val chartOptions = listOf(stringResource(Res.string.temp_n_dew), stringResource(Res.string.humidity), stringResource(Res.string.wind_n_gust))
 
     val cardBackground = if (isLongPressed) LeafGreenColor else Color.LightGray
 
@@ -336,6 +347,76 @@ fun ObservationCard(
                             observation.snowDepth.takeIf { it.isFinite() && it != 0.0 }?.let {
                                 Text(text = "${it.toInt()} cm lunta")
                             }
+                            // Calculate LCL altitude
+                            val calculateCloudBaseHeights = getObservationLocation(observation)?.altitude?.let { calculateCloudBaseHeight(observation.temperature, observation.dewPoint, it.toDouble()) }
+                            val lclAltitude = estimateLCL(observation.temperature, observation.dewPoint)
+                            val lclTemp = observation.temperature - 9.8 * (lclAltitude / 1000.0)
+                            if (calculateCloudBaseHeights != null) {
+                                Text("calCBHeight-${calculateCloudBaseHeights.roundToInt()}-m")
+                            }
+                            Text("LCL:-${lclAltitude.roundToInt()}-m,-${lclTemp.roundToInt()}-°C")
+
+                            // Get the sounding data from the view model (if available) and map to SoundingPoint.
+                            viewModel.uiState.value.soundingInfo?.let { soundingInfo ->
+                                // Select the best sounding profile (full vertical profile as a list)
+                                val selectedProfile = selectClosestLatestSoundingProfile(
+                                    soundingInfo,
+                                    observation.latitude,
+                                    observation.longitude
+                                )
+
+                                // Convert your sounding data to the expected type if needed.
+                                // For this example, we assume SoundingData has the same property names.
+//                                val soundingPoints = soundingInfo.map {
+//                                    SoundingPoint(
+//                                        altitude = it.altitude,
+//                                        temperature = it.temperature,
+//                                        dewPoint = it.dewPoint
+//                                    )
+//                                }
+
+                                println("Altitude and size of sounding Points0")
+                                println(selectedProfile?.get(0)?.altitude)
+                                println(selectedProfile?.get(0)?.timeOfSounding)
+                                println(selectedProfile?.get(0)?.name)
+                                println(selectedProfile?.size)
+
+                                val maxAltitud =
+                                    selectedProfile?.let {
+                                        getObservationLocation(observation)?.altitude?.let { it1 ->
+                                            estimateMaxAltitudeFromGround(it, observation.temperature, observation.dewPoint,
+                                                it1.toDouble())
+                                        }
+                                    }
+
+                                // Estimate max altitude
+                                val maxAltitude =
+                                    selectedProfile?.let {
+                                        estimateMaxAltitude(lclAltitude, lclTemp,
+                                            it
+                                        )
+                                    }
+                                val maxAltitude2 =
+                                    selectedProfile?.let {
+                                        getObservationLocation(observation)?.altitude?.let { _ ->
+                                            estimateMaxAltitudeNoLCL(it, observation.temperature,
+                                                selectedProfile[0].altitude
+                                                    )
+                                        }
+                                    }
+                                if (maxAltitud != null) {
+                                    Text("L-:${maxAltitud.roundToInt()}")
+                                }
+                                if (maxAltitude != null) {
+                                    if (maxAltitude2 != null) {
+                                        Text("MaxAltEL-${maxAltitude.roundToInt()}-m-${maxAltitude2.roundToInt()}")
+                                    }
+                                } else {
+                                    Text("No equilibrium level found")
+                                }
+                            }
+
+
                         }
                     }
                 }

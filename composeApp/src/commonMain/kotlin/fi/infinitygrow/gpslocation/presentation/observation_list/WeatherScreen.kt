@@ -72,13 +72,15 @@ fun WeatherScreen(
     val modifier = Modifier.fillMaxSize()
 
     LaunchedEffect(Unit) {
+        delay(1000)
+        weatherViewModel.refreshSounding()
+        delay(1000)
         weatherViewModel.refreshWeather(weatherViewModel.selectedLocations)
         delay(1000)
         weatherViewModel.refreshRoadWeather(selectedLocations = weatherViewModel.selectedLocations)
         delay(1000)
         weatherViewModel.refreshRadiation()
-        delay(1000)
-        weatherViewModel.refreshSounding()
+
     }
 
     Scaffold(snackbarHost = { SnackbarHost(hostState = snackbarHostState) }) { padding ->

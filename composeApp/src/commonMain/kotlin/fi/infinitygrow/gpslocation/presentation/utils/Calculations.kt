@@ -17,6 +17,7 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import fi.infinitygrow.gpslocation.domain.model.SoundingData
 import gpslocation.composeapp.generated.resources.Res
 import gpslocation.composeapp.generated.resources.arrow_upwards
 import gpslocation.composeapp.generated.resources.compose_multiplatform
@@ -47,6 +48,59 @@ fun CompassArrow2(bearing: Double) {
         )
     }
 }
+
+
+/**
+ * Selects the sounding data that is both the latest for its station and
+ * geographically closest to the target coordinates.
+ *
+ * @param soundingList List of available sounding data.
+ * @param targetLatitude The reference latitude.
+ * @param targetLongitude The reference longitude.
+ * @return The selected SoundingData or null if the provided list is empty.
+ */
+fun selectClosestLatestSoundingProfile(
+    soundingList: List<SoundingData>,
+    targetLatitude: Double,
+    targetLongitude: Double
+): List<SoundingData>? {
+    // Group by station name and time-of-sounding.
+    //val groupedSoundings = soundingList.groupBy { it.name to it.timeOfSounding }
+
+    // Group by station name and select the latest sounding for each station
+    val latestSoundings = soundingList.groupBy { it.name }
+        .mapValues { (_, profiles) ->
+            profiles.maxByOrNull { Instant.parse(it.timeOfSounding) } // Parse and compare timestamps
+        }.values.filterNotNull() // Remove null values
+
+    // Find the closest latest sounding profile
+    val closest = latestSoundings.minByOrNull {
+        getDistance(targetLatitude, targetLongitude, it.latitude, it.longitude)
+    } ?: return null
+
+    // Retrieve the full profile for the selected sounding
+    return soundingList.filter { it.name == closest.name && it.timeOfSounding == closest.timeOfSounding }
+
+//    // For each distinct profile, pick one representative to indicate its time
+//    // (we select the one with the max unixTime; usually all points in a profile have the same unixTime)
+//    val representativeSoundings = groupedSoundings.map { (key, group) ->
+//        group.maxByOrNull { it.unixTime } ?: group.first()
+//    }
+//
+//    // From the profiles, select the one that is closest to the observation location.
+//    // Here we assume that all points in a profile have the same station coordinates,
+//    // so using the first point is appropriate.
+//    val selectedKey = representativeSoundings.minByOrNull {
+//        getDistance(targetLatitude, targetLongitude, it.latitude, it.longitude)
+//    }?.let { rep ->
+//        // create a key using the same grouping criteria
+//        rep.name to rep.timeOfSounding
+//    } ?: return null
+//
+//    // Return the full sounding profile for the selected key.
+//    return groupedSoundings[selectedKey]
+}
+
 
 //fun getDistance(lat1: Double, long1: Double, lat2: Double, long2: Double): Double {
 //    val r = 6371 // Earth radius in km
