@@ -5,20 +5,17 @@ import androidx.lifecycle.viewModelScope
 import fi.infinitygrow.gpslocation.data.repository.SettingsRepository
 import fi.infinitygrow.gpslocation.data.repository.TextToSpeechHelperImpl
 import fi.infinitygrow.gpslocation.data.repository.WeatherServiceController
-import fi.infinitygrow.gpslocation.data.repository.WeatherServiceImpl
-import fi.infinitygrow.gpslocation.domain.repository.WeatherService
 import fi.infinitygrow.gpslocation.presentation.permission.LocationService
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.flow.MutableStateFlow
 
 
 class SettingsViewModel(
     private val repository: SettingsRepository,
     private val locationService: LocationService,
-    //private val weatherService: WeatherServiceImpl,
     private val serviceController: WeatherServiceController,
     private val textToSpeechEngine: TextToSpeechHelperImpl
 ) : ViewModel() {
@@ -72,6 +69,9 @@ class SettingsViewModel(
         .stateIn(viewModelScope, SharingStarted.Eagerly, true)
 
     val ttsCloudBase: StateFlow<Boolean> = repository.ttsCloudBaseFlow
+        .stateIn(viewModelScope, SharingStarted.Eagerly, true)
+
+    val ttsThermalHeight: StateFlow<Boolean> = repository.ttsThermalHeightFlow
         .stateIn(viewModelScope, SharingStarted.Eagerly, true)
 
     val ttsFlightLevel65: StateFlow<Boolean> = repository.ttsFlightLevel65Flow
@@ -144,6 +144,11 @@ class SettingsViewModel(
     fun toggleTtsCloudBase() {
         viewModelScope.launch {
             repository.setTtsCloudBase(!ttsCloudBase.value)
+        }
+    }
+    fun toggleTtsThermalHeight() {
+        viewModelScope.launch {
+            repository.setTtsThermalHeight(!ttsThermalHeight.value)
         }
     }
     fun toggleTtsFlightLevel65() {

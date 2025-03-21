@@ -36,6 +36,7 @@
     <string name="clouds_height">Cloudbase</string>
     <string name="flight_levels">Flight levels</string>
     <string name="thermal_calculation">Thermal height</string>
+    <string name="search_radius">Weather station search radius</string>
 
     <string name="cloudiness">cloudiness</string>
     <string name="snow">snow</string>

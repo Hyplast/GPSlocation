@@ -96,7 +96,7 @@ import fi.infinitygrow.gpslocation.presentation.utils.formatValue
 import fi.infinitygrow.gpslocation.presentation.utils.getWeatherDescriptionString
 import fi.infinitygrow.gpslocation.presentation.utils.rememberMarker
 import fi.infinitygrow.gpslocation.presentation.utils.selectClosestLatestSoundingProfile
-import gpslocation.composeapp.generated.resources.Ground
+import gpslocation.composeapp.generated.resources.ground
 import gpslocation.composeapp.generated.resources.Res
 import gpslocation.composeapp.generated.resources.air_road_temp
 import gpslocation.composeapp.generated.resources.baseline_lock_open_24
@@ -646,7 +646,7 @@ fun RoadObservationCard(
                             observation.roadGroundTemperature.takeIf {
                                 it.isFinite() && it != 0.0
                             }?.let {
-                                val ground = stringResource(Res.string.Ground)
+                                val ground = stringResource(Res.string.ground)
                                 Text(text = "$ground: ${formatValue(it.toFloat())} °C")
                             }
                             observation.humidity.takeIf { it.isFinite() && it != 0.0 }?.let {
@@ -722,7 +722,13 @@ fun RoadObservationCard(
                                         observation.airTemperature?.takeIf { !it.isNaN() }
                                         observation.roadSurfaceTemperature?.takeIf { !it.isNaN() }
                                     }
-                                WindGustChart(modifier = modifier, roadDataList = chartObservations, temp5)
+                                if (
+                                    !observation.windDirection.isNaN() &&
+                                    !observation.windSpeed.isNaN() &&
+                                    !observation.windGust.isNaN()
+                                ) {
+                                    WindGustChart(modifier = modifier, roadDataList = chartObservations, temp5)
+                                }
                                 // Wind chart example: wind speed vs. wind gust.
 //                                RoadWeatherChart2(
 //                                    observations1 = chartObservations,

@@ -29,6 +29,7 @@
     <string name="temp_n_dew">Lämpötila &amp; Kastepiste</string>
     <string name="air_road_temp">Ilman &amp; Tien lämpötila</string>
     <string name="wind_n_gust">Tuuli &amp; Puuska</string>
+    <string name="search_radius">Havaintoasemien hakuetäisyys</string>
 
     <string name="snow">lunta</string>
 

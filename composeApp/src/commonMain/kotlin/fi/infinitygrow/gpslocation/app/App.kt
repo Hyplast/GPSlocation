@@ -11,25 +11,24 @@ import fi.infinitygrow.gpslocation.presentation.observation_list.WeatherViewMode
 import fi.infinitygrow.gpslocation.presentation.settings_page.SettingsScreen
 import fi.infinitygrow.gpslocation.presentation.settings_page.SettingsViewModel
 import org.jetbrains.compose.ui.tooling.preview.Preview
-import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
 
 /*
 TODO LIST ()
-**!1. ForegroundService implementation
-    a) Timer update
+**!1. ForegroundService implementation ----DONE
+    a) Timer update-                     ---DONE
     b) iOs implementation
 **!2. TTS service implementation
-    a) Chips implement
+    a) Chips implement                 ----DONE
 3. Lightning warning
-**!4. Favorites implementation -> Save any station as favorite
-5. Sun Radiation -> implement on same card (with sealed classes ?)
-6. Better graph library implementation
+**!4. Favorites implementation -> Save any station as favorite  ----DONE
+5. Sun Radiation -> implement on same card (with sealed classes ?) ----DONE
+6. Better graph library implementation                           ----DONE
 !7. Test that the app works without location
 !8. Swipe to remove from screen LazyGrid?
 9. Rain Intensity graph add
-10. Sounding implementation
-    a) Plot to graph
+10. Sounding implementation                                         ----DONE
+    a) Plot to graph                                               ----DONE
     b) Get thermal height, upper wind strength, dust devil parameters?, FL true heights
 11. Proper navigation implementation
 12. Dark theme implementation

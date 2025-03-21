@@ -22,10 +22,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.patrykandpatrick.vico.multiplatform.cartesian.AutoScrollCondition
 import com.patrykandpatrick.vico.multiplatform.cartesian.CartesianChartHost
 import com.patrykandpatrick.vico.multiplatform.cartesian.axis.HorizontalAxis
@@ -35,7 +32,6 @@ import com.patrykandpatrick.vico.multiplatform.cartesian.data.CartesianLayerRang
 import com.patrykandpatrick.vico.multiplatform.cartesian.data.CartesianValueFormatter
 import com.patrykandpatrick.vico.multiplatform.cartesian.data.lineSeries
 import com.patrykandpatrick.vico.multiplatform.cartesian.layer.LineCartesianLayer
-import com.patrykandpatrick.vico.multiplatform.cartesian.layer.rememberLine
 import com.patrykandpatrick.vico.multiplatform.cartesian.layer.rememberLineCartesianLayer
 import com.patrykandpatrick.vico.multiplatform.cartesian.marker.DefaultCartesianMarker
 import com.patrykandpatrick.vico.multiplatform.cartesian.rememberCartesianChart
@@ -345,141 +341,101 @@ fun Double.round(decimals: Int): Double {
     repeat(decimals) { multiplier *= 10 }
     return kotlin.math.round(this * multiplier) / multiplier
 }
-
-@Composable
-fun ComposeMultiplatformElectricCarSales24(modifier: Modifier = Modifier) {
-    val modelProducer = remember { CartesianChartModelProducer() }
-
-    // Pair altitude with temperature and sort by altitude
-    val sortedPairs = x.zip(y).sortedBy { it.first }
-    val sortedAltitudes = sortedPairs.map { it.first } // Sorted Y-axis values (altitude)
-    val sortedTemperatures = sortedPairs.map { it.second } // Corresponding X-axis values (temperature)
-
-
-    LaunchedEffect(Unit) {
-        modelProducer.runTransaction {
-            // Learn more: https://patrykandpatrick.com/z5ah6v.
-            lineSeries { series(x,y) } // x = temperatures, y = altitudes
-        }
-    }
-    val lineColorRed = Color(0xffe32636)
-    CartesianChartHost(
-        chart =
-            rememberCartesianChart(
-                rememberLineCartesianLayer(
-                    LineCartesianLayer.LineProvider.series(
-                        LineCartesianLayer.Line(LineCartesianLayer.LineFill.single(fill(lineColorRed)))
-                    )
-                ),
-                startAxis = VerticalAxis.rememberStart(),
-                bottomAxis = HorizontalAxis.rememberBottom(),
-            ),
-        modelProducer = modelProducer,
-        modifier = modifier,
-    )
-}
-
-@Composable
-fun ComposeMultiplatformElectricCarSales2(
-    modifier: Modifier = Modifier,
-    //soundingDataList: List<SoundingData>
-) {
-    val maxPoints = 50
-    //val truncatedData = soundingDataList.take(maxPoints)
-
-//    val x = truncatedData.map { it.temperature }
-//    val x2 = truncatedData.map { it.dewPoint }
-//    val y = truncatedData.map { it.altitude }
-
-    println("Size of x and y lists")
-    println(x.size)
-    println(y.size)
-
-    val modelProducer = remember { CartesianChartModelProducer() }
-    LaunchedEffect(Unit) {
-        modelProducer.runTransaction {
-            // Learn more: https://patrykandpatrick.com/z5ah6v.
-            lineSeries {
-                series(y, x)
-                //series(x2, y)
-            }
-        }
-    }
-    val lineColorRed = Color(0xffe32636)
-    val lineColorBlue = Color(0xff0048ba)
-    val lineColors = listOf(lineColorRed, lineColorBlue)
-
-    CartesianChartHost(
-        rememberCartesianChart(
-            rememberLineCartesianLayer(
-                lineProvider =
-                    LineCartesianLayer.LineProvider.series(
-                       // lineColors.map { color ->
-                            LineCartesianLayer.rememberLine(
-                                fill = LineCartesianLayer.LineFill.single(fill(lineColorRed)),
-    //                            areaFill =
-    //                                LineCartesianLayer.AreaFill.single(
-    //                                    fill(
-    //                                        Brush.verticalGradient(listOf(lineColor.copy(alpha = 0.4f), Color.Transparent))
-    //                                    )
-    //                                ),
-                            )
-                       // }
-                    ),
-                rangeProvider = RangeProvider,
-            ),
-//            rememberLineCartesianLayer(
-//                LineCartesianLayer.LineProvider.series(
-//                    LineCartesianLayer.Line(LineCartesianLayer.LineFill.single(fill(lineColorBlue)))
-//                )
+//
+//@Composable
+//fun ComposeMultiplatformElectricCarSales24(modifier: Modifier = Modifier) {
+//    val modelProducer = remember { CartesianChartModelProducer() }
+//
+//    // Pair altitude with temperature and sort by altitude
+//    val sortedPairs = x.zip(y).sortedBy { it.first }
+//    val sortedAltitudes = sortedPairs.map { it.first } // Sorted Y-axis values (altitude)
+//    val sortedTemperatures = sortedPairs.map { it.second } // Corresponding X-axis values (temperature)
+//
+//
+//    LaunchedEffect(Unit) {
+//        modelProducer.runTransaction {
+//            // Learn more: https://patrykandpatrick.com/z5ah6v.
+//            lineSeries { series(x,y) } // x = temperatures, y = altitudes
+//        }
+//    }
+//    val lineColorRed = Color(0xffe32636)
+//    CartesianChartHost(
+//        chart =
+//            rememberCartesianChart(
+//                rememberLineCartesianLayer(
+//                    LineCartesianLayer.LineProvider.series(
+//                        LineCartesianLayer.Line(LineCartesianLayer.LineFill.single(fill(lineColorRed)))
+//                    )
+//                ),
+//                startAxis = VerticalAxis.rememberStart(),
+//                bottomAxis = HorizontalAxis.rememberBottom(),
 //            ),
-            startAxis = VerticalAxis.rememberStart(valueFormatter = StartAxisValueFormatter),
-            bottomAxis = HorizontalAxis.rememberBottom(),
-            marker = rememberMarker(MarkerValueFormatter),
-        ),
-        modelProducer,
-        modifier.height(216.dp),
-        rememberVicoScrollState(scrollEnabled = false),
-    )
-}
+//        modelProducer = modelProducer,
+//        modifier = modifier,
+//    )
+//}
+//
+//@Composable
+//fun ComposeMultiplatformElectricCarSales2(
+//    modifier: Modifier = Modifier,
+//    //soundingDataList: List<SoundingData>
+//) {
+//    val maxPoints = 50
+//    //val truncatedData = soundingDataList.take(maxPoints)
+//
+////    val x = truncatedData.map { it.temperature }
+////    val x2 = truncatedData.map { it.dewPoint }
+////    val y = truncatedData.map { it.altitude }
+//
+//    println("Size of x and y lists")
+//    println(x.size)
+//    println(y.size)
+//
+//    val modelProducer = remember { CartesianChartModelProducer() }
+//    LaunchedEffect(Unit) {
+//        modelProducer.runTransaction {
+//            // Learn more: https://patrykandpatrick.com/z5ah6v.
+//            lineSeries {
+//                series(y, x)
+//                //series(x2, y)
+//            }
+//        }
+//    }
+//    val lineColorRed = Color(0xffe32636)
+//    val lineColorBlue = Color(0xff0048ba)
+//    val lineColors = listOf(lineColorRed, lineColorBlue)
+//
+//    CartesianChartHost(
+//        rememberCartesianChart(
+//            rememberLineCartesianLayer(
+//                lineProvider =
+//                    LineCartesianLayer.LineProvider.series(
+//                       // lineColors.map { color ->
+//                            LineCartesianLayer.rememberLine(
+//                                fill = LineCartesianLayer.LineFill.single(fill(lineColorRed)),
+//    //                            areaFill =
+//    //                                LineCartesianLayer.AreaFill.single(
+//    //                                    fill(
+//    //                                        Brush.verticalGradient(listOf(lineColor.copy(alpha = 0.4f), Color.Transparent))
+//    //                                    )
+//    //                                ),
+//                            )
+//                       // }
+//                    ),
+//                rangeProvider = RangeProvider,
+//            ),
+////            rememberLineCartesianLayer(
+////                LineCartesianLayer.LineProvider.series(
+////                    LineCartesianLayer.Line(LineCartesianLayer.LineFill.single(fill(lineColorBlue)))
+////                )
+////            ),
+//            startAxis = VerticalAxis.rememberStart(valueFormatter = StartAxisValueFormatter),
+//            bottomAxis = HorizontalAxis.rememberBottom(),
+//            marker = rememberMarker(MarkerValueFormatter),
+//        ),
+//        modelProducer,
+//        modifier.height(216.dp),
+//        rememberVicoScrollState(scrollEnabled = false),
+//    )
+//}
 
-
-/*
-@Composable
-fun ObservationsList2(
-    observations: List<ObservationData>, // your model list
-    viewModel: WeatherViewModel,
-    isDarkTheme: Boolean
-) {
-    LazyColumn(
-        modifier = Modifier
-            // change background based on theme if needed
-            .background(if (isDarkTheme) Color.Black else Color.White)
-            .fillMaxSize()
-    ) {
-        items(viewModel.getNewestObservations(observations)) { observation ->
-            val isLongPressed = viewModel.longPressedItems.contains(observation)
-            val backgroundColor = if (isLongPressed) LeafGreenColor else Color.White
-
-            // Construct rows of data, check for NaN values, etc.
-            // ... (you can even extract an ObservationCard composable for this)
-            ObservationCard(
-                observation = observation,
-                isLongPressed = isLongPressed,
-                onShortPress = { /* update short pressed location */ },
-                onLongPress = {
-                    viewModel.toggleLongPress(observation)
-                    // update long pressed location if needed
-                }
-            )
-            constructLanguageString(observation, location = observation.coordinates)?.let { langString ->
-                Text(
-                    text = langString,
-                    modifier = Modifier.padding(start = 12.dp, bottom = 8.dp)
-                )
-            }
-        }
-    }
-}
-
- */

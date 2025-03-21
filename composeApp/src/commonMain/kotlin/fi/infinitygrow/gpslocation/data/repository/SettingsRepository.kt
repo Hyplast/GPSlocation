@@ -27,6 +27,7 @@ class SettingsRepository(private val dataStore: DataStore<Preferences>) {
     private val ttsWindGustKey = booleanPreferencesKey("tts_wind_gust")
     private val ttsWindDirectionKey = booleanPreferencesKey("tts_wind_direction")
     private val ttsCloudBaseKey = booleanPreferencesKey("tts_cloud_base")
+    private val ttsThermalHeightKey = booleanPreferencesKey("tts_thermal_height")
     private val ttsFlightLevel65Key = booleanPreferencesKey("tts_fl65")
     private val ttsFlightLevel95Key = booleanPreferencesKey("tts_fl95")
 
@@ -74,6 +75,9 @@ class SettingsRepository(private val dataStore: DataStore<Preferences>) {
     val ttsCloudBaseFlow: Flow<Boolean> = dataStore.data
         .map { preferences -> preferences[ttsCloudBaseKey] ?: false }
 
+    val ttsThermalHeightFlow: Flow<Boolean> = dataStore.data
+        .map { preferences -> preferences[ttsThermalHeightKey] ?: false }
+
     val ttsFlightLevel65Flow: Flow<Boolean> = dataStore.data
         .map { preferences -> preferences[ttsFlightLevel65Key] ?: false }
 
@@ -91,6 +95,7 @@ class SettingsRepository(private val dataStore: DataStore<Preferences>) {
         ttsWindGustFlow,
         ttsWindDirectionFlow,
         ttsCloudBaseFlow,
+        ttsThermalHeightFlow,
         ttsFlightLevel65Flow,
         ttsFlightLevel95Flow
     ) { settings: Array<Boolean> ->
@@ -104,8 +109,9 @@ class SettingsRepository(private val dataStore: DataStore<Preferences>) {
             includeWindGust = settings[6],
             includeWindDirection = settings[7],
             includeCloudBase = settings[8],
-            includeFlightLevel65 = settings[9],
-            includeFlightLevel95 = settings[10]
+            includeThermalHeight = settings[9],
+            includeFlightLevel65 = settings[10],
+            includeFlightLevel95 = settings[11]
         )
     }
 
@@ -181,6 +187,11 @@ class SettingsRepository(private val dataStore: DataStore<Preferences>) {
             preferences[ttsCloudBaseKey] = isOn
         }
     }
+    suspend fun setTtsThermalHeight(isOn: Boolean) {
+        dataStore.edit { preferences ->
+            preferences[ttsThermalHeightKey] = isOn
+        }
+    }
     suspend fun setTtsFlightLevel65(isOn: Boolean) {
         dataStore.edit { preferences ->
             preferences[ttsFlightLevel65Key] = isOn
@@ -209,63 +220,7 @@ data class TtsSettings(
     val includeWindGust: Boolean,
     val includeWindDirection: Boolean,
     val includeCloudBase: Boolean,
+    val includeThermalHeight: Boolean,
     val includeFlightLevel65: Boolean,
-    val includeFlightLevel95: Boolean // if you need both or just one flag
+    val includeFlightLevel95: Boolean
 )
-
-
-//private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "app_preferences")
-
-/*
-class DataStorePreferencesRepository(private val context: Context) : PreferencesRepository {
-
-    override suspend fun saveString(key: String, value: String) {
-        val preferencesKey = stringPreferencesKey(key)
-        context.dataStore.edit { preferences ->
-            preferences[preferencesKey] = value
-        }
-    }
-
-    override suspend fun getString(key: String, defaultValue: String): String {
-        val preferencesKey = stringPreferencesKey(key)
-        return context.dataStore.data.map { preferences ->
-            preferences[preferencesKey] ?: defaultValue
-        }.first()
-    }
-
-    override suspend fun saveInt(key: String, value: Int) {
-        val preferencesKey = intPreferencesKey(key)
-        context.dataStore.edit { preferences ->
-            preferences[preferencesKey] = value
-        }
-    }
-
-    override suspend fun getInt(key: String, defaultValue: Int): Int {
-        val preferencesKey = intPreferencesKey(key)
-        return context.dataStore.data.map { preferences ->
-            preferences[preferencesKey] ?: defaultValue
-        }.first()
-    }
-
-    override suspend fun saveBoolean(key: String, value: Boolean) {
-        val preferencesKey = booleanPreferencesKey(key)
-        context.dataStore.edit { preferences ->
-            preferences[preferencesKey] = value
-        }
-    }
-
-    override suspend fun getBoolean(key: String, defaultValue: Boolean): Boolean {
-        val preferencesKey = booleanPreferencesKey(key)
-        return context.dataStore.data.map { preferences ->
-            preferences[preferencesKey] ?: defaultValue
-        }.first()
-    }
-
-    override suspend fun clear() {
-        context.dataStore.edit { preferences ->
-            preferences.clear()
-        }
-    }
-}
-
- */

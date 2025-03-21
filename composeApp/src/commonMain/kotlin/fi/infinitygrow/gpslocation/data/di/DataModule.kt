@@ -7,8 +7,6 @@ import fi.infinitygrow.gpslocation.core.data.HttpClientFactory
 import fi.infinitygrow.gpslocation.data.database.DatabaseFactory
 import fi.infinitygrow.gpslocation.data.database.StationDatabase
 import fi.infinitygrow.gpslocation.data.datastore.DATA_STORE_FILE_NAME
-//import fi.infinitygrow.gpslocation.data.PreferencesFactory
-import fi.infinitygrow.gpslocation.data.datastore.PreferencesManager
 import fi.infinitygrow.gpslocation.data.datastore.createDataStore
 import fi.infinitygrow.gpslocation.data.remote.ApiService
 import fi.infinitygrow.gpslocation.data.remote.FmiApiService
@@ -16,14 +14,9 @@ import fi.infinitygrow.gpslocation.data.remote.KtorClient
 import fi.infinitygrow.gpslocation.data.remote.KtorFmiApiService
 import fi.infinitygrow.gpslocation.data.repository.FavoritesRepositoryImpl
 import fi.infinitygrow.gpslocation.data.repository.SettingsRepository
-import fi.infinitygrow.gpslocation.data.repository.TextToSpeechHelperImpl
 import fi.infinitygrow.gpslocation.data.repository.WeatherRepositoryImpl
-import fi.infinitygrow.gpslocation.data.repository.WeatherServiceImpl
 import fi.infinitygrow.gpslocation.domain.repository.FavoritesRepository
-import fi.infinitygrow.gpslocation.domain.repository.TextToSpeechHelper
 import fi.infinitygrow.gpslocation.domain.repository.WeatherRepository
-import fi.infinitygrow.gpslocation.domain.repository.WeatherService
-import fi.infinitygrow.gpslocation.presentation.permission.LocationService
 import org.koin.core.module.dsl.singleOf
 import org.koin.dsl.bind
 import org.koin.dsl.module

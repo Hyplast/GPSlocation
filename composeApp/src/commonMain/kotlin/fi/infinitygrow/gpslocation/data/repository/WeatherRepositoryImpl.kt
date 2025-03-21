@@ -12,7 +12,6 @@ import fi.infinitygrow.gpslocation.domain.model.SoundingData
 import fi.infinitygrow.gpslocation.domain.model.Weather
 import fi.infinitygrow.gpslocation.domain.repository.WeatherRepository
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.stateIn
 
 class WeatherRepositoryImpl(
     private val apiService: ApiService,
@@ -57,13 +56,4 @@ class WeatherRepositoryImpl(
     ): List<ObservationData> {
         TODO("Not yet implemented")
     }
-
-
 }
-
-//
-//class FmiWeatherRepository(private val fmiApiService: FmiApiService) : FmiWeatherRepository {
-//    override suspend fun getObservation(latitude: Double, longitude: Double): List<ObservationData> {
-//        return fmiApiService.
-//    }
-//}

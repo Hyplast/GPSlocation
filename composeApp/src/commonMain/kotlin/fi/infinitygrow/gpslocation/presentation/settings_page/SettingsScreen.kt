@@ -63,6 +63,7 @@ import gpslocation.composeapp.generated.resources.settings
 import gpslocation.composeapp.generated.resources.station_name
 import gpslocation.composeapp.generated.resources.talk_service
 import gpslocation.composeapp.generated.resources.temperature
+import gpslocation.composeapp.generated.resources.thermal_calculation
 import gpslocation.composeapp.generated.resources.wind
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.stringResource
@@ -77,8 +78,8 @@ fun SettingsScreen(
     val darkTheme by settingsViewModel.darkTheme.collectAsState()
     val isLocationOn by settingsViewModel.isLocationOn.collectAsState()
     val currentRadius by settingsViewModel.radius.collectAsState() // defaults to 50
-    val isServiceRunning by settingsViewModel.isServiceRunning.collectAsState()
-    val textToSpeech by settingsViewModel.textToSpeech.collectAsState()
+    //val isServiceRunning by settingsViewModel.isServiceRunning.collectAsState()
+    //val textToSpeech by settingsViewModel.textToSpeech.collectAsState()
     val ttsName by settingsViewModel.ttsName.collectAsState()
     val ttsDistance by settingsViewModel.ttsDistance.collectAsState()
     val ttsOneOrAll by settingsViewModel.ttsOneOrAll.collectAsState()
@@ -89,6 +90,7 @@ fun SettingsScreen(
     val ttsWindGust by settingsViewModel.ttsWindGust.collectAsState()
     val ttsWindDirection by settingsViewModel.ttsWindDirection.collectAsState()
     val ttsCloudBase by settingsViewModel.ttsCloudBase.collectAsState()
+    val ttsThermalHeight by settingsViewModel.ttsThermalHeight.collectAsState()
 
     val ttsFlightLevel65 by settingsViewModel.ttsFlightLevel65.collectAsState()
     val ttsFlightLevel95 by settingsViewModel.ttsFlightLevel95.collectAsState()
@@ -108,8 +110,8 @@ fun SettingsScreen(
 
     var isLocationOnSwitch = isLocationOn
 
-    var selected by remember { mutableStateOf(false) }
-    var showChips by remember { mutableStateOf(false) }
+    val selected by remember { mutableStateOf(false) }
+    //var showChips by remember { mutableStateOf(false) }
 
     val locationDeniedText = stringResource(Res.string.location_denied)
 
@@ -125,6 +127,7 @@ fun SettingsScreen(
             stringResource(Res.string.gust),
             stringResource(Res.string.direction_plain),
             stringResource(Res.string.clouds_height),
+            stringResource(Res.string.thermal_calculation),
             "FL65",
             "FL95"
         )
@@ -140,6 +143,7 @@ fun SettingsScreen(
         ttsWindGust,
         ttsWindDirection,
         ttsCloudBase,
+        ttsThermalHeight,
         ttsFlightLevel65,
         ttsFlightLevel95
     )
@@ -190,7 +194,7 @@ fun SettingsScreen(
                 )
                 Switch(
                     checked = darkTheme,
-                    onCheckedChange = { checked ->
+                    onCheckedChange = {
                         scope.launch {
                             settingsViewModel.toggleDarkTheme()
                         }
@@ -210,7 +214,7 @@ fun SettingsScreen(
                 )
                 Switch(
                     checked = isLocationOnSwitch,
-                    onCheckedChange = { checked ->
+                    onCheckedChange = {
                         scope.launch {
                             val success = settingsViewModel.toggleLocation()
                             if (!success) {
@@ -233,6 +237,7 @@ fun SettingsScreen(
                         onClick = { dropdownExpanded = true },
                         modifier = Modifier.fillMaxWidth()
                     ) {
+                        //val searchRadius = stringResource(Res.string.humidity)
                         Text(text = "Havaintoasemien hakuetäisyys $currentRadius km")
                     }
                     DropdownMenu(
@@ -310,8 +315,9 @@ fun SettingsScreen(
                                         7 -> settingsViewModel.toggleTtsWindGust()
                                         8 -> settingsViewModel.toggleTtsWindDirection()
                                         9 -> settingsViewModel.toggleTtsCloudBase()
-                                        10 -> settingsViewModel.toggleTtsFlightLevel65()
-                                        11 -> settingsViewModel.toggleTtsFlightLevel95()
+                                        10 -> settingsViewModel.toggleTtsThermalHeight()
+                                        11 -> settingsViewModel.toggleTtsFlightLevel65()
+                                        12 -> settingsViewModel.toggleTtsFlightLevel95()
                                     }
                                 },
                                 label = { Text(label) },

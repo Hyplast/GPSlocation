@@ -1,7 +1,5 @@
 package fi.infinitygrow.gpslocation.presentation.observation_list
 
-//import fi.infinitygrow.gpslocation.presentation.observation_list.components.WeatherDashboard
-//import fi.infinitygrow.gpslocation.presentation.observation_list.components.WeatherObservation
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -55,7 +53,6 @@ import gpslocation.composeapp.generated.resources.icon_thermometer
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.painterResource
-
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -243,132 +240,5 @@ fun WeatherScreen(
     }
 }
 
-/*
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun WeatherScreen(
-    onNavigateToSettings: () -> Unit,
-    weatherViewModel: WeatherViewModel
-) {
-    val scope = rememberCoroutineScope()
-    val uiState by weatherViewModel.uiState.collectAsState()
-    val snackbarHostState = remember { SnackbarHostState() }
-    var state by remember { mutableStateOf(0) }
-    val icons = listOf(Icons.Filled.Face, Icons.Filled.AccountBox, Icons.Filled.Warning)
-
-    LaunchedEffect(Unit) {
-        weatherViewModel.refreshWeather(weatherViewModel.selectedLocations)
-    }
-
-    Scaffold(
-        snackbarHost = { SnackbarHost(hostState = snackbarHostState) }
-    ) { padding ->
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(color = SkyBlueColor)
-                .padding(padding)
-        ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(padding)
-                    .background(color = SkyBlueColor),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center
-            ) {
-                if (weatherViewModel.getLocationPermission() && weatherViewModel.useLocation.value) {
-                    WeatherSummary(
-                        currentWeather = uiState.currentWeather,
-                        isDarkTheme = weatherViewModel.isDarkTheme.value
-                    )
-                }
-                LocationSearchScreen(
-                    modifier = Modifier,
-                    locations = locations,
-                    onLocationSelected = { location ->
-                        scope.launch {
-                            snackbarHostState.showSnackbar(message = "${location.name} sääasema lisätty.")
-                        }
-                        weatherViewModel.refreshWeather(weatherViewModel.selectedLocations)
-                        //onLocationSelected(location)
-                    },
-                    observationLocations = weatherViewModel.selectedLocations
-                )
-                Spacer(modifier = Modifier.height(12.dp))
-                Column {
-                    SecondaryTabRow(selectedTabIndex = state) {
-                        icons.forEachIndexed { index, icon ->
-                            Tab(
-                                selected = state == index,
-                                onClick = { state = index },
-                                icon = { Icon(icon, contentDescription = "Favorite") }
-                            )
-                        }
-                    }
-
-                    when (state) {
-                        0 -> {
-                            // Content for the first tab with PullToRefreshBox
-                            PullToRefreshBox(
-                                isRefreshing = uiState.isRefreshing,
-                                onRefresh = {
-                                    weatherViewModel.refreshWeather(weatherViewModel.selectedLocations)
-                                }
-                            ) {
-                                uiState.observationInfo?.let { observations ->
-                                    ObservationsList(
-                                        observations = observations,
-                                        viewModel = weatherViewModel,
-                                        isDarkTheme = weatherViewModel.isDarkTheme.value
-                                    )
-                                }
-                            }
-                        }
-                        else -> {
-                            // Content for other tabs
-                            Text(
-                                modifier = Modifier.align(Alignment.CenterHorizontally),
-                                text = "Icon tab ${state + 1} selected",
-                                style = MaterialTheme.typography.bodyLarge
-                            )
-                        }
-                    }
-                }
-
-            }
-            IconButton(
-                onClick = onNavigateToSettings,
-                modifier = Modifier
-                    .align(Alignment.TopEnd)
-                    .padding(16.dp)  // adjust padding as needed
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Settings,
-                    contentDescription = "Navigate to Settings",
-                    tint = Color.White
-                )
-            }
-        }
-    }
-}
-
- */
 
 
-//                val weatherData = listOf(
-//                    WeatherObservation(1678916600, 22.5f, 65.0f, 1013.2f, 3.2f),
-//                    WeatherObservation(1678917200, 23.1f, 62.5f, 1012.8f, 4.1f),
-//                    WeatherObservation(1678917800, 24.2f, 60.0f, 1012.5f, 4.5f),
-//                    WeatherObservation(1678918400, 22.5f, 65.0f, 1013.2f, 3.2f),
-//                    WeatherObservation(1678919000, 23.1f, 62.5f, 1012.8f, 4.1f),
-//                    WeatherObservation(1678919600, 24.2f, 60.0f, 1012.5f, 4.5f),
-//                    WeatherObservation(1678920200, 22.5f, 65.0f, 1013.2f, 3.2f),
-//                    WeatherObservation(1678920800, 23.1f, 62.5f, 1012.8f, 4.1f),
-//                    WeatherObservation(1678921400, 24.2f, 60.0f, 1012.5f, 4.5f),
-//                    WeatherObservation(1678922000, 22.5f, 65.0f, 1013.2f, 3.2f),
-//                    WeatherObservation(1678922600, 23.1f, 62.5f, 1012.8f, 4.1f),
-//                    WeatherObservation(1678923200, 24.2f, 60.0f, 1012.5f, 4.5f),
-//                )
-//                WeatherDashboard(weatherData)
-//Spacer(modifier = Modifier.height(24.dp))
