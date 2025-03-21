@@ -23,6 +23,7 @@
     <string name="no_clouds">No clouds observed</string>
     <string name="overcast">Overcast</string>
     <string name="cloud_base">Cloud base: %1$s meters</string>">
+    <string name="thermal_height">Thermal height: %1$s meters</string>">
     <string name="fl_65">Flight level 65 %1$s meters</string>
     <string name="fl_95">Flight level 95 %1$s meters</string>
 

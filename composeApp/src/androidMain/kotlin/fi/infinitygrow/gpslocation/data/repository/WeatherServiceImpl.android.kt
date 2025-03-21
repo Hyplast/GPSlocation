@@ -206,6 +206,7 @@ actual class WeatherServiceImpl : Service(), WeatherService {
         // or displaying a user-friendly error message
     }
 
+    private var sounding12ZUpdated = false  // Tracks whether the function was called in the time range
 
     private suspend fun waitUntilNextObservation() {
         val now = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault())
@@ -215,7 +216,22 @@ actual class WeatherServiceImpl : Service(), WeatherService {
 //        println(minutesToWait)
 //        println("Waiting this amount of minutes")
 
+        // Check if the time is between UTC 12:00 and UTC 13:30
+        if (now.hour in 12..13 && (now.hour != 13 || now.minute <= 30)) {
+            if (!sounding12ZUpdated) {
+                //getSounding()  // Call the function only once
+                sounding12ZUpdated = getSounding()
+            }
+        } else {
+            sounding12ZUpdated = false  // Reset flag after 13:30 UTC
+        }
+
         delay(minutesToWait.minutes.inWholeMilliseconds)
+    }
+
+
+    private suspend fun getSounding(): Boolean {
+        return true
     }
 
     override fun stopWeatherUpdates() {
@@ -281,6 +297,7 @@ actual class WeatherServiceImpl : Service(), WeatherService {
                 "wind_gust" -> context.getString(R.string.wind_gust, value.toString())
                 "wind_direction" -> context.getString(R.string.wind_direction, value.toString())
                 "cloud_base" -> context.getString(R.string.cloud_base, value.toString())
+                "thermal_height" -> context.getString(R.string.thermal_height, value.toString())
                 "fl_65" -> context.getString(R.string.fl_65, value.toString())
                 "fl_95" -> context.getString(R.string.fl_95, value.toString())
                 else -> value.toString() // Fallback if no translation exists

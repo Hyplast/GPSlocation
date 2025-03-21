@@ -23,6 +23,7 @@
     <string name="no_clouds">Ei pilviä havaittu</string>
     <string name="overcast">Täyspilvikatto</string>
     <string name="cloud_base">Pilvenpohjat: %1$s metriä.</string>">
+    <string name="thermal_height">Termiikin korkeus: %1$s metriä.</string>">
     <string name="fl_65">Lentopinta 65. %1$s metriä</string>
     <string name="fl_95">Lentopinta 95. %1$s metriä</string>
 

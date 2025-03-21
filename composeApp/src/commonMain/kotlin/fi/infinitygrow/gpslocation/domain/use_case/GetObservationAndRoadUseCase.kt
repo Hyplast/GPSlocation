@@ -8,6 +8,8 @@ class GetObservationAndRoadUseCase(private val weatherRepository: WeatherReposit
 
     suspend operator fun invoke(lat:Double?, long:Double?, observationList: List<ObservationLocation>):Result<List<RoadObservationData>>{
         return try {
+
+            val response2 = weatherRepository.getObservation(lat, long, observationList)
             val response = weatherRepository.getRoadObservation(lat, long, observationList)
             Result.success(response)
         }catch (e:Exception){
