@@ -41,7 +41,7 @@
     <string name="snow">snow</string>
 
     <string name="surface">Surface</string>
-    <string name="Ground">Ground</string>
+    <string name="ground">Ground</string>
     <string name="rh">RH</string>
     <string name="air_road_temp">Air &amp; Road Temp</string>
     <string name="wind_n_gust">Wind &amp; Gust</string>

@@ -213,26 +213,6 @@ fun getBoundingBox(centerLat: Double, centerLon: Double, radiusKm: Double): Boun
     )
 }
 
-
-// Errpr version
-//fun getBearing(lat1: Double, long1: Double, lat2: Double, long2: Double): Double {
-//    val dLon = (long2 - long1) * (PI / 180)
-//    val y = sin(dLon) * cos(lat2 * (PI / 180))
-//    val x = cos(lat1 * (PI / 180)) * sin(lat2 * (PI / 180)) -
-//            sin(lat1 * (PI / 180)) * cos(lat2 * (PI / 180)) * cos(dLon)
-//
-//    return (atan2(y, x) * (180 / PI) + 360) % 360  // Normalize to 0-360°
-//}
-
-//fun getBearing(lat1: Double, long1: Double, lat2: Double, long2: Double): Double {
-//    val dLon = Math.toRadians(long2 - long1)
-//    val y = sin(dLon) * cos(Math.toRadians(lat2))
-//    val x = cos(Math.toRadians(lat1)) * sin(Math.toRadians(lat2)) - sin(Math.toRadians(lat1)) * cos(Math.toRadians(lat2)) * cos(dLon)
-//    return Math.toDegrees(atan2(y, x))
-//}
-
-
-
 //fun bearingToDirection(bearing: Double): String {
 //    val directions = arrayOf("pohjoiseen", "koiliseen", "itään", "kaakkoon", "etelään", "lounaaseen", "länteen", "luoteeseen")
 //    val index = ((bearing + 22.5) / 45).toInt() and 7

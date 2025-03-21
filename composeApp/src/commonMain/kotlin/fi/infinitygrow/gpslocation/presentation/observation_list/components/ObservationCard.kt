@@ -50,24 +50,19 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.patrykandpatrick.vico.multiplatform.cartesian.AutoScrollCondition
 import com.patrykandpatrick.vico.multiplatform.cartesian.CartesianChartHost
-import com.patrykandpatrick.vico.multiplatform.cartesian.CartesianDrawingContext
 import com.patrykandpatrick.vico.multiplatform.cartesian.CartesianMeasuringContext
 import com.patrykandpatrick.vico.multiplatform.cartesian.Scroll
 import com.patrykandpatrick.vico.multiplatform.cartesian.Zoom
 import com.patrykandpatrick.vico.multiplatform.cartesian.axis.Axis
-import com.patrykandpatrick.vico.multiplatform.cartesian.axis.HorizontalAxis
 import com.patrykandpatrick.vico.multiplatform.cartesian.axis.HorizontalAxis.Companion.rememberBottom
-import com.patrykandpatrick.vico.multiplatform.cartesian.axis.rememberAxisGuidelineComponent
-import com.patrykandpatrick.vico.multiplatform.cartesian.axis.rememberAxisLineComponent
-//import com.patrykandpatrick.vico.multiplatform.cartesian.axis.
 import com.patrykandpatrick.vico.multiplatform.cartesian.axis.VerticalAxis
+import com.patrykandpatrick.vico.multiplatform.cartesian.axis.rememberAxisGuidelineComponent
 import com.patrykandpatrick.vico.multiplatform.cartesian.axis.rememberAxisLabelComponent
 import com.patrykandpatrick.vico.multiplatform.cartesian.data.CartesianChartModelProducer
 import com.patrykandpatrick.vico.multiplatform.cartesian.data.CartesianLayerRangeProvider
 import com.patrykandpatrick.vico.multiplatform.cartesian.data.CartesianValueFormatter
 import com.patrykandpatrick.vico.multiplatform.cartesian.data.ColumnCartesianLayerModel
 import com.patrykandpatrick.vico.multiplatform.cartesian.data.lineSeries
-import com.patrykandpatrick.vico.multiplatform.cartesian.decoration.Decoration
 import com.patrykandpatrick.vico.multiplatform.cartesian.decoration.HorizontalLine
 import com.patrykandpatrick.vico.multiplatform.cartesian.layer.ColumnCartesianLayer
 import com.patrykandpatrick.vico.multiplatform.cartesian.layer.LineCartesianLayer
@@ -79,12 +74,10 @@ import com.patrykandpatrick.vico.multiplatform.cartesian.rememberVicoScrollState
 import com.patrykandpatrick.vico.multiplatform.cartesian.rememberVicoZoomState
 import com.patrykandpatrick.vico.multiplatform.common.Position
 import com.patrykandpatrick.vico.multiplatform.common.component.LineComponent
-
 import com.patrykandpatrick.vico.multiplatform.common.component.rememberLineComponent
 import com.patrykandpatrick.vico.multiplatform.common.data.ExtraStore
 import com.patrykandpatrick.vico.multiplatform.common.fill
 import com.patrykandpatrick.vico.multiplatform.common.shape.CorneredShape
-import com.patrykandpatrick.vico.multiplatform.common.shape.Shape
 import com.patrykandpatrick.vico.multiplatform.common.vicoTheme
 import fi.infinitygrow.gpslocation.core.presentation.LeafGreenColor
 import fi.infinitygrow.gpslocation.domain.model.ObservationData
@@ -93,7 +86,6 @@ import fi.infinitygrow.gpslocation.domain.model.RoadObservationData
 import fi.infinitygrow.gpslocation.domain.model.SoundingData
 import fi.infinitygrow.gpslocation.domain.model.getObservationLocation
 import fi.infinitygrow.gpslocation.presentation.observation_list.WeatherViewModel
-import fi.infinitygrow.gpslocation.presentation.utils.SoundingPoint
 import fi.infinitygrow.gpslocation.presentation.utils.calculateCloudBaseHeight
 import fi.infinitygrow.gpslocation.presentation.utils.convertUnixTimeToHHMM
 import fi.infinitygrow.gpslocation.presentation.utils.estimateLCL
@@ -104,20 +96,31 @@ import fi.infinitygrow.gpslocation.presentation.utils.formatValue
 import fi.infinitygrow.gpslocation.presentation.utils.getWeatherDescriptionString
 import fi.infinitygrow.gpslocation.presentation.utils.rememberMarker
 import fi.infinitygrow.gpslocation.presentation.utils.selectClosestLatestSoundingProfile
+import gpslocation.composeapp.generated.resources.Ground
 import gpslocation.composeapp.generated.resources.Res
+import gpslocation.composeapp.generated.resources.air_road_temp
 import gpslocation.composeapp.generated.resources.baseline_lock_open_24
+import gpslocation.composeapp.generated.resources.cloudiness
+import gpslocation.composeapp.generated.resources.diffuse
+import gpslocation.composeapp.generated.resources.direct
+import gpslocation.composeapp.generated.resources.global_radiation
 import gpslocation.composeapp.generated.resources.humidity
+import gpslocation.composeapp.generated.resources.long_wave
+import gpslocation.composeapp.generated.resources.no_valid_data_available
+import gpslocation.composeapp.generated.resources.radiation
+import gpslocation.composeapp.generated.resources.rh
+import gpslocation.composeapp.generated.resources.snow
+import gpslocation.composeapp.generated.resources.sunshine
+import gpslocation.composeapp.generated.resources.surface
 import gpslocation.composeapp.generated.resources.temp_n_dew
 import gpslocation.composeapp.generated.resources.twotone_lock_24
 import gpslocation.composeapp.generated.resources.wind_n_gust
 import kotlinx.coroutines.delay
-import kotlinx.datetime.Instant
 import kotlinx.datetime.LocalTime
 import kotlinx.datetime.format.Padding
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 import kotlin.math.abs
-import kotlin.math.atan
 import kotlin.math.ceil
 import kotlin.math.max
 import kotlin.math.min
@@ -340,12 +343,12 @@ fun ObservationCard(
                             observation.pressure.takeIf { it.isFinite() && it != 0.0 }
                                 ?.let { Text(text = "$it hPa") }
                             observation.cloudAmount.takeIf { it.isFinite() && it != 0.0 }
-                                ?.let { Text(text = "${it.toInt()}/8 pilvisyys") }
+                                ?.let { Text(text = "${it.toInt()}/8 ${stringResource(Res.string.cloudiness)}") }
                             observation.precipitationIntensity.takeIf {
                                 it.isFinite() && it != 0.0
                             }?.let { Text(text = "$it mm/10min") }
                             observation.snowDepth.takeIf { it.isFinite() && it != 0.0 }?.let {
-                                Text(text = "${it.toInt()} cm lunta")
+                                Text(text = "${it.toInt()} cm ${stringResource(Res.string.snow)}")
                             }
                             // Calculate LCL altitude
                             val calculateCloudBaseHeights = getObservationLocation(observation)?.altitude?.let { calculateCloudBaseHeight(observation.temperature, observation.dewPoint, it.toDouble()) }
@@ -364,16 +367,6 @@ fun ObservationCard(
                                     observation.latitude,
                                     observation.longitude
                                 )
-
-                                // Convert your sounding data to the expected type if needed.
-                                // For this example, we assume SoundingData has the same property names.
-//                                val soundingPoints = soundingInfo.map {
-//                                    SoundingPoint(
-//                                        altitude = it.altitude,
-//                                        temperature = it.temperature,
-//                                        dewPoint = it.dewPoint
-//                                    )
-//                                }
 
                                 println("Altitude and size of sounding Points0")
                                 println(selectedProfile?.get(0)?.altitude)
@@ -522,7 +515,8 @@ fun RoadObservationCard(
     // Index selection for chart type
     var selectedChartIndex by remember { mutableStateOf(0) }
     // Define chart options (feel free to adjust titles and charts)
-    val chartOptions = listOf("Air & Road Temp", "Humidity", "Wind & Gust")
+    val chartOptions = listOf(
+        stringResource(Res.string.air_road_temp), stringResource(Res.string.humidity), stringResource(Res.string.wind_n_gust))
 
     // Filter road observations by station name to display charts for related data
     val currentStationName = observation.name
@@ -531,8 +525,8 @@ fun RoadObservationCard(
     }
 
 
-    println("SIZE OF ObservationsRoadList")
-    println(chartObservations.size)
+//    println("SIZE OF ObservationsRoadList")
+//    println(chartObservations.size)
 
     val modifier = Modifier
 
@@ -646,15 +640,18 @@ fun RoadObservationCard(
                             observation.roadSurfaceTemperature.takeIf {
                                 it.isFinite() && it != 0.0
                             }?.let {
-                                Text(text = "Surface: ${formatValue(it.toFloat())} °C")
+                                val surface = stringResource(Res.string.surface)
+                                Text(text = "$surface: ${formatValue(it.toFloat())} °C")
                             }
                             observation.roadGroundTemperature.takeIf {
                                 it.isFinite() && it != 0.0
                             }?.let {
-                                Text(text = "Ground: ${formatValue(it.toFloat())} °C")
+                                val ground = stringResource(Res.string.Ground)
+                                Text(text = "$ground: ${formatValue(it.toFloat())} °C")
                             }
                             observation.humidity.takeIf { it.isFinite() && it != 0.0 }?.let {
-                                Text(text = "RH: ${formatValue(it.toFloat())} %")
+                                val rh = stringResource(Res.string.rh)
+                                Text(text = "$rh: ${formatValue(it.toFloat())} %")
                             }
                         }
                     }
@@ -682,7 +679,7 @@ fun RoadObservationCard(
                                     else MaterialTheme.colorScheme.onBackground,
                                     modifier = Modifier
                                         .clickable { selectedChartIndex = index }
-                                        .padding(8.dp)
+                                        .padding(2.dp)
                                 )
                             }
                         }
@@ -761,7 +758,7 @@ fun RadiationObservationCard(
     // Index selection for chart type
     var selectedChartIndex by remember { mutableStateOf(0) }
     // Define chart options
-    val chartOptions = listOf("Radiation Overview", "UV Index", "Sunshine Duration")
+    val chartOptions = listOf(stringResource(Res.string.radiation), "UV Index", stringResource(Res.string.sunshine))
 
     // Filter radiation observations by station name (for future expansion)
     val currentStationName = observation.name
@@ -771,8 +768,8 @@ fun RadiationObservationCard(
 
     val modifier = Modifier
 
-    println("Size of RadiationObs ${chartObservations[0].name} card ${chartObservations.size}")
-    println("Name ${observation.name} unixTime ${observation.unixTime} globalRadiation ${observation.uvRadiation}")
+//    println("Size of RadiationObs ${chartObservations[0].name} card ${chartObservations.size}")
+//    println("Name ${observation.name} unixTime ${observation.unixTime} globalRadiation ${observation.uvRadiation}")
 
     Box(modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp)) {
         Card(
@@ -825,7 +822,7 @@ fun RadiationObservationCard(
                         contentAlignment = Alignment.Center
                     ) {
                         Text(
-                            text =  "Global Radiation:${formatValue(observation.globalRadiation.toFloat())} W/m²", // Example: Use global radiation for summary
+                            text =  "${stringResource(Res.string.global_radiation)}:${formatValue(observation.globalRadiation.toFloat())} W/m²", // Example: Use global radiation for summary
                             fontSize = 16.sp
                         )
                     }
@@ -843,7 +840,7 @@ fun RadiationObservationCard(
                         modifier = Modifier.weight(1f),
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
-                        Text(text = "Long Wave")
+                        Text(text = stringResource(Res.string.long_wave))
                         Text(
                             text = "In: ${formatValue(observation.longWaveIn.toFloat())}"
                         )
@@ -857,12 +854,12 @@ fun RadiationObservationCard(
                         modifier = Modifier.weight(1f),
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
-                        Text(text = "Radiation")
+                        Text(text = stringResource(Res.string.radiation))
                         Text(
-                            text = "Direct: ${formatValue(observation.directRadiation.toFloat())}"
+                            text = "${stringResource(Res.string.direct)}: ${formatValue(observation.directRadiation.toFloat())}"
                         )
                         Text(
-                            text = "Diffuse: ${formatValue(observation.diffuseRadiation.toFloat())}"
+                            text = "${stringResource(Res.string.diffuse)}: ${formatValue(observation.diffuseRadiation.toFloat())}"
                         )
                     }
 
@@ -875,7 +872,7 @@ fun RadiationObservationCard(
                             text = "UV: ${formatValue(observation.uvRadiation.toFloat())}"
                         )
                         observation.sunshineDuration.takeIf { it.isFinite() }?.let {
-                            Text(text = "Sunshine: ${formatValue(it.toFloat())}/60 s")
+                            Text(text = "${stringResource(Res.string.sunshine)}: ${formatValue(it.toFloat())}/60 s")
                         }
                     }
                 }
@@ -969,33 +966,9 @@ fun RadiationObservationCard(
     }
 }
 
-//    val pressureModelProducer = remember { CartesianChartModelProducer() }
-//    val temperatureModelProducer = remember { CartesianChartModelProducer() }
-//    val dewPointModelProducer = remember { CartesianChartModelProducer() }
-//    val windSpeedModelProducer = remember { CartesianChartModelProducer() }
-//    val windDirectionModelProducer = remember { CartesianChartModelProducer() }
-
-//    // We limit our dataset to 20 (or fewer) points.
-//    val maxPoints = 20
-//    val truncatedData = soundingDataList.take(maxPoints)
-//    // For the x-axis we can simply use the indices.
-//    val xValues = truncatedData.indices.map { it.toFloat() }
-
-
-//val temps = truncatedData.map { it.temperature }
-//val dews = truncatedData.map { it.dewPoint }
-//val alts = truncatedData.map { it.altitude }
-//
 //val temps2 = listOf(-10.4, -8.5, -8.4, -8.3, -8.3, -8.3, -8.3, -8.3, -8.1, -8.1, -8.2, -8.2, -8.0, -7.9, -7.9, -8.0, -8.0, -8.0, -8.1, -8.1, -8.1, -8.1, -8.2, -8.2, -8.2, -8.2, -8.1, -8.1, -8.1, -8.0, -8.0, -8.0, -8.1, -8.2, -8.3, -8.4, -8.5, -8.6, -8.7, -8.6, -8.5, -8.3, -8.2, -8.1, -8.2, -8.2, -8.3, -8.3, -8.4, -8.5, -8.6, -8.7, -8.8, -8.9, -9.0, -9.0, -9.1, -9.2, -9.2, -9.3, -9.4, -9.4, -9.5, -9.5, -9.6, -9.7, -9.8, -9.9, -10.0, -10.1, -10.1, -10.2, -10.3, -10.3, -10.4, -10.4, -10.6, -10.6, -10.7, -10.8, -10.8, -10.9, -11.0, -11.1, -11.1, -11.2, -11.3, -11.4, -11.5, -11.6, -11.7, -11.8, -11.9, -11.9, -12.0, -12.0, -12.1, -12.2, -12.3, -12.4, -12.5, -12.6, -12.7, -12.7, -12.8, -12.9, -13.0, -13.1, -13.2, -13.3, -13.4, -13.5, -13.6, -13.7, -13.7, -13.8, -13.8, -13.8, -13.9, -13.9, -13.9, -13.9, -14.0, -14.1, -14.1, -14.2, -14.2, -14.3, -14.4, -14.5, -14.5, -14.7, -14.7, -14.8, -14.9, -15.0, -15.1, -15.2, -15.3, -15.5, -15.6, -15.7, -15.8, -15.9, -16.0, -16.2, -16.3, -16.4, -16.4, -16.5)
 //val des2 = listOf(-13.8, -12.9, -12.8, -12.9, -12.9, -12.8, -12.8, -12.9, -12.7, -12.7, -12.7, -12.7, -12.5, -12.5, -12.6, -12.6, -12.6, -12.5, -12.6, -12.5, -12.5, -12.5, -12.6, -12.6, -12.6, -12.6, -12.6, -12.7, -12.9, -13.0, -13.1, -13.1, -13.1, -13.1, -13.2, -13.2, -13.2, -13.2, -13.3, -13.6, -14.0, -14.4, -14.9, -15.3, -15.4, -15.4, -15.4, -15.5, -15.6, -15.7, -15.9, -16.1, -16.2, -16.5, -16.6, -16.8, -17.2, -17.2, -16.9, -16.6, -16.6, -16.6, -16.6, -16.8, -17.0, -17.0, -16.9, -17.0, -17.0, -17.2, -17.4, -17.6, -17.6, -17.5, -17.5, -17.6, -17.6, -17.8, -18.0, -18.1, -18.1, -18.2, -18.2, -18.3, -18.3, -18.4, -18.4, -18.4, -18.4, -18.4, -18.4, -18.4, -18.5, -18.8, -19.4, -19.9, -20.1, -20.1, -20.1, -20.1, -20.2, -20.2, -20.2, -20.2, -20.3, -20.4, -20.5, -20.6, -20.7, -20.8, -20.8, -20.9, -21.2, -21.4, -21.4, -21.5, -21.8, -22.2, -22.5, -22.7, -23.1, -23.4, -23.6, -23.6, -24.0, -24.1, -24.1, -24.2, -24.2, -24.2, -24.2, -24.2, -24.2, -24.2, -24.2, -24.3, -24.2, -24.2, -24.3, -24.1, -24.2, -24.2, -24.2, -24.2, -24.3, -24.3, -24.4, -24.3, -24.3, -24.4)
 //val alt2 = listOf(180.3, 202.2, 210.8, 220.4, 232.2, 244.4, 255.4, 266.0, 276.6, 286.2, 295.4, 305.4, 316.6, 328.5, 341.4, 354.5, 367.8, 380.6, 391.8, 401.6, 411.9, 423.9, 436.1, 446.2, 456.6, 469.4, 478.7, 486.8, 495.3, 503.2, 512.5, 523.5, 534.8, 545.8, 554.9, 563.3, 573.2, 582.2, 592.8, 605.0, 615.6, 627.2, 637.1, 644.4, 652.9, 659.2, 662.7, 672.5, 683.0, 692.8, 702.2, 713.4, 725.0, 734.8, 743.2, 753.3, 765.0, 775.3, 783.2, 790.5, 797.9, 805.1, 813.1, 822.1, 832.4, 842.6, 852.7, 864.2, 875.1, 884.6, 893.4, 902.9, 912.2, 920.7, 929.6, 940.9, 951.9, 961.1, 969.3, 978.2, 987.5, 996.2, 1004.2, 1011.8, 1020.8, 1031.1, 1041.2, 1050.1, 1057.6, 1065.5, 1074.1, 1082.5, 1092.2, 1103.2, 1114.1, 1124.6, 1134.3, 1143.7, 1154.0, 1165.5, 1176.4, 1185.2, 1193.3, 1201.4, 1210.9, 1222.7, 1234.3, 1245.4, 1256.9, 1267.3, 1277.2, 1287.1, 1297.0, 1307.6, 1308.7, 1318.3, 1327.8, 1337.4, 1347.2, 1355.7, 1364.8, 1375.3, 1385.7, 1396.0, 1405.9, 1416.9, 1429.1, 1440.3, 1450.3, 1459.7, 1469.3, 1480.0, 1490.4, 1501.8, 1513.3, 1523.6, 1534.6, 1546.7, 1558.9, 1570.7, 1581.0, 1591.2, 1602.8, 1615.9, 1628.4, 1639.9, 1649.6, 1658.4, 1666.6, 1676.0)
-
-
-//    println("MY temps and dews")
-//    println(temps)
-//    println(dews)
-//    println("MY altitudes")
-//    println(alts)
 
 
 @Composable
@@ -1292,70 +1265,6 @@ fun SkewTChart(
     }
 
 
-/*
-// Your standard lapse rate (in K/m) that we want to convert into an angle.
-private const val lapseRate = 0.0065f
-
-// Compute the angle in degrees from the lapse rate.
-private val angleInDegrees: Float = toDegrees(atan(lapseRate.toDouble())).toFloat()
-
-// A custom decoration class for drawing an angled guideline.
-class AngledLineDecoration(
-    // The angle (in degrees) at which the guideline should be drawn.
-    private val angleDegrees: Float,
-    // A lambda that returns the y intercept (or any parameter you need)
-    private val yProvider: (ExtraStore) -> Double,
-    // The line component to style the guideline.
-    private val lineComponent: LineComponent
-) : Decoration {
-
-    override fun drawOverLayers(context: CartesianDrawingContext) {
-        // The drawing logic depends on your chart's canvas.
-        // Here we assume you have a DrawScope or similar provided by the context.
-        context.canvas?.let { canvas ->
-            // Save the current canvas state
-            canvas.save()
-
-            // Determine the pivot point for the rotation. For instance, you might use the center
-            // or any other point that makes sense for your chart.
-            val pivotX = context.chartArea.left + context.chartArea.width / 2
-            val pivotY = context.chartArea.top + context.chartArea.height / 2
-
-            // Rotate the canvas at the pivot by the desired angle.
-            canvas.rotate(angleDegrees, pivotX, pivotY)
-
-            // Determine the start and end points for your guideline.
-            // Here, we draw a horizontal line across the chart area in the rotated canvas.
-            val startX = context.chartArea.left.toFloat()
-            val endX = context.chartArea.right.toFloat()
-            val yPos = (yProvider(context.extraStore)).toFloat()
-
-            // Use the lineComponent to draw a stylized line. The actual drawing call may vary.
-            // For example:
-            lineComponent.draw(canvas, Offset(startX, yPos), Offset(endX, yPos))
-
-            // Restore canvas to its original state.
-            canvas.restore()
-        }
-    }
-}
-
-val angledDecoration = AngledLineDecoration(
-    angleDegrees = angleInDegrees,
-    yProvider = { extraStore ->
-        // For example, if you want the line to be at a specific altitude:
-        closestTo797?.altitude ?: truncatedData.first().altitude
-    },
-    lineComponent = rememberAxisGuidelineComponent() // Customize as needed
-)
-
-// Add the decoration to your chart:
-chart.setDecorations(listOf(angledDecoration))
-
-
- */
-
-
 @Composable
 fun SoundingDataGraph(modifier: Modifier = Modifier, soundingDataList: List<SoundingData>) {
     val modelProducer = remember { CartesianChartModelProducer() }
@@ -1499,12 +1408,12 @@ private val BottomAxisValueFormatter00 =
 
 @Composable
 fun WindGustChart(modifier: Modifier = Modifier, roadDataList: List<RoadObservationData>, yParameterList: List<Double>) {
-    if (roadDataList.isEmpty() || yParameterList.isEmpty()) {
+    if (roadDataList.isEmpty() || yParameterList.isEmpty() || roadDataList[0].windSpeed.isNaN()) {
         Box(
             modifier = modifier.height(234.dp),
             contentAlignment = Alignment.Center
         ) {
-            Text("No data available to display")
+            Text(stringResource(Res.string.no_valid_data_available))
         }
         return
     }
@@ -1557,9 +1466,6 @@ fun WindGustChart(modifier: Modifier = Modifier, roadDataList: List<RoadObservat
 //                            areaFill = LineCartesianLayer.AreaFill.single(
 //                                fill(Brush.verticalGradient(listOf(color.copy(alpha = 0.4f), Color.Transparent)))
 //                            ),
-
-
-
                 ),
                 rangeProvider = remember {
                     CartesianLayerRangeProvider.auto()
@@ -1568,7 +1474,7 @@ fun WindGustChart(modifier: Modifier = Modifier, roadDataList: List<RoadObservat
             startAxis = VerticalAxis.rememberStart(
                 valueFormatter = StartAxisValueFormatterWind
             ),
-            bottomAxis = HorizontalAxis.rememberBottom(
+            bottomAxis = rememberBottom(
                 valueFormatter =  BottomAxisValueFormatter
             ),
             marker = rememberMarker(MarkerValueFormatterWind),
@@ -1588,7 +1494,7 @@ fun RoadObservationDataGraph(modifier: Modifier = Modifier, roadDataList: List<R
             modifier = modifier.height(234.dp),
             contentAlignment = Alignment.Center
         ) {
-            Text("No data available to display")
+            Text(stringResource(Res.string.no_valid_data_available))
         }
         return
     }
@@ -1655,7 +1561,7 @@ fun RoadObservationDataGraph(modifier: Modifier = Modifier, roadDataList: List<R
             startAxis = VerticalAxis.rememberStart(
                 valueFormatter = StartAxisValueFormatter
             ),
-            bottomAxis = HorizontalAxis.rememberBottom(
+            bottomAxis = rememberBottom(
                 valueFormatter =  BottomAxisValueFormatter
             ),
             marker = rememberMarker(MarkerValueFormatter),
@@ -1675,7 +1581,7 @@ fun RadiationDataGraph(modifier: Modifier = Modifier, radiationDataList: List<Ra
             modifier = modifier.height(234.dp),
             contentAlignment = Alignment.Center
         ) {
-            Text("No data available to display")
+            Text(stringResource(Res.string.no_valid_data_available))
         }
         return
     }
@@ -1733,7 +1639,7 @@ fun RadiationDataGraph(modifier: Modifier = Modifier, radiationDataList: List<Ra
             startAxis = VerticalAxis.rememberStart(
                 valueFormatter = StartAxisValueFormatterRadiation
             ),
-            bottomAxis = HorizontalAxis.rememberBottom(
+            bottomAxis = rememberBottom(
                 valueFormatter =  BottomAxisValueFormatter
             ),
             marker = rememberMarker(MarkerValueFormatterRadiation),
@@ -1809,7 +1715,7 @@ fun SoundingDataGraphCard2(modifier: Modifier,
             rememberCartesianChart(
                 lineLayer,
                 startAxis = VerticalAxis.rememberStart(valueFormatter = StartAxisValueFormatter),
-                bottomAxis = HorizontalAxis.rememberBottom(labelRotationDegrees = 45f),
+                bottomAxis = rememberBottom(labelRotationDegrees = 45f),
                 marker = rememberMarker(MarkerValueFormatter),
             ),
         modelProducer = chartModelProducer,

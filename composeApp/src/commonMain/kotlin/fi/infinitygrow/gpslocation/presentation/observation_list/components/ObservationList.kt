@@ -49,6 +49,9 @@ import fi.infinitygrow.gpslocation.domain.model.RoadObservationData
 import fi.infinitygrow.gpslocation.domain.model.SoundingData
 import fi.infinitygrow.gpslocation.presentation.observation_list.WeatherViewModel
 import fi.infinitygrow.gpslocation.presentation.utils.rememberMarker
+import gpslocation.composeapp.generated.resources.Res
+import gpslocation.composeapp.generated.resources.no_valid_data_available
+import org.jetbrains.compose.resources.stringResource
 
 //import fi.infinitygrow.gpslocation.presentation.utils.constructLanguageString
 
@@ -197,11 +200,9 @@ fun RadiationList(
 @Composable
 fun SoundingDataListScreen(modifier: Modifier, soundingDataList: List<SoundingData>, isDarkTheme: Boolean) {
 
-    println("Sounding datalist")
-    println(soundingDataList.size)
-    println(soundingDataList.lastIndex)
-
-
+//    println("Sounding datalist")
+//    println(soundingDataList.size)
+//    println(soundingDataList.lastIndex)
 
     if (soundingDataList.isEmpty()) {
         Column(
@@ -211,7 +212,7 @@ fun SoundingDataListScreen(modifier: Modifier, soundingDataList: List<SoundingDa
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
-            Text(text = "No sounding data available")
+            Text(stringResource(Res.string.no_valid_data_available))
         }
     } else {
         LazyColumn(
