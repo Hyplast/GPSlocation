@@ -350,66 +350,6 @@ fun ObservationCard(
                             observation.snowDepth.takeIf { it.isFinite() && it != 0.0 }?.let {
                                 Text(text = "${it.toInt()} cm ${stringResource(Res.string.snow)}")
                             }
-                            // Calculate LCL altitude
-                            val calculateCloudBaseHeights = getObservationLocation(observation)?.altitude?.let { calculateCloudBaseHeight(observation.temperature, observation.dewPoint, it.toDouble()) }
-                            val lclAltitude = estimateLCL(observation.temperature, observation.dewPoint)
-                            val lclTemp = observation.temperature - 9.8 * (lclAltitude / 1000.0)
-                            if (calculateCloudBaseHeights != null) {
-                                Text("calCBHeight-${calculateCloudBaseHeights.roundToInt()}-m")
-                            }
-                            Text("LCL:-${lclAltitude.roundToInt()}-m,-${lclTemp.roundToInt()}-°C")
-
-                            // Get the sounding data from the view model (if available) and map to SoundingPoint.
-                            viewModel.uiState.value.soundingInfo?.let { soundingInfo ->
-                                // Select the best sounding profile (full vertical profile as a list)
-                                val selectedProfile = selectClosestLatestSoundingProfile(
-                                    soundingInfo,
-                                    observation.latitude,
-                                    observation.longitude
-                                )
-
-                                println("Altitude and size of sounding Points0")
-                                println(selectedProfile?.get(0)?.altitude)
-                                println(selectedProfile?.get(0)?.timeOfSounding)
-                                println(selectedProfile?.get(0)?.name)
-                                println(selectedProfile?.size)
-
-                                val maxAltitud =
-                                    selectedProfile?.let {
-                                        getObservationLocation(observation)?.altitude?.let { it1 ->
-                                            estimateMaxAltitudeFromGround(it, observation.temperature, observation.dewPoint,
-                                                it1.toDouble())
-                                        }
-                                    }
-
-                                // Estimate max altitude
-                                val maxAltitude =
-                                    selectedProfile?.let {
-                                        estimateMaxAltitude(lclAltitude, lclTemp,
-                                            it
-                                        )
-                                    }
-                                val maxAltitude2 =
-                                    selectedProfile?.let {
-                                        getObservationLocation(observation)?.altitude?.let { _ ->
-                                            estimateMaxAltitudeNoLCL(it, observation.temperature,
-                                                selectedProfile[0].altitude
-                                                    )
-                                        }
-                                    }
-                                if (maxAltitud != null) {
-                                    Text("L-:${maxAltitud.roundToInt()}")
-                                }
-                                if (maxAltitude != null) {
-                                    if (maxAltitude2 != null) {
-                                        Text("MaxAltEL-${maxAltitude.roundToInt()}-m-${maxAltitude2.roundToInt()}")
-                                    }
-                                } else {
-                                    Text("No equilibrium level found")
-                                }
-                            }
-
-
                         }
                     }
                 }
@@ -482,6 +422,95 @@ fun ObservationCard(
                         }
                     }
                 }
+                // Calculate LCL altitude
+                val calculateCloudBaseHeights = getObservationLocation(observation)?.altitude?.let { calculateCloudBaseHeight(observation.temperature, observation.dewPoint, it.toDouble()) }
+                val lclAltitude = estimateLCL(observation.temperature, observation.dewPoint)
+                //val lclAltitude = groundAltitude + 38.1 * (groundTemperature - groundDewPoint)
+                val lclTemp = observation.temperature - 9.8 * (lclAltitude / 1000.0)
+
+                Text("temp:${observation.temperature} dew:${observation.dewPoint} alt:${getObservationLocation(observation)?.altitude}")
+
+                if (calculateCloudBaseHeights != null) {
+                    Text("CBH-${calculateCloudBaseHeights.roundToInt()}-")
+                }
+                Text("LCL:-${lclAltitude.roundToInt()}-${lclTemp.roundToInt()}-°C")
+
+                // Get the sounding data from the view model (if available) and map to SoundingPoint.
+                viewModel.uiState.value.soundingInfo?.let { soundingInfo ->
+                    // Select the best sounding profile (full vertical profile as a list)
+                    val selectedProfile = selectClosestLatestSoundingProfile(
+                        soundingInfo,
+                        observation.latitude,
+                        observation.longitude
+                    )
+
+                    println("Altitude and size of sounding Points0")
+                    println(selectedProfile?.get(0)?.altitude)
+                    println(selectedProfile?.get(0)?.timeOfSounding)
+                    println(selectedProfile?.get(0)?.name)
+                    selectedProfile?.get(0)?.timeOfSounding?.let { Text(it) }
+                    selectedProfile?.get(0)?.name?.let { Text(it) }
+
+                    println(selectedProfile?.size)
+
+                    val maxAltitud =
+                        selectedProfile?.let {
+                            getObservationLocation(observation)?.altitude?.let { it1 ->
+                                estimateMaxAltitudeFromGround(it, observation.temperature, observation.dewPoint,
+                                    it1.toDouble())
+                            }
+                        }
+
+                    // Estimate max altitude
+                    val maxAltitude =
+                        selectedProfile?.let {
+                            estimateMaxAltitude(lclAltitude, lclTemp,
+                                it
+                            )
+                        }
+                    val maxAltitude2 =
+                        selectedProfile?.let {
+                            getObservationLocation(observation)?.altitude?.let { altitude ->
+                                estimateMaxAltitudeNoLCL(it, observation.temperature,
+                                     selectedProfile[0].altitude //altitude.toDouble()
+                                )
+
+                            }
+
+                        }
+                    val maxAltitude3 =
+                        selectedProfile?.let {
+                            getObservationLocation(observation)?.altitude?.let { altitude ->
+                                estimateMaxAltitudeNoLCL(it, observation.temperature,
+                                    altitude.toDouble()
+                                )
+
+                            }
+
+                        }
+
+                     println(getObservationLocation(observation)?.altitude?.toDouble())
+                     println("<-altitude.toDouble()--- selectedProfile[0].altitude->")
+                     println(selectedProfile?.get(0)?.altitude)
+
+                    if (maxAltitud != null) {
+                        Text("FrGR-:${maxAltitud.roundToInt()}")
+
+                    }
+                    if (maxAltitude != null) {
+                        if (maxAltitude2 != null) {
+                            Text("EsMA-${maxAltitude.roundToInt()}")
+                            Text("NoLCL-${maxAltitude2.roundToInt()}")
+                            if (maxAltitude3 != null) {
+                                Text("NoLCL-${maxAltitude3.roundToInt()}")
+                            }
+                        }
+                    } else {
+                        Text("No equilibrium level found")
+                    }
+
+                }
+
             }
         }
         // Overlay a lock icon at the top-end corner of the card.

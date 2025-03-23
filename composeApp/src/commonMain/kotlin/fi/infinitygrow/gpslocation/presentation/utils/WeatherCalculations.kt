@@ -266,7 +266,7 @@ data class SoundingPoint(
 /**
  * Estimates the LCL altitude using a simple approximation.
  * This uses the formula:
- *    LCL (in meters) ≈ 38.1 * (T - T_d)
+ *    LCL (in meters) ≈ 125 * (T - T_d)
  *
  * @param temperature Temperature at the ground level in °C.
  * @param dewPoint Dew point at the ground level in °C.
@@ -275,6 +275,7 @@ data class SoundingPoint(
 fun estimateLCL(temperature: Double, dewPoint: Double): Double =
     (temperature - dewPoint) / 8.0 * 1000.0
 
+//val lclAltitude = groundAltitude + 38.1 * (groundTemperature - groundDewPoint)
 
 //fun estimateLCL(
 //    temperature: Double,
@@ -346,6 +347,9 @@ fun estimateMaxAltitude(
                 val previousPoint = sortedSoundingData[i - 1]
                 val deltaAltitude = point.altitude - previousPoint.altitude
                 val deltaTemperature = point.temperature - previousPoint.temperature
+                if (kotlin.math.abs(deltaTemperature) < 1e-6) {
+                    return point.altitude
+                }
                 val fraction = (parcelTemperature - previousPoint.temperature) / deltaTemperature
                 return previousPoint.altitude + fraction * deltaAltitude
             }
@@ -388,7 +392,8 @@ fun estimateMaxAltitudeFromGround(
     }
 
     // Calculate LCL altitude (cloud base)
-    val lclAltitude = groundAltitude + 38.1 * (groundTemperature - groundDewPoint)
+   // val lclAltitude = groundAltitude + 38.1 * (groundTemperature - groundDewPoint)
+    val lclAltitude = groundAltitude + estimateLCL(groundTemperature, groundDewPoint)
 
     // Calculate temperature at LCL
     val lclTemperature = groundTemperature - dryLapseRate * (lclAltitude - groundAltitude)
@@ -409,6 +414,10 @@ fun estimateMaxAltitudeFromGround(
                 val previousPoint = sortedSoundingData[i - 1]
                 val deltaAltitude = point.altitude - previousPoint.altitude
                 val deltaTemperature = point.temperature - previousPoint.temperature
+                // Check for near-zero deltaTemperature to avoid division by zero.
+                if (kotlin.math.abs(deltaTemperature) < 1e-6) {
+                    return point.altitude
+                }
                 val fraction = (parcelTemperature - previousPoint.temperature) / deltaTemperature
                 return previousPoint.altitude + fraction * deltaAltitude
             }
@@ -443,6 +452,9 @@ fun estimateMaxAltitudeNoLCL(
                 val previousPoint = sortedSoundingData[i - 1]
                 val deltaAltitude = point.altitude - previousPoint.altitude
                 val deltaTemperature = point.temperature - previousPoint.temperature
+                if (kotlin.math.abs(deltaTemperature) < 1e-6) {
+                    return point.altitude
+                }
                 val fraction = (parcelTemperature - previousPoint.temperature) / deltaTemperature
                 return previousPoint.altitude + fraction * deltaAltitude
             }
