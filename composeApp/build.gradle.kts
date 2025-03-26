@@ -129,7 +129,17 @@ android {
     }
     buildTypes {
         getByName("release") {
-            isMinifyEnabled = false
+            isMinifyEnabled = true
+            isShrinkResources = true
+            proguardFiles(
+                getDefaultProguardFile("proguard-android-optimize.txt"),
+                "proguard-rules.pro" // <--- This is the file you'd be looking for
+            )
+            signingConfig = signingConfigs.getByName("debug")
+            ndk {
+                // Choose one of the following levels:
+                debugSymbolLevel = "SYMBOL_TABLE" // Only function names are retained.
+            }
         }
     }
     compileOptions {

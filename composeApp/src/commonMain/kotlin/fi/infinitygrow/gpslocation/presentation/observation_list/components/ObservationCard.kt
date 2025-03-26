@@ -212,13 +212,20 @@ fun ObservationCard(
                     horizontalArrangement = Arrangement.Center
                 ) {
                     Box(
-                        modifier = Modifier.weight(1f),
+                        modifier = Modifier.weight(0.8f),
                         contentAlignment = Alignment.Center
                     ) {
-                        Text(
-                            text = observation.unixTime.convertUnixTimeToHHMM(),
-                            fontSize = 16.sp
-                        )
+                        Column {
+                            Text(
+                                text = observation.unixTime.convertUnixTimeToHHMM(),
+                                fontSize = 18.sp
+                            )
+                            getObservationLocation(observation)?.altitude?.let { altitude ->
+                                Text(
+                                    text = "$altitude m",
+                                )
+                            }
+                        }
                     }
                     Box(
                         modifier = Modifier.weight(1f),
@@ -228,17 +235,23 @@ fun ObservationCard(
                             text = observation.name.split(" ", "-", "_", "/")
                                 .take(2)
                                 .joinToString(" "),
-                            fontSize = 20.sp
+                            fontSize = 22.sp
                         )
                     }
                     Box(
-                        modifier = Modifier.weight(1f),
+                        modifier = Modifier.weight(0.8f),
                         contentAlignment = Alignment.Center
                     ) {
-                        Text(
-                            text = observation.temperature.takeIf { it.isFinite() }
-                                ?.let { "${formatValue(it.toFloat())} °C" } ?: ""
-                        )
+                        Column {
+                            Text(
+                                text = observation.temperature.takeIf { it.isFinite() }
+                                    ?.let { "${formatValue(it.toFloat())} °C" } ?: ""
+                            )
+                            Text(
+                                text = observation.humidity.takeIf { it.isFinite() }
+                                    ?.let { "${it.roundToInt()} %" } ?: ""
+                            )
+                        }
                     }
                 }
                 Spacer(modifier = Modifier.height(8.dp))

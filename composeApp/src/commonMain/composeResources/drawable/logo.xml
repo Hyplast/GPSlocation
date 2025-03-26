@@ -1,0 +1,27 @@
+<svg
+    width="200"
+    height="200"
+    viewBox="0 0 200 200"
+    xmlns="http://www.w3.org/2000/svg"
+    >
+    <!-- Sun: A yellow circle with rays -->
+    <circle cx="100" cy="80" r="30" fill="#FFD700" />
+    <!-- Sun rays -->
+    <line x1="100" y1="10" x2="100" y2="40" stroke="#FFA500" stroke-width="4" stroke-linecap="round" />
+    <line x1="100" y1="120" x2="100" y2="150" stroke="#FFA500" stroke-width="4" stroke-linecap="round" />
+    <line x1="10" y1="80" x2="40" y2="80" stroke="#FFA500" stroke-width="4" stroke-linecap="round" />
+    <line x1="160" y1="80" x2="190" y2="80" stroke="#FFA500" stroke-width="4" stroke-linecap="round" />
+    <line x1="40" y1="40" x2="60" y2="60" stroke="#FFA500" stroke-width="4" stroke-linecap="round" />
+    <line x1="140" y1="40" x2="160" y2="60" stroke="#FFA500" stroke-width="4" stroke-linecap="round" />
+    <line x1="40" y1="120" x2="60" y2="140" stroke="#FFA500" stroke-width="4" stroke-linecap="round" />
+    <line x1="140" y1="120" x2="160" y2="140" stroke="#FFA500" stroke-width="4" stroke-linecap="round" />
+
+    <!-- Wind: A gently curved blue path -->
+    <path
+        d="M40,160 Q100,130 160,160"
+        stroke="#00BFFF"
+        stroke-width="6"
+        fill="none"
+        stroke-linecap="round"
+        />
+</svg>
