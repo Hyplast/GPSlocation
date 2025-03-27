@@ -41,6 +41,7 @@ import kotlinx.datetime.toLocalDateTime
 import org.koin.android.ext.android.inject
 import kotlin.coroutines.cancellation.CancellationException
 import kotlin.time.Duration.Companion.minutes
+import io.github.aakira.napier.Napier
 
 @Suppress("EXPECT_ACTUAL_CLASSIFIERS_ARE_IN_BETA_WARNING")
 actual class WeatherServiceImpl : Service(), WeatherService {
@@ -93,7 +94,7 @@ actual class WeatherServiceImpl : Service(), WeatherService {
                 val ttsSettings = async {
                     // fetch the settings from the repository only once
                     settingsRepository.ttsSettingsFlow.first().also {
-                        println("Fetched TTS settings: $it")
+                        Napier.i("Fetched TTS settings: $it", tag = "TalkService")
                     }
                 }.await()
 
@@ -106,7 +107,7 @@ actual class WeatherServiceImpl : Service(), WeatherService {
                     waitUntilNextObservation()
                 }
             } catch (e: CancellationException) {
-                println("Weather updates cancelled.")
+                Napier.i("Weather updates cancelled.", tag = "TalkService")
             } catch (e: Exception) {
                 handleWeatherUpdateError(e)
             }
@@ -203,8 +204,8 @@ actual class WeatherServiceImpl : Service(), WeatherService {
     }
 
     private fun handleWeatherUpdateError(e: Exception) {
-        println(e)
-        println("WeatherService, Error fetching weather")
+        //println(e)
+        Napier.e("WeatherService, Error fetching weather $e", tag = "TalkService")
         // Consider more robust error handling, like logging to a crash reporting service,
         // or displaying a user-friendly error message
     }
@@ -224,6 +225,7 @@ actual class WeatherServiceImpl : Service(), WeatherService {
             if (!sounding12ZUpdated) {
                 //getSounding()  // Call the function only once
                 sounding12ZUpdated = getSounding()
+                Napier.i("Sounding updated at 12:00 UTC", tag = "TalkService")
             }
         } else {
             sounding12ZUpdated = false  // Reset flag after 13:30 UTC
