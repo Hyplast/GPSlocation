@@ -1,6 +1,5 @@
 package fi.infinitygrow.gpslocation.presentation.observation_list
 
-import androidx.compose.animation.core.copy
 import androidx.compose.runtime.mutableStateListOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -27,6 +26,8 @@ import fi.infinitygrow.gpslocation.presentation.utils.common
 import io.github.aakira.napier.Napier
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -161,25 +162,26 @@ class WeatherViewModel(
 
     fun refreshRadiation() {
         viewModelScope.launch(Dispatchers.IO) {
-            locationService.getLocation()?.let { location ->
-                getRadiation(
-                    if (useLocation.value) location.latitude else null,
-                    if (useLocation.value) location.longitude else null,
-                )
-            }
+            val location = locationService.getLocation()
+            // If useLocation is enabled and location is available, we'll use its coordinates, otherwise pass null.
+            val latitude = if (useLocation.value) location?.latitude else null
+            val longitude = if (useLocation.value) location?.longitude else null
+            getRadiation(latitude, longitude)
         }
     }
 
+
     fun refreshSounding() {
+        Napier.d("Fetching sounding data", tag = "sounding")
         viewModelScope.launch(Dispatchers.IO) {
-            locationService.getLocation()?.let { location ->
-                getSounding(
-                    if (useLocation.value) location.latitude else null,
-                    if (useLocation.value) location.longitude else null,
-                )
-            }
+            val location = locationService.getLocation()
+            // If `useLocation` is enabled and a location is available, use it; otherwise, pass null values.
+            val latitude = if (useLocation.value) location?.latitude else null
+            val longitude = if (useLocation.value) location?.longitude else null
+            getSounding(latitude, longitude)
         }
     }
+
 
 
     fun refreshWeather(selectedLocations: List<ObservationLocation>) {
@@ -197,6 +199,8 @@ class WeatherViewModel(
                 }
             } catch (e: Exception) {
                 Napier.e("Error during weather refresh: ${e.message}", tag = "WeatherRefresh")
+                _uiState.update { it.copy(error = WeatherError.ApiError(e.message ?: "Unknown error")
+                    .toString()) }
                 // Handle the error appropriately, e.g., update UI with an error message.
                 // Consider using a sealed class or a specific error state in your UiState to represent errors.
             } finally {
@@ -205,20 +209,51 @@ class WeatherViewModel(
         }
     }
 
-    private suspend fun fetchWeatherDataWithLocation(selectedLocations: List<ObservationLocation>) {
+    sealed class WeatherError {
+        data class ApiError(val message: String) : WeatherError()
+        data object PermissionDenied : WeatherError()
+        data object UnknownError : WeatherError()
+    }
+
+    private suspend fun fetchWeatherDataWithLocation(
+        selectedLocations: List<ObservationLocation>
+    ) {
         val location = locationService.getLocation()
-        val lat = if (useLocation.value) location?.latitude else null
-        val long = if (useLocation.value) location?.longitude else null
+        val useLocationValue = useLocation.value
+        val lat = if (useLocationValue) location?.latitude else null
+        val long = if (useLocationValue) location?.longitude else null
 
-        Napier.d("Fetching weather data for location: $location (useLocation=${useLocation.value}, lat=$lat, long=$long)", tag = "WeatherRefresh")
+        Napier.d(
+            "Fetching weather data for location: $location (useLocation=$useLocationValue, lat=$lat, long=$long)",
+            tag = "WeatherRefresh"
+        )
 
-        if (location != null && useLocation.value) {
-            getCurrentWeatherInfo(location.latitude, location.longitude)
-            getForecastInfo(location.latitude, location.longitude)
-        } else {
-            Napier.w("Location unavailable or not used. Fetching observation data only.", tag = "WeatherRefresh")
+        coroutineScope {
+            val currentWeatherJob = if (location != null && useLocationValue) {
+                async { getCurrentWeatherInfo(location.latitude, location.longitude) }
+            } else {
+                Napier.w(
+                    "Location unavailable or not used. Skipping current weather fetch.",
+                    tag = "WeatherRefresh"
+                )
+                null
+            }
+            val forecastJob = if (location != null && useLocationValue) {
+                async { getForecastInfo(location.latitude, location.longitude) }
+            } else {
+                Napier.w(
+                    "Location unavailable or not used. Skipping forecast fetch.",
+                    tag = "WeatherRefresh"
+                )
+                null
+            }
+            // Wait for both calls to complete
+            currentWeatherJob?.await()
+            forecastJob?.await()
+
+            // Always fetch observations
+            getObservation(lat, long, selectedLocations)
         }
-        getObservation(lat, long, selectedLocations)
     }
 
     private suspend fun requestLocationAndFetchData(selectedLocations: List<ObservationLocation>) {
@@ -241,13 +276,13 @@ class WeatherViewModel(
 
 
     private fun getCurrentWeatherInfo(lat: Double, long: Double) = viewModelScope.launch {
-        println("Fetching current weather for lat: $lat, lon: $long")
+        Napier.d("Fetching current weather for lat: $lat, lon: $long", tag = "currentWeather")
         val response = getCurrentWeatherInfoUseCase.invoke(lat, long)
         if (response.isSuccess) {
-            println("Weather fetched successfully: $response")
+            Napier.d("Weather fetched successfully: $response", tag = "currentWeather")
             _uiState.update { it.copy(currentWeather = response.getOrNull()) }
         } else {
-            println("Error fetching weather: $response")
+            Napier.e("Error fetching weather: $response", tag = "currentWeather")
             _uiState.update { it.copy(error = response.exceptionOrNull().toString()) }
         }
     }
@@ -261,7 +296,7 @@ class WeatherViewModel(
         }
     }
 
-    // Remove viewModelScope.launch here
+
     private suspend fun getObservation(lat: Double?, long: Double?, observationList: List<ObservationLocation>) {
         val response = getObservationUseCase.invoke(lat, long, observationList)
         if (response.isSuccess) {
@@ -291,24 +326,24 @@ class WeatherViewModel(
         }
     }
 
-    private fun getRadiation(lat: Double?, long: Double?) = viewModelScope.launch {
+    private suspend fun getRadiation(lat: Double?, long: Double?) {
         val response = getRadiationUseCase.invoke(lat, long)
         if(response.isSuccess) {
-            //println("Radiation fetched successfully $response")
+            Napier.d("Radiation fetched successfully $response", tag = "radiation")
             _uiState.update { it.copy(radiationInfo = response.getOrNull()) }
         }else{
-            println("Error fetching radiation:")// $response")
+            Napier.e("Error fetching radiation:", tag = "radiation")// $response")
         }
     }
 
-    private fun getSounding(lat: Double?, long: Double?) = viewModelScope.launch {
+    private suspend fun getSounding(lat: Double?, long: Double?)  {
         val response = getSoundingUseCase.invoke(lat, long)
         if(response.isSuccess) {
-            //println("Sounding fetched successfully $response")
+            Napier.d("Sounding fetched successfully $response", tag = "sounding")
             _uiState.update { it.copy(soundingInfo = response.getOrNull()) }
         }
         else{
-            println("Error fetching sounding:")// $response")
+            Napier.e("Error fetching sounding: $response", tag = "sounding")
         }
     }
 
