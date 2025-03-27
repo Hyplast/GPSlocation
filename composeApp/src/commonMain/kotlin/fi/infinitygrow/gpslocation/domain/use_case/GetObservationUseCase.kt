@@ -5,14 +5,7 @@ import fi.infinitygrow.gpslocation.domain.model.ObservationLocation
 import fi.infinitygrow.gpslocation.domain.repository.WeatherRepository
 
 class GetObservationUseCase(private val weatherRepository: WeatherRepository) {
-
-    suspend operator fun invoke(lat:Double?, long:Double?, observationList: List<ObservationLocation>):Result<List<ObservationData>>{
-        return try {
-            val response = weatherRepository.getObservation(lat, long, observationList)
-            Result.success(response)
-        }catch (e:Exception){
-            Result.failure(e)
-        }
+    suspend operator fun invoke(lat: Double?, long: Double?, observationList: List<ObservationLocation>): Result<List<ObservationData>> {
+        return Result.success(weatherRepository.getObservation(lat, long, observationList))
     }
-
 }

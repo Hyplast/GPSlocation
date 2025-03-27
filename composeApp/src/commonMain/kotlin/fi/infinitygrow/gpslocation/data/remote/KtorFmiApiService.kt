@@ -11,6 +11,7 @@ import fi.infinitygrow.gpslocation.domain.model.RoadObservationData
 import fi.infinitygrow.gpslocation.domain.model.SoundingData
 import fi.infinitygrow.gpslocation.presentation.permission.Location
 import fi.infinitygrow.gpslocation.presentation.utils.getBoundingBox
+import io.github.aakira.napier.Napier
 import io.ktor.client.HttpClient
 import io.ktor.client.request.get
 import io.ktor.client.statement.bodyAsText
@@ -38,11 +39,11 @@ class KtorFmiApiService(
     ): List<ObservationData> {
         return try {
             val safeLongitude = longitude ?: run {
-                println("Longitude is null!")
+                Napier.i("Longitude is null!", tag = "observation")
                 999.9
             }
             val safeLatitude = latitude ?: run {
-                println("Latitude is null!")
+                Napier.i("Latitude is null!", tag = "observation")
                 999.9
             }
 
@@ -64,14 +65,15 @@ class KtorFmiApiService(
                 endTime = time.first
             )
 
-            println("GETTING this url: $url")
-            println("with radius: $radiusKm")
+            Napier.i("GETTING this url: $url", tag = "observation")
+            Napier.i("with radius: $radiusKm", tag = "observation")
 
             val response = client.get(url)
             val xmlString = response.bodyAsText()
             val fetchedFromLocation = Location(safeLatitude, safeLongitude)
             deserializeObservation(xmlString, fetchedFromLocation)
         } catch (e: Exception) {
+            Napier.e("ERROR + ${e.message}", tag = "ERROR")
             e.printStackTrace()
             emptyList()
         }
@@ -108,11 +110,11 @@ class KtorFmiApiService(
     ): List<RoadObservationData> {
         return try {
             val safeLongitude = longitude ?: run {
-                println("Longitude is null!")
+                Napier.i("Longitude is null!", tag = "observation")
                 999.9
             }
             val safeLatitude = latitude ?: run {
-                println("Latitude is null!")
+                Napier.i("Latitude is null!", tag = "observation")
                 999.9
             }
 
@@ -139,6 +141,7 @@ class KtorFmiApiService(
             deserializeRoadObservation(xmlString, fetchedFromLocation)
         }
         catch (e: Exception) {
+            Napier.e("ERROR + ${e.message}", tag = "ERROR")
             e.printStackTrace()
             emptyList()
         }
@@ -149,11 +152,11 @@ class KtorFmiApiService(
     ): List<RadiationData> {
         return try {
             val safeLongitude = longitude ?: run {
-                println("Longitude is null!")
+                Napier.i("Longitude is null!", tag = "radiation")
                 999.9
             }
             val safeLatitude = latitude ?: run {
-                println("Latitude is null!")
+                Napier.i("Latitude is null!", tag = "radiation")
                 999.9
             }
 //            val time = requestBuilder.getCurrentTimeInUTCWithOffset(1)
@@ -163,7 +166,7 @@ class KtorFmiApiService(
             val url = buildFMIUrl(queryId)
 
             val response = client.get(url)
-            println("Getting this url $url")
+            Napier.i("Getting this url $url", tag = "radiation")
             val xmlString = response.bodyAsText()
             val fetchedFromLocation = Location(safeLatitude, safeLongitude)
             deserializeRadiation(xmlString, fetchedFromLocation)
@@ -171,6 +174,7 @@ class KtorFmiApiService(
 
 
         } catch (e: Exception) {
+            Napier.e("ERROR + ${e.message}", tag = "ERROR")
             e.printStackTrace()
             emptyList()
         }
@@ -185,11 +189,11 @@ class KtorFmiApiService(
     override suspend fun getSounding(longitude: Double?, latitude: Double?): List<SoundingData> {
         return try {
             val safeLongitude = longitude ?: run {
-                println("Longitude is null!")
+                Napier.i("Longitude is null!", tag = "sounding")
                 999.9
             }
             val safeLatitude = latitude ?: run {
-                println("Latitude is null!")
+                Napier.i("Latitude is null!", tag = "sounding")
                 999.9
             }
             val url = "https://opendata.fmi.fi/wfs?service=WFS&version=2.0.0&request=getFeature&storedquery_id=fmi::observations::weather::sounding::multipointcoverage"
@@ -203,6 +207,7 @@ class KtorFmiApiService(
 //            println(parsed.lastIndex)
             parsed
         } catch (e: Exception) {
+            Napier.e("ERROR + ${e.message}", tag = "ERROR")
             e.printStackTrace()
             emptyList()
         }

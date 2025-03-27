@@ -3,6 +3,7 @@ package fi.infinitygrow.gpslocation.data.mapper
 import fi.infinitygrow.gpslocation.data.model.observation.SoundingDTO
 import fi.infinitygrow.gpslocation.domain.model.SoundingData
 import fi.infinitygrow.gpslocation.presentation.permission.Location
+import io.github.aakira.napier.Napier
 import nl.adaptivity.xmlutil.serialization.XML
 
 data class Quadruple(
@@ -105,8 +106,8 @@ fun parseSounding(xmlString: String, fetchedFromLocation: Location): List<Soundi
 
     } catch (e: Exception) {
         e.printStackTrace()
-        println("ERROR")
-        println(e)
+        Napier.e("ERROR + ${e.message}", tag = "ERROR")
+        //println(e)
         emptyList()
     }
 }

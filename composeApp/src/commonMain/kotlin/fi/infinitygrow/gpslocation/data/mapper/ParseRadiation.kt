@@ -3,6 +3,7 @@ package fi.infinitygrow.gpslocation.data.mapper
 import fi.infinitygrow.gpslocation.data.model.observation.ObservationDTO
 import fi.infinitygrow.gpslocation.domain.model.RadiationData
 import fi.infinitygrow.gpslocation.presentation.permission.Location
+import io.github.aakira.napier.Napier
 import nl.adaptivity.xmlutil.serialization.XML
 
 
@@ -100,12 +101,10 @@ fun deserializeRadiation(xmlString: String, fetchedFromLocation: Location): List
                 }
             }
         }
-        println("Radiation fetched successfully and size is")
-        println(observationDataList.size)
+        Napier.i("Radiation fetched successfully and size is ${observationDataList.size}", tag = "radiation")
         observationDataList
     } catch (e: Exception) {
-        println("Error fecthing radiation")
-        println(e)
+        Napier.e("ERROR + ${e.message}", tag = "ERROR")
         e.printStackTrace()
         emptyList()
     }

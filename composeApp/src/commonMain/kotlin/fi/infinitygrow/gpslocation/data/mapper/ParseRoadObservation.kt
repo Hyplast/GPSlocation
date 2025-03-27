@@ -4,6 +4,7 @@ import fi.infinitygrow.gpslocation.data.model.observation.ObservationDTO
 import fi.infinitygrow.gpslocation.domain.model.ObservationData
 import fi.infinitygrow.gpslocation.domain.model.RoadObservationData
 import fi.infinitygrow.gpslocation.presentation.permission.Location
+import io.github.aakira.napier.Napier
 import nl.adaptivity.xmlutil.serialization.XML
 
 
@@ -146,6 +147,7 @@ fun deserializeRoadObservation(
 
         observationDataList
     } catch (e: Exception) {
+        Napier.e("ERROR + ${e.message}", tag = "ERROR")
         e.printStackTrace()
         emptyList()
     }

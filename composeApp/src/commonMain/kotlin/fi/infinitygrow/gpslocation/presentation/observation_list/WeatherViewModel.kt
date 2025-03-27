@@ -1,5 +1,6 @@
 package fi.infinitygrow.gpslocation.presentation.observation_list
 
+import androidx.compose.animation.core.copy
 import androidx.compose.runtime.mutableStateListOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -33,6 +34,8 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.suspendCancellableCoroutine
+import kotlin.coroutines.resume
 
 class WeatherViewModel(
     private val getCurrentWeatherInfoUseCase: GetCurrentWeatherInfoUseCase,
@@ -102,88 +105,6 @@ class WeatherViewModel(
         return locationService.isPermissionGranted()
     }
 
-    fun refreshRoadWeather(selectedLocations: List<ObservationLocation>) {
-        viewModelScope.launch(Dispatchers.IO) {
-            locationService.getLocation()?.let { location ->
-                getRoadObservation(
-                    if (useLocation.value) location.latitude else null,
-                    if (useLocation.value) location.longitude else null,
-                    selectedLocations
-                )
-            }
-        }
-    }
-
-    fun refreshRadiation() {
-        viewModelScope.launch(Dispatchers.IO) {
-            locationService.getLocation()?.let { location ->
-                getRadiation(
-                    if (useLocation.value) location.latitude else null,
-                    if (useLocation.value) location.longitude else null,
-                )
-            }
-        }
-    }
-
-    fun refreshSounding() {
-        viewModelScope.launch(Dispatchers.IO) {
-            locationService.getLocation()?.let { location ->
-                getSounding(
-                    if (useLocation.value) location.latitude else null,
-                    if (useLocation.value) location.longitude else null,
-                )
-            }
-        }
-    }
-
-
-    fun refreshWeather(selectedLocations: List<ObservationLocation>) {
-        Napier.d("Selected Locations are being fetched from API + $selectedLocations", tag = "Timber")
-        println("Selected Locations are being fetched from API")
-        println(selectedLocations)
-        viewModelScope.launch(Dispatchers.IO) {
-            _uiState.update { it.copy(isRefreshing = true) }
-            Napier.d("refreshWeather isRefreshing: ${_uiState.value.isRefreshing}", tag = "Timber")
-            if (locationService.isPermissionGranted()) {
-                Napier.d("refreshWeather isPermissionGranted: ${locationService.isPermissionGranted()}", tag = "Timber")
-                locationService.getLocation()?.let { location ->
-                    println("fetching weather is PermissionGranted!")
-                    Napier.d("fetching weather is PermissionGranted! for $location", tag = "Timber")
-                    getCurrentWeatherInfo(location.latitude, location.longitude)
-                    getForecastInfo(location.latitude, location.longitude)
-                    getObservation(
-                        if (useLocation.value) location.latitude else null,
-                        if (useLocation.value) location.longitude else null,
-                        selectedLocations
-                    )
-                }
-            } else {
-                locationService.requestLocationPermission { granted ->
-                    if (granted) {
-                        viewModelScope.launch(Dispatchers.IO) {
-                            locationService.getLocation()?.let { location ->
-                                Napier.v("fetching weather requestLocationPermission! for $location", tag = "Timber")
-                                getCurrentWeatherInfo(location.latitude, location.longitude)
-                                getForecastInfo(location.latitude, location.longitude)
-                                getObservation(
-                                    if (useLocation.value) location.latitude else null,
-                                    if (useLocation.value) location.longitude else null,
-                                    selectedLocations
-                                )
-                            }
-                        }
-                    } else {
-                        viewModelScope.launch(Dispatchers.IO) {
-                            Napier.v("fetching weather, location permission denied!", tag = "Timber")
-                            getObservation(null, null, selectedLocations)
-                        }
-                    }
-                    // You might want to update the UI state to indicate permission denied.
-                }
-            }
-        }
-    }
-
     fun toggleLongPress(item: ObservationData) {
         if (longPressedItems.contains(item)) {
             longPressedItems.remove(item) // Remove if already long-pressed
@@ -226,6 +147,101 @@ class WeatherViewModel(
         }
     }
 
+    fun refreshRoadWeather(selectedLocations: List<ObservationLocation>) {
+        viewModelScope.launch(Dispatchers.IO) {
+            locationService.getLocation()?.let { location ->
+                getRoadObservation(
+                    if (useLocation.value) location.latitude else null,
+                    if (useLocation.value) location.longitude else null,
+                    selectedLocations
+                )
+            }
+        }
+    }
+
+    fun refreshRadiation() {
+        viewModelScope.launch(Dispatchers.IO) {
+            locationService.getLocation()?.let { location ->
+                getRadiation(
+                    if (useLocation.value) location.latitude else null,
+                    if (useLocation.value) location.longitude else null,
+                )
+            }
+        }
+    }
+
+    fun refreshSounding() {
+        viewModelScope.launch(Dispatchers.IO) {
+            locationService.getLocation()?.let { location ->
+                getSounding(
+                    if (useLocation.value) location.latitude else null,
+                    if (useLocation.value) location.longitude else null,
+                )
+            }
+        }
+    }
+
+
+    fun refreshWeather(selectedLocations: List<ObservationLocation>) {
+        Napier.d("Fetching weather data for selected locations: $selectedLocations", tag = "WeatherRefresh")
+        viewModelScope.launch(Dispatchers.IO) {
+            _uiState.update { it.copy(isRefreshing = true) }
+            Napier.d("Refresh started. isRefreshing: ${_uiState.value.isRefreshing}", tag = "WeatherRefresh")
+
+            try {
+                if (locationService.isPermissionGranted()) {
+                    Napier.d("Location permission granted.", tag = "WeatherRefresh")
+                    fetchWeatherDataWithLocation(selectedLocations)
+                } else {
+                    Napier.d("Location permission not granted. Requesting permission.", tag = "WeatherRefresh")
+                    requestLocationAndFetchData(selectedLocations)
+                }
+            } catch (e: Exception) {
+                Napier.e("Error during weather refresh: ${e.message}", tag = "WeatherRefresh")
+                // Handle the error appropriately, e.g., update UI with an error message.
+                // Consider using a sealed class or a specific error state in your UiState to represent errors.
+            } finally {
+                _uiState.update { it.copy(isRefreshing = false) }
+                Napier.d("Refresh completed. isRefreshing: ${_uiState.value.isRefreshing}", tag = "WeatherRefresh")
+            }
+        }
+    }
+
+    private suspend fun fetchWeatherDataWithLocation(selectedLocations: List<ObservationLocation>) {
+        val location = locationService.getLocation()
+        val lat = if (useLocation.value) location?.latitude else null
+        val long = if (useLocation.value) location?.longitude else null
+
+        Napier.d("Fetching weather data for location: $location (useLocation=${useLocation.value}, lat=$lat, long=$long)", tag = "WeatherRefresh")
+
+        if (location != null && useLocation.value) {
+            getCurrentWeatherInfo(location.latitude, location.longitude)
+            getForecastInfo(location.latitude, location.longitude)
+        } else {
+            Napier.w("Location unavailable or not used. Fetching observation data only.", tag = "WeatherRefresh")
+        }
+        getObservation(lat, long, selectedLocations)
+    }
+
+    private suspend fun requestLocationAndFetchData(selectedLocations: List<ObservationLocation>) {
+        // Consider using `withContext(Dispatchers.Main)` if `requestLocationPermission` needs to interact with the UI thread.
+        val granted = suspendCancellableCoroutine { continuation ->
+            locationService.requestLocationPermission { granted ->
+                continuation.resume(granted)
+            }
+        }
+        if (granted) {
+            Napier.i("Location permission granted after request.", tag = "WeatherRefresh")
+            fetchWeatherDataWithLocation(selectedLocations)
+        } else {
+            Napier.w("Location permission denied after request. Fetching observation data only.", tag = "WeatherRefresh")
+            getObservation(null, null, selectedLocations)
+            // Consider updating the UI state to inform the user that location-based data won't be available.
+        }
+    }
+
+
+
     private fun getCurrentWeatherInfo(lat: Double, long: Double) = viewModelScope.launch {
         println("Fetching current weather for lat: $lat, lon: $long")
         val response = getCurrentWeatherInfoUseCase.invoke(lat, long)
@@ -247,24 +263,32 @@ class WeatherViewModel(
         }
     }
 
-    private fun getObservation(lat: Double?, long: Double?, observationList: List<ObservationLocation>) = viewModelScope.launch {
+    // Remove viewModelScope.launch here
+    private suspend fun getObservation(lat: Double?, long: Double?, observationList: List<ObservationLocation>) {
         val response = getObservationUseCase.invoke(lat, long, observationList)
-        if(response.isSuccess){
-            println("Observation fetched successfully")//: $response")
+        if (response.isSuccess) {
+            Napier.d("Observation fetched successfully", tag = "Observation")
             _uiState.update { it.copy(observationInfo = response.getOrNull()) }
-        }else{
-            println("Error fetching observation:")// $response")
-            _uiState.update { it.copy(error = response.exceptionOrNull().toString()) }
+        } else {
+            val error = response.exceptionOrNull()?.message ?: "Unknown error"
+            Napier.e("Error fetching observation: $error", tag = "Observation")
+            // Consider a dedicated error field in UiState
+            _uiState.update { it.copy(error = "Failed to fetch observations: $error") }
         }
     }
+
+// refreshWeather remains largely the same, but now getObservation
+// runs sequentially within its IO context unless you parallelize (see next point)
+
 
     private fun getRoadObservation(lat: Double?, long: Double?, observationList: List<ObservationLocation>) = viewModelScope.launch {
         val response = getRoadObservationUseCase.invoke(lat, long, observationList)
         if(response.isSuccess){
-            //println("Road Observation fetched successfully")//: $response")
+            Napier.d("RoadObservation fetched successfully", tag = "RoadObservation")
             _uiState.update { it.copy(roadObservationInfo = response.getOrNull()) }
         }else{
-            println("Error fetching road observation:")// $response")
+            val error = response.exceptionOrNull()?.message ?: "Unknown error" //
+            Napier.e("Error fetching road observation : $error", tag = "RoadObservation")
             _uiState.update { it.copy(error = response.exceptionOrNull().toString()) }
         }
     }
