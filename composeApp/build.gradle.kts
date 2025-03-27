@@ -93,6 +93,8 @@ kotlin {
             implementation(libs.vico.multiplatform)
             implementation(libs.vico.multiplatform.m3)
 
+            implementation(libs.napier)
+
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)

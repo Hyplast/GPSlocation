@@ -23,6 +23,7 @@ import fi.infinitygrow.gpslocation.domain.use_case.GetRoadObservationUseCase
 import fi.infinitygrow.gpslocation.domain.use_case.GetSoundingUseCase
 import fi.infinitygrow.gpslocation.presentation.permission.LocationService
 import fi.infinitygrow.gpslocation.presentation.utils.common
+import io.github.aakira.napier.Napier
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -137,12 +138,17 @@ class WeatherViewModel(
 
 
     fun refreshWeather(selectedLocations: List<ObservationLocation>) {
+        Napier.d("Selected Locations are being fetched from API + $selectedLocations", tag = "Timber")
         println("Selected Locations are being fetched from API")
         println(selectedLocations)
         viewModelScope.launch(Dispatchers.IO) {
+            _uiState.update { it.copy(isRefreshing = true) }
+            Napier.d("refreshWeather isRefreshing: ${_uiState.value.isRefreshing}", tag = "Timber")
             if (locationService.isPermissionGranted()) {
+                Napier.d("refreshWeather isPermissionGranted: ${locationService.isPermissionGranted()}", tag = "Timber")
                 locationService.getLocation()?.let { location ->
                     println("fetching weather is PermissionGranted!")
+                    Napier.d("fetching weather is PermissionGranted! for $location", tag = "Timber")
                     getCurrentWeatherInfo(location.latitude, location.longitude)
                     getForecastInfo(location.latitude, location.longitude)
                     getObservation(
@@ -156,7 +162,7 @@ class WeatherViewModel(
                     if (granted) {
                         viewModelScope.launch(Dispatchers.IO) {
                             locationService.getLocation()?.let { location ->
-                                println("fetching weather requestLocationPermission!")
+                                Napier.v("fetching weather requestLocationPermission! for $location", tag = "Timber")
                                 getCurrentWeatherInfo(location.latitude, location.longitude)
                                 getForecastInfo(location.latitude, location.longitude)
                                 getObservation(
@@ -168,7 +174,7 @@ class WeatherViewModel(
                         }
                     } else {
                         viewModelScope.launch(Dispatchers.IO) {
-                            println("fetching weather, location permission denied!")
+                            Napier.v("fetching weather, location permission denied!", tag = "Timber")
                             getObservation(null, null, selectedLocations)
                         }
                     }

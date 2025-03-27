@@ -38,12 +38,15 @@ sqlite = "2.5.0-alpha11"
 room = "2.7.0-alpha11"
 coil3 = "3.0.0-rc02"
 vico = "2.1.0"
+napier = "2.7.1"
 
 [libraries]
 vico-compose = { group = "com.patrykandpatrick.vico", name = "compose", version.ref = "vico" }
 vico-compose-m3 = { group = "com.patrykandpatrick.vico", name = "compose-m3", version.ref = "vico" }
 vico-multiplatform = { group = "com.patrykandpatrick.vico", name = "multiplatform", version.ref = "vico" }
 vico-multiplatform-m3 = { group = "com.patrykandpatrick.vico", name = "multiplatform-m3", version.ref = "vico" }
+
+napier = { group = "io.github.aakira", name = "napier", version.ref = "napier" }
 
 xmlutil = { module = "io.github.pdvrieze.xmlutil:core", version.ref = "serialization" }
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
