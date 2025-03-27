@@ -17,6 +17,8 @@
     <string name="west">west</string>
     <string name="north_west">north west</string>
     <string name="rain_mm">Rain: %1$s millimeters</string>
+    <string name="temperature_speak">Temperature: %1$s</string>
+    <string name="humidity_speak">Humidity: %1$s</string>
     <string name="wind_speed">Wind speed: %1$s</string>
     <string name="wind_gust">Wind gust: %1$s</string>
     <string name="wind_direction">Wind direction: %1$s</string>

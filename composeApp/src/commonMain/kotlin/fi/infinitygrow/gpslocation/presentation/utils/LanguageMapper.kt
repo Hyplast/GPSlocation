@@ -1,10 +1,11 @@
 package fi.infinitygrow.gpslocation.presentation.utils
 
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
 import fi.infinitygrow.gpslocation.data.repository.TtsSettings
 import fi.infinitygrow.gpslocation.domain.model.ObservationData
+import fi.infinitygrow.gpslocation.domain.model.SoundingData
 import fi.infinitygrow.gpslocation.domain.model.getAltitudeByName
+import fi.infinitygrow.gpslocation.domain.model.getObservationLocation
 import fi.infinitygrow.gpslocation.presentation.permission.Location
 import gpslocation.composeapp.generated.resources.Res
 import gpslocation.composeapp.generated.resources.weather_code_0
@@ -272,6 +273,106 @@ fun constructLanguageString(data: ObservationData?, location: Location): String?
 //    return remember(data, location) { constructLanguageStringNonComposable(data, location) }
 //}
 
+/*
+// Calculate LCL altitude
+val calculateCloudBaseHeights = getObservationLocation(observation)?.altitude?.let { calculateCloudBaseHeight(observation.temperature, observation.dewPoint, it.toDouble()) }
+val lclAltitude = estimateLCL(observation.temperature, observation.dewPoint)
+//val lclAltitude = groundAltitude + 38.1 * (groundTemperature - groundDewPoint)
+val lclTemp = observation.temperature - 9.8 * (lclAltitude / 1000.0)
+
+Text("temp:${observation.temperature} dew:${observation.dewPoint} alt:${getObservationLocation(observation)?.altitude}")
+
+if (calculateCloudBaseHeights != null) {
+    Text("CBH-${calculateCloudBaseHeights.roundToInt()}-")
+}
+Text("LCL:-${lclAltitude.roundToInt()}-${lclTemp.roundToInt()}-°C")
+
+// Get the sounding data from the view model (if available) and map to SoundingPoint.
+viewModel.uiState.value.soundingInfo?.let { soundingInfo ->
+    // Select the best sounding profile (full vertical profile as a list)
+    val selectedProfile = selectClosestLatestSoundingProfile(
+        soundingInfo,
+        observation.latitude,
+        observation.longitude
+    )
+
+       val maxAltitud =
+        selectedProfile?.let {
+            getObservationLocation(observation)?.altitude?.let { it1 ->
+                estimateMaxAltitudeFromGround(it, observation.temperature, observation.dewPoint,
+                    it1.toDouble())
+            }
+        }
+
+    println("Altitude and size of sounding Points0")
+    println(selectedProfile?.get(0)?.altitude)
+    println(selectedProfile?.get(0)?.timeOfSounding)
+    println(selectedProfile?.get(0)?.name)
+    selectedProfile?.get(0)?.timeOfSounding?.let { Text(it) }
+    selectedProfile?.get(0)?.name?.let { Text(it) }
+
+    println(selectedProfile?.size)
+
+    val maxAltitud =
+        selectedProfile?.let {
+            getObservationLocation(observation)?.altitude?.let { it1 ->
+                estimateMaxAltitudeFromGround(it, observation.temperature, observation.dewPoint,
+                    it1.toDouble())
+            }
+        }
+
+    // Estimate max altitude
+    val maxAltitude =
+        selectedProfile?.let {
+            estimateMaxAltitude(lclAltitude, lclTemp,
+                it
+            )
+        }
+    val maxAltitude2 =
+        selectedProfile?.let {
+            getObservationLocation(observation)?.altitude?.let { altitude ->
+                estimateMaxAltitudeNoLCL(it, observation.temperature,
+                    selectedProfile[0].altitude //altitude.toDouble()
+                )
+
+            }
+
+        }
+    val maxAltitude3 =
+        selectedProfile?.let {
+            getObservationLocation(observation)?.altitude?.let { altitude ->
+                estimateMaxAltitudeNoLCL(it, observation.temperature,
+                    altitude.toDouble()
+                )
+
+            }
+
+        }
+
+    println(getObservationLocation(observation)?.altitude?.toDouble())
+    println("<-altitude.toDouble()--- selectedProfile[0].altitude->")
+    println(selectedProfile?.get(0)?.altitude)
+
+    if (maxAltitud != null) {
+        Text("FrGR-:${maxAltitud.roundToInt()}")
+
+    }
+    if (maxAltitude != null) {
+        if (maxAltitude2 != null) {
+            Text("EsMA-${maxAltitude.roundToInt()}")
+            Text("NoLCL-${maxAltitude2.roundToInt()}")
+            if (maxAltitude3 != null) {
+                Text("NoLCL-${maxAltitude3.roundToInt()}")
+            }
+        }
+    } else {
+        Text("No equilibrium level found")
+    }
+
+}
+
+ */
+
 fun constructLanguageStringNonComposable2(data: ObservationData?, location: Location): List<Pair<String, Any?>> {
     if (data == null) return emptyList()
 
@@ -331,6 +432,7 @@ fun constructLanguageStringNonComposable2(data: ObservationData?, location: Loca
 
 fun constructLanguageStringNonComposable(
     data: ObservationData?,
+    soundingData: List<SoundingData>?,
     location: Location,
     prefs: TtsSettings
 ): List<Pair<String, Any?>> {
@@ -354,6 +456,17 @@ fun constructLanguageStringNonComposable(
             ?.let { parts.add("rain_mm" to it) }
     //}
 
+    if (prefs.includeTemperature) {
+        data.temperature.takeIf { it.isFinite() }
+            ?.roundToInt()?.let { parts.add("temperature" to it) }
+
+    }
+
+    if (prefs.includeHumidity) {
+        data.humidity.takeIf { it.isFinite() }
+            ?.roundToInt()?.let { parts.add("humidity" to it) }
+    }
+
     if (prefs.includeWindSpeed) {
         data.windSpeed.takeIf { it.isFinite() }
             ?.roundToInt()?.let { parts.add("wind_speed" to it) }
@@ -367,6 +480,27 @@ fun constructLanguageStringNonComposable(
     if (prefs.includeWindDirection) {
         data.windDirection.takeIf { it.isFinite() }
             ?.roundToNearestFive()?.let { parts.add("wind_direction" to it) }
+    }
+
+    if (prefs.includeThermalHeight) {
+        // Select the best sounding profile (full vertical profile as a list)
+        val selectedProfile = soundingData?.let {
+            selectClosestLatestSoundingProfile(
+                it,
+                data.latitude,
+                data.longitude
+            )
+        }
+
+        val thermalsHeight =
+            selectedProfile?.let {
+                getObservationLocation(data)?.altitude?.let { it1 ->
+                    estimateMaxAltitudeFromGround(it, data.temperature, data.dewPoint,
+                        it1.toDouble())
+                }
+            }
+
+        thermalsHeight.takeIf { it?.isFinite() == true } ?.roundToNearestHundred()?.let { parts.add("thermal_height" to it) }
     }
 
     if (prefs.includeCloudBase) {

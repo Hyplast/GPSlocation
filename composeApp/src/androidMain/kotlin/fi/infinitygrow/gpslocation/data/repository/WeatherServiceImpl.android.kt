@@ -13,6 +13,7 @@ import androidx.core.app.NotificationCompat
 import fi.infinitygrow.gpslocation.R
 import fi.infinitygrow.gpslocation.domain.model.ObservationData
 import fi.infinitygrow.gpslocation.domain.model.ObservationLocation
+import fi.infinitygrow.gpslocation.domain.model.SoundingData
 import fi.infinitygrow.gpslocation.domain.repository.WeatherRepository
 import fi.infinitygrow.gpslocation.domain.repository.WeatherService
 import fi.infinitygrow.gpslocation.presentation.permission.Location
@@ -57,6 +58,7 @@ actual class WeatherServiceImpl : Service(), WeatherService {
             .stateIn(serviceScope, SharingStarted.Lazily, emptyList())
 
     private val selectedLocations = mutableStateListOf<ObservationLocation>()
+    private val soundingData = mutableListOf<SoundingData>()
 
     companion object {
         private const val NOTIFICATION_ID = 1
@@ -82,6 +84,7 @@ actual class WeatherServiceImpl : Service(), WeatherService {
         weatherJob = serviceScope.launch {
             try {
                 launch {
+                    getSounding()
                     favorites.collect { favList ->
                         updateSelectedLocations(favList)
                     }
@@ -231,6 +234,9 @@ actual class WeatherServiceImpl : Service(), WeatherService {
 
 
     private suspend fun getSounding(): Boolean {
+        //soundingData = mutableStateListOf(*weatherRepository.getSounding(null, null).toTypedArray())
+        soundingData.clear()
+        soundingData.addAll(weatherRepository.getSounding(null,null))
         return true
     }
 
@@ -281,7 +287,7 @@ actual class WeatherServiceImpl : Service(), WeatherService {
         location: Location,
         ttsSettings: TtsSettings
     ): String {
-        val parts = constructLanguageStringNonComposable(data, location, ttsSettings)
+        val parts = constructLanguageStringNonComposable(data, soundingData, location, ttsSettings)
 
 //        println("printing parts")
         println(parts)
@@ -293,11 +299,13 @@ actual class WeatherServiceImpl : Service(), WeatherService {
                 "distance_km" -> context.getString(R.string.distance_km, value.toString())
                 //"direction" -> context.getString(R.string.direction, bearingToDirection(value).toString())
                 "rain_mm" -> context.getString(R.string.rain_mm, value.toString())
+                "temperature" -> context.getString(R.string.temperature_speak, value.toString())
+                "humidity" -> context.getString(R.string.humidity_speak, value.toString())
                 "wind_speed" -> context.getString(R.string.wind_speed, value.toString())
                 "wind_gust" -> context.getString(R.string.wind_gust, value.toString())
                 "wind_direction" -> context.getString(R.string.wind_direction, value.toString())
-                "cloud_base" -> context.getString(R.string.cloud_base, value.toString())
                 "thermal_height" -> context.getString(R.string.thermal_height, value.toString())
+                "cloud_base" -> context.getString(R.string.cloud_base, value.toString())
                 "fl_65" -> context.getString(R.string.fl_65, value.toString())
                 "fl_95" -> context.getString(R.string.fl_95, value.toString())
                 else -> value.toString() // Fallback if no translation exists

@@ -12,6 +12,8 @@
     <string name="west">länteen</string>
     <string name="north_west">luoteeseen</string>
     <string name="rain_mm">Sadetta: %1$s millimetriä</string>
+    <string name="temperature_speak">Lämpötila: %1$s</string>
+    <string name="humidity_speak">Kosteus: %1$s</string>
     <string name="wind_speed">Tuuli: %1$s</string>
     <string name="wind_gust">Puuska: %1$s</string>
     <string name="wind_direction">Suunta: %1$s</string>">

@@ -186,7 +186,6 @@ class WeatherViewModel(
         Napier.d("Fetching weather data for selected locations: $selectedLocations", tag = "WeatherRefresh")
         viewModelScope.launch(Dispatchers.IO) {
             _uiState.update { it.copy(isRefreshing = true) }
-            Napier.d("Refresh started. isRefreshing: ${_uiState.value.isRefreshing}", tag = "WeatherRefresh")
 
             try {
                 if (locationService.isPermissionGranted()) {
@@ -202,7 +201,6 @@ class WeatherViewModel(
                 // Consider using a sealed class or a specific error state in your UiState to represent errors.
             } finally {
                 _uiState.update { it.copy(isRefreshing = false) }
-                Napier.d("Refresh completed. isRefreshing: ${_uiState.value.isRefreshing}", tag = "WeatherRefresh")
             }
         }
     }
