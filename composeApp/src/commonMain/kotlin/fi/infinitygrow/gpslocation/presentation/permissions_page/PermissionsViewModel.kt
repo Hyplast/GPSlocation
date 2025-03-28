@@ -27,7 +27,7 @@ class PermissionsViewModel(
         }
     }
 
-    fun provideOrRequestRecordAudioPermission() {
+    fun provideOrRequestLocationPermission() {
         viewModelScope.launch {
             try {
 
@@ -44,5 +44,10 @@ class PermissionsViewModel(
             }
 
         }
+    }
+
+    // Function to navigate user to app settings
+    fun openAppSettings() {
+        controller.openAppSettings()
     }
 }

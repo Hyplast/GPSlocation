@@ -2,6 +2,7 @@ package fi.infinitygrow.gpslocation.data.di
 
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.sqlite.driver.bundled.BundledSQLiteDriver
 import fi.infinitygrow.gpslocation.core.data.HttpClientFactory
 import fi.infinitygrow.gpslocation.data.database.DatabaseFactory
@@ -17,7 +18,9 @@ import fi.infinitygrow.gpslocation.data.repository.SettingsRepository
 import fi.infinitygrow.gpslocation.data.repository.WeatherRepositoryImpl
 import fi.infinitygrow.gpslocation.domain.repository.FavoritesRepository
 import fi.infinitygrow.gpslocation.domain.repository.WeatherRepository
+import fi.infinitygrow.gpslocation.presentation.permissions_page.PermissionsViewModel
 import org.koin.core.module.dsl.singleOf
+import org.koin.core.module.dsl.viewModel
 import org.koin.dsl.bind
 import org.koin.dsl.module
 
@@ -39,14 +42,21 @@ val dataModule = module {
     factory<WeatherRepository> { WeatherRepositoryImpl(get(), get(), get()) }
     single { SettingsRepository(get()) }
 
-    //factory<WeatherService>  { WeatherServiceImpl() }
+    // --- Add PermissionsViewModel definition here ---
+    viewModel { params -> // params is ParametersHolder
+        PermissionsViewModel(
+            controller = params.get() // Get the controller passed during resolution
+        )
+    }
 
-    //singleOf(::WeatherServiceImpl).bind<WeatherService>()
+}
+
+//factory<WeatherService>  { WeatherServiceImpl() }
+
+//singleOf(::WeatherServiceImpl).bind<WeatherService>()
 //    single<WeatherService> { WeatherServiceImpl(androidApplication()) }
 //    single<WeatherServiceController> { WeatherServiceController(androidApplication()) }
 
-
-}
 
 // single { PreferencesManager(get()) }
 // Provide the DataStore instance

@@ -86,17 +86,10 @@ import fi.infinitygrow.gpslocation.domain.model.RoadObservationData
 import fi.infinitygrow.gpslocation.domain.model.SoundingData
 import fi.infinitygrow.gpslocation.domain.model.getObservationLocation
 import fi.infinitygrow.gpslocation.presentation.observation_list.WeatherViewModel
-import fi.infinitygrow.gpslocation.presentation.utils.calculateCloudBaseHeight
 import fi.infinitygrow.gpslocation.presentation.utils.convertUnixTimeToHHMM
-import fi.infinitygrow.gpslocation.presentation.utils.estimateLCL
-import fi.infinitygrow.gpslocation.presentation.utils.estimateMaxAltitude
-import fi.infinitygrow.gpslocation.presentation.utils.estimateMaxAltitudeFromGround
-import fi.infinitygrow.gpslocation.presentation.utils.estimateMaxAltitudeNoLCL
 import fi.infinitygrow.gpslocation.presentation.utils.formatValue
 import fi.infinitygrow.gpslocation.presentation.utils.getWeatherDescriptionString
 import fi.infinitygrow.gpslocation.presentation.utils.rememberMarker
-import fi.infinitygrow.gpslocation.presentation.utils.selectClosestLatestSoundingProfile
-import gpslocation.composeapp.generated.resources.ground
 import gpslocation.composeapp.generated.resources.Res
 import gpslocation.composeapp.generated.resources.air_road_temp
 import gpslocation.composeapp.generated.resources.baseline_lock_open_24
@@ -104,6 +97,7 @@ import gpslocation.composeapp.generated.resources.cloudiness
 import gpslocation.composeapp.generated.resources.diffuse
 import gpslocation.composeapp.generated.resources.direct
 import gpslocation.composeapp.generated.resources.global_radiation
+import gpslocation.composeapp.generated.resources.ground
 import gpslocation.composeapp.generated.resources.humidity
 import gpslocation.composeapp.generated.resources.long_wave
 import gpslocation.composeapp.generated.resources.no_valid_data_available
@@ -115,6 +109,7 @@ import gpslocation.composeapp.generated.resources.surface
 import gpslocation.composeapp.generated.resources.temp_n_dew
 import gpslocation.composeapp.generated.resources.twotone_lock_24
 import gpslocation.composeapp.generated.resources.wind_n_gust
+import io.github.aakira.napier.Napier
 import kotlinx.coroutines.delay
 import kotlinx.datetime.LocalTime
 import kotlinx.datetime.format.Padding
@@ -479,10 +474,7 @@ fun RoadObservationCard(
         observationsList.filter { it.name == currentStationName }
     }
 
-
-//    println("SIZE OF ObservationsRoadList")
-//    println(chartObservations.size)
-
+    Napier.d("SIZE OF ObservationsRoadList + ${chartObservations.size}", tag = "roadObservationTag")
     val modifier = Modifier
 
     Box(modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp)) {
@@ -644,11 +636,47 @@ fun RoadObservationCard(
                             0 -> {
                                 val temp3 = chartObservations
                                     .mapNotNull { observation ->
-                                        observation.airTemperature?.takeIf { !it.isNaN() }
-                                        observation.roadSurfaceTemperature?.takeIf { !it.isNaN() }
+                                        observation.airTemperature.takeIf { !it.isNaN() }
+                                        observation.roadSurfaceTemperature.takeIf { !it.isNaN() }
                                     }
                                 RoadObservationDataGraph(modifier = modifier, roadDataList = chartObservations, temp3)
-                                // Chart combining air temperature with road surface temperature
+
+                            }
+                            1 -> {
+
+                            }
+                            2 -> {
+                                val temp5 = chartObservations
+                                    .mapNotNull { observation ->
+                                        observation.airTemperature.takeIf { !it.isNaN() }
+                                        observation.roadSurfaceTemperature.takeIf { !it.isNaN() }
+                                    }
+                                if (
+                                    !observation.windDirection.isNaN() &&
+                                    !observation.windSpeed.isNaN() &&
+                                    !observation.windGust.isNaN()
+                                ) {
+                                    WindGustChart(modifier = modifier, roadDataList = chartObservations, temp5)
+                                }
+
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+// Humidity chart
+//                                RoadWeatherChart(
+//                                    observations = chartObservations,
+//                                    modifier = Modifier
+//                                        .fillMaxWidth()
+//                                        .height(200.dp),
+//                                    dataType = RoadWeatherDataType.HUMIDITY
+//                                )
+// Chart combining air temperature with road surface temperature
 //                                RoadWeatherChart2(
 //                                    observations1 = chartObservations,
 //                                    observations2 = chartObservations,
@@ -658,33 +686,7 @@ fun RoadObservationCard(
 //                                    dataType1 = RoadWeatherDataType.AIR_TEMPERATURE,
 //                                    dataType2 = RoadWeatherDataType.ROAD_SURFACE_TEMPERATURE
 //                                )
-                            }
-                            1 -> {
-
-
-                                // Humidity chart
-//                                RoadWeatherChart(
-//                                    observations = chartObservations,
-//                                    modifier = Modifier
-//                                        .fillMaxWidth()
-//                                        .height(200.dp),
-//                                    dataType = RoadWeatherDataType.HUMIDITY
-//                                )
-                            }
-                            2 -> {
-                                val temp5 = chartObservations
-                                    .mapNotNull { observation ->
-                                        observation.airTemperature?.takeIf { !it.isNaN() }
-                                        observation.roadSurfaceTemperature?.takeIf { !it.isNaN() }
-                                    }
-                                if (
-                                    !observation.windDirection.isNaN() &&
-                                    !observation.windSpeed.isNaN() &&
-                                    !observation.windGust.isNaN()
-                                ) {
-                                    WindGustChart(modifier = modifier, roadDataList = chartObservations, temp5)
-                                }
-                                // Wind chart example: wind speed vs. wind gust.
+// Wind chart example: wind speed vs. wind gust.
 //                                RoadWeatherChart2(
 //                                    observations1 = chartObservations,
 //                                    observations2 = chartObservations,
@@ -694,6 +696,215 @@ fun RoadObservationCard(
 //                                    dataType1 = RoadWeatherDataType.WIND_SPEED,
 //                                    dataType2 = RoadWeatherDataType.WIND_GUST
 //                                )
+
+
+
+/**
+ * Finds the most recent non-NaN value for a specific field within a list of RadiationData
+ * for a SINGLE station, assuming the list IS SORTED DESCENDING BY TIME (newest first).
+ */
+fun findFirstValidValueInSortedList(
+    // Expects a list sorted newest to oldest
+    sortedObservationsForStation: List<RadiationData>,
+    valueExtractor: (RadiationData) -> Double?
+): Pair<Double?, Long?> { // Return value and its timestamp
+    val foundEntry = sortedObservationsForStation
+        .firstOrNull { obs -> valueExtractor(obs)?.isFinite() == true }
+    return Pair(foundEntry?.let { valueExtractor(it) }, foundEntry?.unixTime)
+}
+
+
+
+@OptIn(ExperimentalFoundationApi::class)
+@Composable
+fun RadiationObservationCard(
+    observation: RadiationData, // Still represents the absolute latest received
+    observationsList: List<RadiationData>, // Unsorted, all stations
+    isLongPressed: Boolean,
+    onShortPress: () -> Unit,
+    onLongPress: () -> Unit,
+    backgroundColor: Color
+) {
+    var showChart by remember { mutableStateOf(false) }
+    var selectedChartIndex by remember { mutableStateOf(0) }
+    val chartOptions = listOf(
+        stringResource(Res.string.radiation),
+        "UV Index",
+        stringResource(Res.string.sunshine)
+    )
+
+    val currentStationName = observation.name
+
+    // *** Filter AND Sort the data for the current station ***
+    val sortedStationObservations = remember(observationsList, currentStationName) {
+        observationsList
+            .filter { it.name == currentStationName }
+            .sortedByDescending { it.unixTime } // Sort newest first!
+    }
+
+    val modifier = Modifier
+
+    // --- Find the most recent VALID values using the sorted list ---
+    val (displayGlobalRadiation, timeGlobal) = findFirstValidValueInSortedList(sortedStationObservations) { it.globalRadiation }
+    val (displayLongWaveIn, timeLwIn) = findFirstValidValueInSortedList(sortedStationObservations) { it.longWaveIn }
+    val (displayLongWaveOut, timeLwOut) = findFirstValidValueInSortedList(sortedStationObservations) { it.longWaveOut }
+    val (displayDirectRadiation, timeDirect) = findFirstValidValueInSortedList(sortedStationObservations) { it.directRadiation }
+    val (displayDiffuseRadiation, timeDiffuse) = findFirstValidValueInSortedList(sortedStationObservations) { it.diffuseRadiation }
+    val (displayUvRadiation, timeUv) = findFirstValidValueInSortedList(sortedStationObservations) { it.uvRadiation }
+    val (displaySunshineDuration, timeSunshine) = findFirstValidValueInSortedList(sortedStationObservations) { it.sunshineDuration }
+
+    // Determine the overall display time: use the latest timestamp among the valid values found,
+    // or fallback to the absolute latest observation's time if no valid values were found at all.
+    val displayTime = listOfNotNull(timeGlobal, timeLwIn, timeLwOut, timeDirect, timeDiffuse, timeUv, timeSunshine)
+        .maxOrNull() ?: observation.unixTime
+
+    Napier.d("Station ${currentStationName}: Filtered & Sorted Count = ${sortedStationObservations.size}", tag = "radiation")
+    Napier.d("Latest Record Time: ${observation.unixTime.convertUnixTimeToHHMM()}, UV: ${observation.uvRadiation}", tag = "radiation")
+    Napier.d("Displayed Time: ${displayTime.convertUnixTimeToHHMM()}, UV: ${displayUvRadiation}", tag = "radiation")
+
+
+    Box(modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp)) {
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .combinedClickable(
+                    onClick = {
+                        showChart = !showChart
+                        onShortPress()
+                    },
+                    onLongClick = onLongPress
+                ),
+            colors = CardDefaults.cardColors(containerColor = backgroundColor),
+            shape = RoundedCornerShape(12.dp),
+            elevation = CardDefaults.cardElevation(defaultElevation = 6.dp)
+        ) {
+            Column(modifier = Modifier.padding(16.dp)) {
+                // Top row - Use the 'display' values found
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Center
+                ) {
+                    Box(modifier = Modifier.weight(1f), contentAlignment = Alignment.Center) {
+                        Text(
+                            // Show the determined displayTime
+                            text = displayTime.convertUnixTimeToHHMM(),
+                            fontSize = 16.sp
+                        )
+                    }
+                    Box(modifier = Modifier.weight(1f), contentAlignment = Alignment.Center) {
+                        Text(
+                            text = observation.name.split(" ", "-", "_", "/")
+                                .take(3)
+                                .joinToString(" "),
+                            fontSize = 20.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
+                    Box(modifier = Modifier.weight(1f), contentAlignment = Alignment.Center) {
+                        Text(
+                            text = "${stringResource(Res.string.global_radiation)}:${displayGlobalRadiation?.toFloat()
+                                ?.let { formatValue(it) }} W/m²",
+                            fontSize = 16.sp
+                        )
+                    }
+                }
+                Spacer(modifier = Modifier.height(8.dp))
+
+                // Second row - Use the 'display' values found
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Center
+                ) {
+                    // --- Columns using display... variables ---
+                    Column(modifier = Modifier.weight(1f), horizontalAlignment = Alignment.CenterHorizontally) {
+                        Text(text = stringResource(Res.string.long_wave))
+                        Text(text = "Sisään: ${displayLongWaveIn?.toFloat()?.let { formatValue(it) }}")
+                        Text(text = "Ulos: ${displayLongWaveOut?.toFloat()?.let { formatValue(it) }}")
+                    }
+                    Column(modifier = Modifier.weight(1f), horizontalAlignment = Alignment.CenterHorizontally) {
+                        Text(text = stringResource(Res.string.radiation))
+                        Text(text = "${stringResource(Res.string.direct)}: ${displayDirectRadiation?.toFloat()
+                            ?.let { formatValue(it) }}")
+                        Text(text = "${stringResource(Res.string.diffuse)}: ${displayDiffuseRadiation?.toFloat()
+                            ?.let { formatValue(it) }}")
+                    }
+                    Column(modifier = Modifier.weight(1f), horizontalAlignment = Alignment.CenterHorizontally) {
+                        Text(text = "UV: ${displayUvRadiation?.toFloat()?.let { formatValue(it) }}")
+                        displaySunshineDuration?.let {
+                            Text(text = "${stringResource(Res.string.sunshine)}: ${formatValue(it.toFloat())}/60 s")
+                        }
+                    }
+                }
+
+                // Chart Section - Needs the sorted list for plotting correctly
+                AnimatedVisibility(visible = showChart) {
+                    Column {
+                        HorizontalDivider(
+                            modifier = Modifier
+                                .padding(vertical = 8.dp)
+                                .fillMaxWidth(),
+                            color = Color.Gray.copy(alpha = 0.3f)
+                        )
+                        // Chart type selection buttons (for future expansion)
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceEvenly
+                        ) {
+                            chartOptions.forEachIndexed { index, title ->
+                                Text(
+                                    text = title,
+                                    color = if (index == selectedChartIndex)
+                                        MaterialTheme.colorScheme.primary
+                                    else MaterialTheme.colorScheme.onBackground,
+                                    modifier = Modifier
+                                        .clickable { selectedChartIndex = index }
+                                        .padding(8.dp)
+                                )
+                            }
+                        }
+
+                        // *** Pass the SORTED list to the charts ***
+                        // Charts typically expect data oldest to newest, so reverse it back OR
+                        // handle descending order within the chart component.
+                        // Let's reverse it here for simplicity assuming charts expect ascending.
+                        val chartDataAscending = remember(sortedStationObservations) {
+                            sortedStationObservations.reversed()
+                        }
+
+                        if (chartDataAscending.isEmpty()) {
+                            Box(
+                                modifier = Modifier.fillMaxWidth().height(200.dp),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text("No historical data available for charts.")
+                            }
+                        } else {
+                            when (selectedChartIndex) {
+                                0 -> { // Global Radiation Chart
+
+                                    RadiationDataGraph(
+                                        modifier = modifier,
+                                        radiationDataList = chartDataAscending, // Pass ascending list
+                                        // yValues might be redundant if chart extracts itself
+                                        yParameterList = chartDataAscending.mapNotNull { it.globalRadiation.takeIf { v -> v.isFinite() } }
+                                    )
+                                }
+                                1 -> { // UV Index Chart
+                                    RadiationDataGraph(
+                                        modifier = modifier,
+                                        radiationDataList = chartDataAscending, // Pass ascending list
+                                        yParameterList = chartDataAscending.mapNotNull { it.uvRadiation.takeIf { v -> v.isFinite() } }
+                                    )
+                                }
+                                2 -> { // Sunshine/Direct Radiation Chart
+                                    RadiationDataGraph(
+                                        modifier = modifier,
+                                        radiationDataList = chartDataAscending, // Pass ascending list
+                                        yParameterList = chartDataAscending.mapNotNull { it.directRadiation.takeIf { v -> v.isFinite() } }
+                                    )
+                                }
                             }
                         }
                     }
@@ -704,9 +915,10 @@ fun RoadObservationCard(
 }
 
 
+
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun RadiationObservationCard(
+fun RadiationObservationCard2(
     observation: RadiationData,
     observationsList: List<RadiationData>,
     isLongPressed: Boolean,
@@ -729,8 +941,8 @@ fun RadiationObservationCard(
 
     val modifier = Modifier
 
-//    println("Size of RadiationObs ${chartObservations[0].name} card ${chartObservations.size}")
-//    println("Name ${observation.name} unixTime ${observation.unixTime} globalRadiation ${observation.uvRadiation}")
+    Napier.d("Size of RadiationObs ${chartObservations[0].name} card ${chartObservations.size}", tag = "radiation")
+    Napier.d("Name ${observation.name} unixTime ${observation.unixTime} globalRadiation ${observation.uvRadiation}", tag = "radiation")
 
     Box(modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp)) {
         Card(
@@ -870,13 +1082,13 @@ fun RadiationObservationCard(
                                 // Radiation Overview chart
                                 val yGlob1min = chartObservations
                                     .mapNotNull { observation ->
-                                        observation.globalRadiation?.takeIf { !it.isNaN() }
+                                        observation.globalRadiation.takeIf { !it.isNaN() }
                                     }
                                 if (yGlob1min.isNotEmpty()) {
                                     RadiationDataGraph(
                                         modifier = modifier,
                                         radiationDataList = chartObservations.filter {
-                                            it.globalRadiation != null && !it.globalRadiation.isNaN()
+                                            !it.globalRadiation.isNaN()
                                         },
                                         yGlob1min
                                     )
@@ -887,13 +1099,13 @@ fun RadiationObservationCard(
                             1 -> {
                                 val yUV1min = chartObservations
                                     .mapNotNull { observation ->
-                                        observation.uvRadiation?.takeIf { !it.isNaN() }
+                                        observation.uvRadiation.takeIf { !it.isNaN() }
                                     }
                                 if (yUV1min.isNotEmpty()) {
                                     RadiationDataGraph(
                                         modifier = modifier,
                                         radiationDataList = chartObservations.filter {
-                                            it.uvRadiation != null && !it.uvRadiation.isNaN()
+                                            !it.uvRadiation.isNaN()
                                         },
                                         yUV1min
                                     )
@@ -904,13 +1116,13 @@ fun RadiationObservationCard(
                             2 -> {
                                 val yDirect1min = chartObservations
                                     .mapNotNull { observation ->
-                                        observation.directRadiation?.takeIf { !it.isNaN() }
+                                        observation.directRadiation.takeIf { !it.isNaN() }
                                     }
                                 if (yDirect1min.isNotEmpty()) {
                                     RadiationDataGraph(
                                         modifier = modifier,
                                         radiationDataList = chartObservations.filter {
-                                            it.directRadiation != null && !it.directRadiation.isNaN()
+                                            !it.directRadiation.isNaN()
                                         },
                                         yDirect1min
                                     )
@@ -1381,10 +1593,10 @@ fun WindGustChart(modifier: Modifier = Modifier, roadDataList: List<RoadObservat
 
     val modelProducer = remember { CartesianChartModelProducer() }
 
-    val xTime = roadDataList.map { it.unixTime }
-    val yWind = roadDataList.map { it.windSpeed }
-    val yGust = roadDataList.map { it.windGust }
-    val yDirection = roadDataList.map { it.windDirection }
+//    val xTime = roadDataList.map { it.unixTime }
+//    val yWind = roadDataList.map { it.windSpeed }
+//    val yGust = roadDataList.map { it.windGust }
+//    val yDirection = roadDataList.map { it.windDirection }
 
     val scrollState = rememberVicoScrollState(
         scrollEnabled = true,  // Enable scrolling for better user experience
@@ -1398,7 +1610,31 @@ fun WindGustChart(modifier: Modifier = Modifier, roadDataList: List<RoadObservat
         maxZoom = Zoom.Content,
     )
 
-    LaunchedEffect(Unit) {
+    LaunchedEffect(roadDataList) {
+        // Filter out invalid data points (NaN, Infinity)
+        val validData = roadDataList.filter {
+            //it.unixTime() && // Check time just in case
+                    it.windSpeed.isFinite() &&
+                    it.windGust.isFinite()
+            // Add it.windDirection.isFinite() if you plan to use it
+        }
+
+        // Check if there's any valid data left after filtering
+        if (validData.isEmpty()) {
+            // Option 1: Clear the chart
+            modelProducer.runTransaction { /* No series added */ }
+            // Option 2: Could potentially keep the old data, but clearing is safer
+            // to avoid showing stale info when new data is actually invalid.
+            return@LaunchedEffect // Exit effect if no valid data
+        }
+
+        // Extract data only from valid points
+        val xTime = validData.map { it.unixTime }
+        val yWind = validData.map { it.windSpeed }
+        val yGust = validData.map { it.windGust }
+        // val yDirection = validData.map { it.windDirection } // If needed
+
+
         modelProducer.runTransaction {
             // Clear previous data
             lineSeries {
