@@ -17,17 +17,17 @@
     <string name="west">länteen</string>
     <string name="north_west">luoteeseen</string>
     <string name="rain_mm">Sadetta: %1$s millimetriä</string>
-    <string name="temperature_speak">Lämpötila: %1$s</string>
-    <string name="humidity_speak">Kosteus: %1$s</string>
+    <string name="temperature_speak">Lämpötila: %1$s. </string>
+    <string name="humidity_speak">Kosteus: %1$s. </string>
     <string name="wind_speed">Tuuli: %1$s .</string>
     <string name="wind_gust"> Puuska: %1$s. </string>
-    <string name="wind_direction"> Suunta: %1$s astetta.</string>">
-    <string name="no_clouds">Ei pilviä havaittu</string>
-    <string name="overcast">Täyspilvikatto</string>
-    <string name="cloud_base">Pilvenpohjat: %1$s metriä.</string>">
-    <string name="thermal_height">Termiikin korkeus: %1$s metriä.</string>">
-    <string name="fl_65">Lentopinta 65. %1$s metriä</string>
-    <string name="fl_95">Lentopinta 95. %1$s metriä</string>
+    <string name="wind_direction"> Suunta: %1$s astetta. </string>">
+    <string name="no_clouds">Ei pilviä havaittu. </string>
+    <string name="overcast">Täyspilvikatto. </string>
+    <string name="cloud_base">Pilvenpohjat: %1$s metriä. </string>">
+    <string name="thermal_height">Termiikin korkeus: %1$s metriä. </string>">
+    <string name="fl_65">Lentopinta 65. %1$s metriä. </string>
+    <string name="fl_95">Lentopinta 95. %1$s metriä. </string>
 
     <string name="weather_code_0">Ei merkittäviä sääilmiöitä</string>
     <string name="weather_code_1">Pilvet yleisesti hajoavat tai vähenevät</string>

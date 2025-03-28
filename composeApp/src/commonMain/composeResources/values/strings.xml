@@ -72,6 +72,17 @@
     <string name="weather_station_added">weather station added</string>
 
 
+    <string name="location_permission_required">Location Permission Required</string>
+    <string name="why_need_permission">We need location access to show you the weather for your current area.</string>
+    <string name="permanently_denied">Permission permanently denied. Please enable in settings.</string>
+    <string name="open_app_settings">Open App Settings.</string>
+    <string name="permission_granted">Permission Granted! Loading weather...</string>
+    <string name="grant_location_permission">Grant Location Permission</string>
+    <string name="instructions">Instructions: Weather station observations collects real-time open measurement data from the Finnish Meteorological Institute's interfaces. Weather station observations can utilize user location if the user grants location permission, but it also works without user location. Weather station observations does not collect any data nor send it onwards, it only requires an internet connection to function and retrieve measurement data. Refer to the Finnish Meteorological Institute's open data if you want to better understand the properties of the data originating from there. Basically, all available data is displayed for that weather station if it is available. Station-specific updates vary between 1 h, 10 min, 5 min and 1 min, the most recent observation is attempted to be displayed if it is available. Note that even if the data comes every 10 minutes, it may take 2 minutes before it is available on the server. Currently, different tabs display weather station-specific observations, Finnish Transport Infrastructure Agency's road weather station observations, radiation observations from all available stations, as well as Jokioinen and Sodankylä sounding observations. If wind data is available, the 10 min average wind is indicated inside an arrow symbol. The color of the arrow indicates the gust strength. Gusts 0...3 blue arrow, 4...6 green, 7...9 yellow, 10...12 orange, 13...15 red, over 16 purple. If a weather station reports an automatic weather code, pressing the weather symbol will display an explanation of that code. Pressing the wind symbol animates the latest hour's observations. Pressing anywhere else shows the observations collected during the last hour graphically Pressing anywhere else for a long time saves the station as a favorite. Pressing again for a long time removes the station from favorites. The Speak weather observations service announces the selected settings every 10 minutes using the phone's Text-to-Speech feature.</string>
+
+
+
+
     <string name="weather_code_0">No significant weather observed</string>
     <string name="weather_code_1">Clouds generally dissolving or becoming less developed</string>
     <string name="weather_code_2">State of sky on the whole unchanged</string>

@@ -16,18 +16,18 @@
     <string name="south_west">south west</string>
     <string name="west">west</string>
     <string name="north_west">north west</string>
-    <string name="rain_mm">Rain: %1$s millimeters</string>
-    <string name="temperature_speak">Temperature: %1$s</string>
-    <string name="humidity_speak">Humidity: %1$s</string>
-    <string name="wind_speed">Wind speed: %1$s</string>
-    <string name="wind_gust">Wind gust: %1$s</string>
-    <string name="wind_direction">Wind direction: %1$s</string>
-    <string name="no_clouds">No clouds observed</string>
-    <string name="overcast">Overcast</string>
-    <string name="cloud_base">Cloud base: %1$s meters</string>">
-    <string name="thermal_height">Thermal height: %1$s meters</string>">
-    <string name="fl_65">Flight level 65 %1$s meters</string>
-    <string name="fl_95">Flight level 95 %1$s meters</string>
+    <string name="rain_mm">Rain: %1$s millimeters. </string>
+    <string name="temperature_speak">Temperature: %1$s. </string>
+    <string name="humidity_speak">Humidity: %1$s. </string>
+    <string name="wind_speed">Wind speed: %1$s. </string>
+    <string name="wind_gust">Wind gust: %1$s. </string>
+    <string name="wind_direction">Wind direction: %1$s. </string>
+    <string name="no_clouds">No clouds observed. </string>
+    <string name="overcast">Overcast. </string>
+    <string name="cloud_base">Cloud base: %1$s meters. </string>">
+    <string name="thermal_height">Thermal height: %1$s meters. </string>">
+    <string name="fl_65">Flight level 65 %1$s meters. </string>
+    <string name="fl_95">Flight level 95 %1$s meters. </string>
 
 
     <string name="weather_code_0">No significant weather observed</string>

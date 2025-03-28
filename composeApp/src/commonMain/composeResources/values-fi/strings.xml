@@ -39,7 +39,7 @@
     <string name="sunshine">Paiste</string>
     <string name="direct">Suora</string>
     <string name="diffuse">Haja</string>
-    <string name="long_wave">Long Wave</string>
+    <string name="long_wave">Pitkäaaltoinen</string>
     <string name="global_radiation">Globaali säteily</string>
 
     <string name="one_or_all_nearest">Lähin</string>
@@ -55,7 +55,15 @@
     <string name="clouds_height">Pilvikorkeus</string>
     <string name="flight_levels">Lentopinnat</string>
     <string name="thermal_calculation">Termiikin korkeus</string>
-<!--    <string name="instruction">Ohjeet: Sääasemahavainnot kerää Ilmatieteen laitoksen rajapinnoista reaaliaikaista avointa mittausdataa. Sääasemahavainnot voi hyödyntää käyttäjän paikannusta jos käyttäjä myöntää sijaintiluvan mutta se toimii myös ilman käyttäjän paikannusta.
+
+
+    <string name="location_permission_required">Sijaintilupa vaaditaan</string>
+    <string name="why_need_permission">Tarvitsemme sijaintiluvan näyttääksemme sinulle nykyisen alueesi säähavainnot.</string>
+    <string name="permanently_denied">Sijaintilupa pysyvästi evätty. Ota käyttöön asetuksissa.</string>
+    <string name="open_app_settings">Avaa sovelluksen asetukset.</string>
+    <string name="permission_granted">Lupa myönnetty! Ladataan säähavaintoja...</string>
+    <string name="grant_location_permission">Myönnä sijaintilupa</string>
+    <string name="instructions">Ohjeet: Sääasemahavainnot kerää Ilmatieteen laitoksen rajapinnoista reaaliaikaista avointa mittausdataa. Sääasemahavainnot voi hyödyntää käyttäjän paikannusta jos käyttäjä myöntää sijaintiluvan mutta se toimii myös ilman käyttäjän paikannusta.
 Sääasemahavainnot ei kerää mitään tietoja eikä lähetä niitä eteenpäin, se vaatii vain internetyhteyden toimiaksen ja hakeakseen mittausdataa. Tutustu Ilmatieteen laitoksen avoimeen dataan jos haluat ymmärtää paremmin sieltä peräisin olevan datan ominaisuudet.
 Lähtökohtaisesti kaikki saatavilla oleva data näytetään kyseisen sääaseman kohdalla joka on saatavilla.
 Asemakohtaiset päivitykset vaihtelevat 1 t, 10 min, 5 min ja 1 min välillä, kaikista viimeisin havainto pyritään näyttämään jos se on saatavilla. Huomioi että vaikka data tulisi 10 minuutin välein, saattaa kestää 2 min ennen kuin se on palvelimella saatavilla.
@@ -67,7 +75,7 @@ Painamalla tuulisymbolia, animoidaan viimeisin tunnin havainnot.
 Painamalla mistä tahansa muualta näytetään viimeisen tunnin aikana kerättyjä havaintoja graafisesti
 Painamalla mista tahansa muualta pitkään niin asema tallennetaan suosikiksi. Painamalla uudestaan pitkään asema poistetaan suosikeista.
 Puhu säähavainnot -palvelu ilmoittaa 10 minuutin välein valitut asetukset käyttäen puhelimen TekstistäPuheeksi -ominaisuutta.</string>
--->
+
 
 
 
